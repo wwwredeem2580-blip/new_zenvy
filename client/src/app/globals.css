@@ -1,0 +1,61 @@
+@import "tailwindcss";
+
+@theme {
+  --font-space: var(--font-space), sans-serif;
+  --font-dm: var(--font-dm), sans-serif;
+  
+  --color-bg: var(--bg);
+  --color-text: var(--text);
+  --color-border: var(--border);
+  --color-surface: var(--surface);
+  --color-muted: var(--muted);
+}
+
+:root {
+  --bg: #141414;
+  --text: #ffffff;
+  --border: rgba(255, 255, 255, 0.05);
+  --surface: #222222;
+  --muted: rgba(255, 255, 255, 0.6);
+}
+
+.light {
+  --bg: #f5f5f5;
+  --text: #141414;
+  --border: rgba(0, 0, 0, 0.1);
+  --surface: #ffffff;
+  --muted: rgba(0, 0, 0, 0.6);
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  @apply antialiased transition-colors duration-500;
+}
+
+/* Custom scrollbar for premium feel */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+}
+
+/* Hide scrollbar for clean design where needed */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
