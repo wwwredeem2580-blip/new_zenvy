@@ -1,33 +1,880 @@
-import { motion } from "motion/react";
-import { ArrowLeft, Send } from "lucide-react";
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import { motion, AnimatePresence } from "motion/react";
+import { 
+  User, 
+  Calendar, 
+  MapPin, 
+  Globe, 
+  Hash, 
+  Phone, 
+  Mail, 
+  Home, 
+  FileText, 
+  Clock, 
+  ChevronRight, 
+  ChevronLeft, 
+  Check, 
+  Upload, 
+  X, 
+  Download, 
+  Send,
+  ChefHat,
+  HardHat,
+  Briefcase,
+  ChevronDown,
+  CreditCard,
+  Timer,
+  BookOpen,
+  IdCard,
+  FileCheck,
+  Building2,
+  Plus
+} from "lucide-react";
+import { useState, useRef, useMemo, useEffect } from "react";
+import React from "react";
+
+type Step = 1 | 2 | 3 | 4;
+
+interface SubService {
+  name: string;
+  price: number;
+  duration: string;
+}
+
+interface Service {
+  id: string;
+  name: string;
+  icon: React.ReactNode;
+  subservices: SubService[];
+}
+
+interface FormData {
+  name: string;
+  dob: string;
+  pob: string;
+  nationality: string;
+  codiceFiscale: string;
+  phone: string;
+  email: string;
+  address: string;
+  permessoType: string;
+  permessoExpiry: string;
+  selectedServices: SubService[];
+  documents: { [key: string]: File | null };
+}
+
+const initialData: FormData = {
+  name: "",
+  dob: "",
+  pob: "",
+  nationality: "",
+  codiceFiscale: "",
+  phone: "",
+  email: "",
+  address: "",
+  permessoType: "",
+  permessoExpiry: "",
+  selectedServices: [],
+  documents: {
+    passport: null,
+    permesso: null,
+    codiceFiscaleDoc: null,
+    contratto: null,
+    other: null,
+  },
+};
+
+const services: Service[] = [
+  {
+    id: "servizi-caf",
+    name: "SERVIZI CAF",
+    icon: <FileText size={20} />,
+    subservices: [
+      { name: "Cessione di fabbricato", price: 30, duration: "3 Days" },
+      { name: "Idoneità alloggiativa / alloggio", price: 50, duration: "7 Days" },
+      { name: "Richiesta Carta d’Identità Elettronica (CIE)", price: 25, duration: "5 Days" },
+      { name: "Dichiarazione di residenza", price: 30, duration: "5 Days" },
+      { name: "Permesso di soggiorno – kit fill-up", price: 40, duration: "7 Days" },
+      { name: "Carta di soggiorno – kit fill-up", price: 45, duration: "7 Days" },
+      { name: "Ricongiungimento familiare", price: 80, duration: "14 Days" },
+      { name: "Cittadinanza italiana", price: 150, duration: "30 Days" },
+      { name: "NASPI – disoccupazione", price: 35, duration: "5 Days" },
+      { name: "Assegno Unico Universale", price: 20, duration: "3 Days" },
+      { name: "Assegno di inclusione", price: 25, duration: "3 Days" },
+      { name: "Assegno nucleo familiare", price: 20, duration: "3 Days" },
+      { name: "Invalidità civile", price: 60, duration: "10 Days" },
+      { name: "Dimissione volontaria", price: 15, duration: "1 Day" },
+      { name: "SFL (Servizio di formazione lavoro)", price: 30, duration: "5 Days" },
+      { name: "ISEE (Indicatore Situazione Economica Equivalente)", price: 0, duration: "2 Days" },
+      { name: "Modello 730", price: 50, duration: "7 Days" },
+      { name: "Modello Unico (Persone fisiche)", price: 70, duration: "10 Days" },
+      { name: "F24 (Pagamenti fiscali)", price: 10, duration: "1 Day" },
+      { name: "Firma digitale", price: 40, duration: "2 Days" },
+      { name: "SPID (Sistema Pubblico di Identità Digitale)", price: 20, duration: "1 Day" },
+      { name: "PEC (Posta Elettronica Certificata)", price: 25, duration: "1 Day" },
+      { name: "Contratto di casa / negozio", price: 100, duration: "7 Days" },
+      { name: "Visura catastale e planimetria", price: 20, duration: "2 Days" },
+      { name: "Abbonamento ATAC – bus e ticket", price: 5, duration: "1 Day" },
+      { name: "Domanda TARI (tassa rifiuti)", price: 30, duration: "5 Days" },
+      { name: "Carta acquisti – min. 3 বছর & over 65", price: 20, duration: "5 Days" },
+      { name: "Mensa scolastica", price: 15, duration: "3 Days" },
+      { name: "Anno scolastico", price: 20, duration: "5 Days" },
+      { name: "Bonus comunale", price: 25, duration: "5 Days" },
+      { name: "Contratti di lavoro domestico", price: 60, duration: "7 Days" },
+    ],
+  },
+  {
+    id: "impresa-servizi",
+    name: "IMPRESA SERVIZI",
+    icon: <Building2 size={20} />,
+    subservices: [
+      { name: "Apertura Partita IVA / CCIAA / INPS / SCIA", price: 250, duration: "10 Days" },
+      { name: "Chiusura Partita IVA / CCIAA / INPS / SCIA", price: 150, duration: "7 Days" },
+      { name: "Variazione Partita IVA / CCIAA", price: 100, duration: "5 Days" },
+      { name: "Apertura SRLS (Partita IVA / CCIAA / INPS / Atto / Notaio)", price: 800, duration: "20 Days" },
+      { name: "Contratto di Lavoro (UNILAV)", price: 50, duration: "2 Days" },
+      { name: "Busta Paga", price: 30, duration: "3 Days" },
+      { name: "Electronic Fattura", price: 15, duration: "1 Day" },
+      { name: "Contabilità", price: 100, duration: "Monthly" },
+      { name: "Bilancio", price: 300, duration: "Annual" },
+      { name: "Dichiarazione IVA", price: 150, duration: "Annual" },
+      { name: "Comunicazione IVA", price: 50, duration: "Quarterly" },
+    ],
+  },
+  {
+    id: "flussi-migratori",
+    name: "FLUSSI MIGRATORI",
+    icon: <Globe size={20} />,
+    subservices: [
+      { name: "Richiesta ANPAL", price: 40, duration: "5 Days" },
+      { name: "Asseverazione", price: 150, duration: "10 Days" },
+      { name: "Idoneità alloggiativa / alloggio", price: 50, duration: "7 Days" },
+      { name: "Compilazione domanda flussi", price: 100, duration: "14 Days" },
+    ],
+  },
+  {
+    id: "visti",
+    name: "VISTI",
+    icon: <IdCard size={20} />,
+    subservices: [
+      { name: "Umrah Visa", price: 200, duration: "10 Days" },
+      { name: "Tourist Visa", price: 150, duration: "14 Days" },
+    ],
+  },
+  {
+    id: "embassy-services",
+    name: "SERVIZI AMBESSATA / EMBASSY SERVICES",
+    icon: <Building2 size={20} />,
+    subservices: [
+      { name: "New born passport application", price: 100, duration: "21 Days" },
+      { name: "Birth certificate", price: 50, duration: "14 Days" },
+      { name: "Wage Earner membership", price: 30, duration: "7 Days" },
+      { name: "E-passport application and appointment", price: 120, duration: "30 Days" },
+      { name: "Bangladesh embassy appointment service", price: 20, duration: "2 Days" },
+      { name: "NVR (No Visa Required)", price: 80, duration: "14 Days" },
+    ],
+  },
+];
+
+const permessoTypes = [
+  "Lavoro Subordinato",
+  "Lavoro Autonomo",
+  "Motivi Familiari",
+  "Studio",
+  "Asilo Politico",
+  "Protezione Sussidiaria",
+  "Altro",
+];
+
+function CustomCalendar({ value, onChange, onClose }: { value: string, onChange: (val: string) => void, onClose: () => void }) {
+  const [currentDate, setCurrentDate] = useState(new Date(value || new Date()));
+  const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
+  const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
+  
+  const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  
+  const prevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1));
+  const nextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1));
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="absolute top-full left-0 mt-2 bg-surface border border-border rounded-2xl p-4 shadow-2xl z-[200] w-64"
+    >
+      <div className="flex justify-between items-center mb-4">
+        <button type="button" onClick={prevMonth} className="p-1 hover:bg-bg rounded-lg"><ChevronLeft size={14} /></button>
+        <span className="text-[10px] font-bold uppercase tracking-widest">{months[currentDate.getMonth()]} {currentDate.getFullYear()}</span>
+        <button type="button" onClick={nextMonth} className="p-1 hover:bg-bg rounded-lg"><ChevronRight size={14} /></button>
+      </div>
+      <div className="grid grid-cols-7 gap-1 text-center mb-2">
+        {["S", "M", "T", "W", "T", "F", "S"].map(d => (
+          <span key={d} className="text-[8px] text-muted font-bold">{d}</span>
+        ))}
+      </div>
+      <div className="grid grid-cols-7 gap-1">
+        {Array.from({ length: firstDayOfMonth }).map((_, i) => <div key={i} />)}
+        {Array.from({ length: daysInMonth }).map((_, i) => {
+          const day = i + 1;
+          const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+          const isSelected = value === dateStr;
+          return (
+            <button
+              key={day}
+              type="button"
+              onClick={() => {
+                onChange(dateStr);
+                onClose();
+              }}
+              className={`text-[10px] py-1 rounded-lg transition-colors ${isSelected ? 'bg-text text-bg font-bold' : 'hover:bg-bg'}`}
+            >
+              {day}
+            </button>
+          );
+        })}
+      </div>
+    </motion.div>
+  );
+}
+
+function OTPModal({ type, onVerify, onClose }: { type: 'email' | 'phone', onVerify: () => void, onClose: () => void }) {
+  const [otp, setOtp] = useState(["", "", "", ""]);
+  
+  const handleChange = (val: string, index: number) => {
+    if (val.length > 1) return;
+    const newOtp = [...otp];
+    newOtp[index] = val;
+    setOtp(newOtp);
+    if (val && index < 3) {
+      const nextInput = document.getElementById(`otp-${index + 1}`);
+      nextInput?.focus();
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="absolute inset-0 bg-bg/80 backdrop-blur-sm"
+      />
+      <motion.div 
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        className="relative bg-surface border border-border p-8 rounded-[32px] max-w-sm w-full shadow-2xl text-center"
+      >
+        <div className="w-12 h-12 bg-text/5 rounded-2xl flex items-center justify-center mx-auto mb-6">
+          {type === 'email' ? <Mail size={20} /> : <Phone size={20} />}
+        </div>
+        <h3 className="text-xl font-space font-bold mb-2">Verify your {type}</h3>
+        <p className="text-xs text-muted mb-8">We've sent a 4-digit code to your {type}. Please enter it below.</p>
+        
+        <div className="flex justify-center gap-3 mb-8">
+          {otp.map((digit, i) => (
+            <input
+              key={i}
+              id={`otp-${i}`}
+              type="text"
+              value={digit}
+              onChange={(e) => handleChange(e.target.value, i)}
+              className="w-12 h-14 bg-bg border border-border rounded-xl text-center text-xl font-bold focus:border-text/30 outline-none"
+            />
+          ))}
+        </div>
+
+        <button 
+          onClick={onVerify}
+          className="w-full bg-text text-bg py-4 rounded-2xl text-xs font-bold uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all"
+        >
+          Verify Code
+        </button>
+      </motion.div>
+    </div>
+  );
+}
 
 export default function ApplicationForm({ onClose }: { onClose: () => void }) {
-  return (
-    <div className="px-6 py-12 max-w-[1280px] mx-auto">
-      <button 
-        onClick={onClose}
-        className="flex items-center gap-2 text-black/40 hover:text-black mb-8 transition-colors font-bold uppercase tracking-widest text-[10px]"
-      >
-        <ArrowLeft size={14} /> Back to Home
-      </button>
+  const [step, setStep] = useState<Step>(1);
+  const [formData, setFormData] = useState<FormData>(initialData);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [expandedService, setExpandedService] = useState<string | null>(null);
+  const [isEmailVerified, setIsEmailVerified] = useState(false);
+  const [isPhoneVerified, setIsPhoneVerified] = useState(false);
+  const [otpModal, setOtpModal] = useState<'email' | 'phone' | null>(null);
 
-      <div className="space-y-4">
-        <h2 className="text-4xl font-space font-bold tracking-tighter">Start Application</h2>
-        <p className="text-black/60 max-w-[500px]">Complete the multi-step form below to submit your CAF application.</p>
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [step]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const toggleService = (subservice: SubService) => {
+    setFormData((prev) => {
+      const isSelected = prev.selectedServices.some(s => s.name === subservice.name);
+      if (isSelected) {
+        return { ...prev, selectedServices: prev.selectedServices.filter((s) => s.name !== subservice.name) };
+      } else {
+        return { ...prev, selectedServices: [...prev.selectedServices, subservice] };
+      }
+    });
+  };
+
+  const totalCost = useMemo(() => {
+    return formData.selectedServices.reduce((acc, curr) => acc + curr.price, 0);
+  }, [formData.selectedServices]);
+
+  const handleFileUpload = (key: string, file: File | null) => {
+    setFormData((prev) => ({
+      ...prev,
+      documents: { ...prev.documents, [key]: file },
+    }));
+  };
+
+  const nextStep = () => setStep((prev) => (prev + 1) as Step);
+  const prevStep = () => setStep((prev) => (prev - 1) as Step);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Simulate API call
+    setTimeout(() => {
+      setIsSubmitted(true);
+    }, 1500);
+  };
+
+  const isStep1Valid = formData.name && formData.dob && formData.codiceFiscale && formData.phone;
+
+  return (
+    <div className="text-text font-dm selection:bg-text selection:text-bg pb-20">
+      <div className="max-w-3xl mx-auto pt-8 px-8">
+        <AnimatePresence mode="wait">
+          {!isSubmitted ? (
+            <motion.div
+              key={step}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <div className="mb-8">
+                <h1 className="text-3xl md:text-5xl font-space font-bold tracking-tighter mb-3">
+                  {step === 1 ? "Basic Info." : step === 2 ? "Contact Details." : step === 3 ? "Select Services." : "Upload Documents."}
+                </h1>
+                <p className="text-sm text-muted max-w-lg font-light">
+                  {step === 1 
+                    ? "Let's start with your identity information." 
+                    : step === 2
+                    ? "How can we reach you and where do you reside?"
+                    : step === 3
+                    ? "Choose the services that best fit your needs."
+                    : "Please provide high-quality scans of the required documents."}
+                </p>
+              </div>
+
+              <form onSubmit={handleSubmit} className="space-y-8">
+                {step === 1 && (
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <InputField
+                      label="Full Name *"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      icon={<User size={14} />}
+                      placeholder="John Doe"
+                    />
+                    <DateInputField
+                      label="Date of Birth *"
+                      name="dob"
+                      value={formData.dob}
+                      onChange={(val: any) => setFormData(prev => ({ ...prev, dob: val }))}
+                      icon={<Calendar size={14} />}
+                    />
+                    <InputField
+                      label="Place of Birth"
+                      name="pob"
+                      value={formData.pob}
+                      onChange={handleInputChange}
+                      icon={<MapPin size={14} />}
+                      placeholder="Rome, Italy"
+                    />
+                    <InputField
+                      label="Nationality"
+                      name="nationality"
+                      value={formData.nationality}
+                      onChange={handleInputChange}
+                      icon={<Globe size={14} />}
+                      placeholder="Italian"
+                    />
+                  </div>
+                )}
+
+                {step === 2 && (
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <InputField
+                      label="Codice Fiscale *"
+                      name="codiceFiscale"
+                      value={formData.codiceFiscale}
+                      onChange={handleInputChange}
+                      icon={<Hash size={14} />}
+                      placeholder="RSSMRA80A01H501W"
+                    />
+                    <div className="relative">
+                      <InputField
+                        label="Phone Number *"
+                        name="phone"
+                        value={formData.phone}
+                        onChange={handleInputChange}
+                        icon={<Phone size={14} />}
+                        placeholder="+39 123 456 7890"
+                      />
+                      <button 
+                        type="button"
+                        onClick={() => setOtpModal('phone')}
+                        disabled={isPhoneVerified || !formData.phone}
+                        className={`absolute right-3 bottom-2.5 px-3 py-1 rounded-lg text-[8px] font-bold uppercase tracking-widest transition-all ${
+                          isPhoneVerified 
+                            ? 'bg-green-500/10 text-green-500 border border-green-500/20' 
+                            : 'bg-text text-bg hover:scale-105 disabled:opacity-20'
+                        }`}
+                      >
+                        {isPhoneVerified ? 'Verified' : 'Verify'}
+                      </button>
+                    </div>
+                    <div className="relative">
+                      <InputField
+                        label="Email Address"
+                        name="email"
+                        type="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        icon={<Mail size={14} />}
+                        placeholder="john@example.com"
+                      />
+                      <button 
+                        type="button"
+                        onClick={() => setOtpModal('email')}
+                        disabled={isEmailVerified || !formData.email}
+                        className={`absolute right-3 bottom-2.5 px-3 py-1 rounded-lg text-[8px] font-bold uppercase tracking-widest transition-all ${
+                          isEmailVerified 
+                            ? 'bg-green-500/10 text-green-500 border border-green-500/20' 
+                            : 'bg-text text-bg hover:scale-105 disabled:opacity-20'
+                        }`}
+                      >
+                        {isEmailVerified ? 'Verified' : 'Verify'}
+                      </button>
+                    </div>
+                    <InputField
+                      label="Residential Address"
+                      name="address"
+                      value={formData.address}
+                      onChange={handleInputChange}
+                      icon={<Home size={14} />}
+                      placeholder="Via Roma 123, Milan"
+                    />
+                    
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-muted flex items-center gap-2">
+                        <FileText size={12} /> Permesso Type
+                      </label>
+                      <div className="relative">
+                        <select
+                          name="permessoType"
+                          value={formData.permessoType}
+                          onChange={handleInputChange}
+                          className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-text/30 appearance-none transition-colors"
+                        >
+                          <option value="">Select Type</option>
+                          {permessoTypes.map((t) => (
+                            <option key={t} value={t}>{t}</option>
+                          ))}
+                        </select>
+                        <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-muted" />
+                      </div>
+                    </div>
+
+                    <DateInputField
+                      label="Permesso Expiry"
+                      name="permessoExpiry"
+                      value={formData.permessoExpiry}
+                      onChange={(val: any) => setFormData(prev => ({ ...prev, permessoExpiry: val }))}
+                      icon={<Clock size={14} />}
+                    />
+                  </div>
+                )}
+
+                {step === 3 && (
+                  <div className="space-y-4">
+                    {services.map((service) => (
+                      <div key={service.id} className="border border-border rounded-[24px] overflow-hidden bg-surface/30 backdrop-blur-sm">
+                        <button
+                          type="button"
+                          onClick={() => setExpandedService(expandedService === service.id ? null : service.id)}
+                          className="w-full px-6 py-4 flex items-center justify-between hover:bg-text/5 transition-colors"
+                        >
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-xl bg-surface border border-border flex items-center justify-center text-text shadow-inner">
+                              {service.icon}
+                            </div>
+                            <div className="text-left">
+                              <span className="block font-space text-lg font-bold tracking-tight text-text">{service.name}</span>
+                              <span className="text-[8px] text-muted uppercase tracking-widest font-medium">
+                                {service.subservices.length} options available
+                              </span>
+                            </div>
+                          </div>
+                          <ChevronDown 
+                            size={16} 
+                            className={`transition-transform duration-500 ${expandedService === service.id ? 'rotate-180' : ''}`} 
+                          />
+                        </button>
+                        
+                        <AnimatePresence>
+                          {expandedService === service.id && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: "auto", opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              className="overflow-hidden"
+                            >
+                              <div className="px-6 pb-6 pt-1 grid grid-cols-1 gap-3">
+                                {service.subservices.map((sub) => {
+                                  const isSelected = formData.selectedServices.some(s => s.name === sub.name);
+                                  return (
+                                    <button
+                                      key={sub.name}
+                                      type="button"
+                                      onClick={() => toggleService(sub)}
+                                      className={`group flex items-center justify-between p-4 rounded-xl border transition-all duration-500 ${
+                                        isSelected
+                                          ? "bg-text text-bg border-text shadow-lg scale-[1.01]"
+                                          : "bg-surface border-border hover:border-text/30 hover:bg-text/5"
+                                      }`}
+                                    >
+                                      <div className="flex items-center gap-3">
+                                        <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${isSelected ? 'border-bg bg-bg' : 'border-muted'}`}>
+                                          {isSelected && <Check size={12} className="text-text" />}
+                                        </div>
+                                        <div className="text-left">
+                                          <span className={`block font-bold text-sm ${isSelected ? 'text-bg' : 'text-text'}`}>{sub.name}</span>
+                                          <div className="flex items-center gap-2 mt-0.5">
+                                            <span className={`flex items-center gap-1 text-[8px] uppercase tracking-widest font-bold ${isSelected ? 'text-bg/60' : 'text-muted'}`}>
+                                              <Timer size={10} /> {sub.duration}
+                                            </span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <div className="text-right">
+                                        <span className={`block font-space text-xl font-bold ${isSelected ? 'text-bg' : 'text-text'}`}>
+                                          €{sub.price}
+                                        </span>
+                                      </div>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    ))}
+
+                    {/* Cost Summary Sticky Bar */}
+                    {formData.selectedServices.length > 0 && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="mt-8 p-6 bg-text text-bg rounded-[24px] flex flex-col md:flex-row justify-between items-center gap-4 shadow-2xl"
+                      >
+                        <div>
+                          <h4 className="text-xl font-space font-bold tracking-tight">Selection Summary</h4>
+                          <p className="text-xs font-medium opacity-70">{formData.selectedServices.length} services selected</p>
+                        </div>
+                        <div className="flex items-center gap-6">
+                          <div className="text-right">
+                            <span className="block text-[8px] uppercase tracking-widest font-bold opacity-60">Estimated Total</span>
+                            <span className="text-3xl font-space font-bold">€{totalCost}</span>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </div>
+                )}
+
+                {step === 4 && (
+                  <div className="grid sm:grid-cols-2 gap-6">
+                    <FileUploadSlot
+                      label="Passport"
+                      icon={<BookOpen size={24} />}
+                      onFileSelect={(file) => handleFileUpload("passport", file)}
+                      file={formData.documents.passport}
+                      description="Main page with photo"
+                    />
+                    <FileUploadSlot
+                      label="Permesso di Soggiorno"
+                      icon={<IdCard size={24} />}
+                      onFileSelect={(file) => handleFileUpload("permesso", file)}
+                      file={formData.documents.permesso}
+                      description="Front and back scan"
+                    />
+                    <FileUploadSlot
+                      label="Codice Fiscale"
+                      icon={<FileCheck size={24} />}
+                      onFileSelect={(file) => handleFileUpload("codiceFiscaleDoc", file)}
+                      file={formData.documents.codiceFiscaleDoc}
+                      description="Official document or card"
+                    />
+                    <FileUploadSlot
+                      label="Contratto Affitto"
+                      icon={<Building2 size={24} />}
+                      onFileSelect={(file) => handleFileUpload("contratto", file)}
+                      file={formData.documents.contratto}
+                      description="Signed lease agreement"
+                    />
+                    <FileUploadSlot
+                      label="Other Documents"
+                      icon={<Plus size={24} />}
+                      onFileSelect={(file) => handleFileUpload("other", file)}
+                      file={formData.documents.other}
+                      description="Any additional certifications"
+                    />
+                  </div>
+                )}
+
+                {/* Navigation Buttons */}
+                <div className="pt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+                  <button
+                    type="button"
+                    onClick={step === 1 ? onClose : prevStep}
+                    className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 rounded-full border border-border text-xs font-bold hover:border-text/30 transition-all text-text"
+                  >
+                    <ChevronLeft size={16} />
+                    {step === 1 ? "Cancel Application" : "Previous Step"}
+                  </button>
+
+                  {step < 4 ? (
+                    <button
+                      type="button"
+                      onClick={nextStep}
+                      disabled={
+                        (step === 1 && (!formData.name || !formData.dob)) ||
+                        (step === 2 && (!formData.codiceFiscale || !formData.phone || !isPhoneVerified || !isEmailVerified))
+                      }
+                      className="w-full sm:w-auto flex items-center justify-center gap-2 bg-text text-bg px-10 py-3 rounded-full text-xs font-bold hover:scale-105 active:scale-95 transition-all disabled:opacity-30 disabled:scale-100 shadow-xl shadow-text/10"
+                    >
+                      Continue to {step === 1 ? "Contact" : step === 2 ? "Services" : "Documents"}
+                      <ChevronRight size={16} />
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleSubmit}
+                      className="w-full sm:w-auto flex items-center justify-center gap-2 bg-text text-bg px-10 py-3 rounded-full text-xs font-bold hover:scale-105 active:scale-95 transition-all shadow-xl shadow-text/10"
+                    >
+                      Complete & Submit
+                      <Check size={16} />
+                    </button>
+                  )}
+                </div>
+              </form>
+            </motion.div>
+          ) : (
+            <SuccessState onClose={onClose} />
+          )}
+        </AnimatePresence>
       </div>
 
-      <div className="mt-12 p-12 bg-black/5 border border-black/10 rounded-[32px] text-center space-y-6">
-        <div className="w-16 h-16 bg-black text-white rounded-2xl flex items-center justify-center mx-auto">
-          <Send size={24} />
-        </div>
-        <p className="text-black/40 font-bold uppercase tracking-widest text-[10px]">Step 1: Basic Information</p>
-        <div className="h-48 border-2 border-dashed border-black/10 rounded-2xl flex items-center justify-center text-black/20 italic">
-          Application Form Fields (Phase 9)
-        </div>
-        <button className="bg-black text-white px-8 py-4 rounded-2xl font-bold text-sm hover:scale-105 transition-transform">
-          Continue
-        </button>
+      <AnimatePresence>
+        {otpModal && (
+          <OTPModal 
+            type={otpModal} 
+            onVerify={() => {
+              if (otpModal === 'email') setIsEmailVerified(true);
+              else setIsPhoneVerified(true);
+              setOtpModal(null);
+            }} 
+            onClose={() => setOtpModal(null)} 
+          />
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function InputField({ label, icon, ...props }: any) {
+  return (
+    <div className="space-y-2">
+      <label className="text-[10px] font-bold uppercase tracking-widest text-muted flex items-center gap-2">
+        {icon} {label}
+      </label>
+      <input
+        {...props}
+        className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-text/30 transition-all placeholder:text-muted/20 hover:border-text/10 text-text"
+      />
+    </div>
+  );
+}
+
+function DateInputField({ label, icon, value, onChange }: any) {
+  const [showCalendar, setShowCalendar] = useState(false);
+  return (
+    <div className="space-y-2 relative">
+      <label className="text-[10px] font-bold uppercase tracking-widest text-muted flex items-center gap-2">
+        {icon} {label}
+      </label>
+      <button
+        type="button"
+        onClick={() => setShowCalendar(!showCalendar)}
+        className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-xs text-left focus:outline-none focus:border-text/30 transition-all hover:border-text/10 flex items-center justify-between"
+      >
+        <span className={value ? 'text-text' : 'text-muted/40'}>{value || "Select Date"}</span>
+        <Calendar size={14} className="text-muted" />
+      </button>
+      {showCalendar && (
+        <CustomCalendar 
+          value={value} 
+          onChange={onChange} 
+          onClose={() => setShowCalendar(false)} 
+        />
+      )}
+    </div>
+  );
+}
+
+function FileUploadSlot({ label, icon, description, onFileSelect, file }: { 
+  label: string; 
+  icon: React.ReactNode;
+  description: string;
+  onFileSelect: (f: File | null) => void; 
+  file: File | null 
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  return (
+    <div className="space-y-2">
+      <label className="text-[10px] font-bold uppercase tracking-widest text-muted">{label}</label>
+      <div 
+        onClick={() => inputRef.current?.click()}
+        className={`group relative h-40 border-2 border-dashed rounded-[24px] flex flex-col items-center justify-center cursor-pointer transition-all duration-500 ${
+          file 
+            ? "border-text bg-text/5 shadow-inner" 
+            : "border-border hover:border-text/30 hover:bg-text/5 bg-surface/30"
+        }`}
+      >
+        <input
+          ref={inputRef}
+          type="file"
+          className="hidden"
+          onChange={(e) => onFileSelect(e.target.files?.[0] || null)}
+        />
+        
+        <AnimatePresence mode="wait">
+          {file ? (
+            <motion.div 
+              key="success"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="flex flex-col items-center gap-2 p-4 text-center"
+            >
+              <div className="w-10 h-10 bg-text text-bg rounded-full flex items-center justify-center shadow-lg">
+                <Check size={20} />
+              </div>
+              <div>
+                <span className="block text-xs font-bold truncate max-w-[150px] text-text">{file.name}</span>
+                <span className="text-[8px] uppercase tracking-widest font-bold text-muted mt-0.5 block">File Uploaded</span>
+              </div>
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onFileSelect(null);
+                }}
+                className="mt-1 px-3 py-1.5 rounded-lg bg-surface border border-border text-[8px] uppercase tracking-widest font-bold text-muted hover:text-text hover:border-text/30 transition-all"
+              >
+                Replace File
+              </button>
+            </motion.div>
+          ) : (
+            <motion.div 
+              key="empty"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="flex flex-col items-center gap-2 text-center px-4"
+            >
+              <div className="w-10 h-10 rounded-xl bg-surface border border-border flex items-center justify-center text-muted group-hover:text-text group-hover:border-text/30 transition-all duration-500 shadow-sm">
+                {icon}
+              </div>
+              <div>
+                <span className="block text-xs font-bold text-text">Click to upload</span>
+                <span className="text-[10px] text-muted mt-0.5 block">{description}</span>
+              </div>
+              <div className="mt-1 w-6 h-6 rounded-full bg-surface border border-border flex items-center justify-center text-muted group-hover:scale-110 transition-transform">
+                <Plus size={12} />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
+  );
+}
+
+function SuccessState({ onClose }: { onClose: () => void }) {
+  const appId = Math.floor(100000 + Math.random() * 900000);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="flex flex-col items-center justify-center py-12 text-center space-y-8"
+    >
+      <div className="relative">
+        <motion.div 
+          animate={{ scale: [1, 1.1, 1], opacity: [0.5, 0.8, 0.5] }}
+          transition={{ duration: 3, repeat: Infinity }}
+          className="absolute -inset-8 bg-text/10 blur-2xl rounded-full"
+        />
+        <div className="w-24 h-24 bg-text text-bg rounded-[32px] flex items-center justify-center shadow-2xl relative z-10 rotate-12">
+          <Check size={48} strokeWidth={3} />
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        <h2 className="text-4xl md:text-6xl font-space font-bold tracking-tighter text-text">Application Sent!</h2>
+        <p className="text-sm text-muted max-w-md mx-auto font-light">
+          Your application has been successfully submitted. Our team will review your details shortly.
+        </p>
+      </div>
+
+      <div className="bg-surface border border-border rounded-[24px] p-8 w-full max-w-xs shadow-inner">
+        <p className="text-[8px] uppercase tracking-[0.3em] font-bold text-muted mb-2">Application ID</p>
+        <p className="text-4xl font-mono font-bold text-text tracking-tighter">#{appId}</p>
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md">
+        <button className="flex-1 flex items-center justify-center gap-2 bg-surface border border-border px-6 py-4 rounded-full text-xs font-bold hover:border-text/30 transition-all shadow-lg text-text">
+          <Download size={16} />
+          Receipt
+        </button>
+        <button className="flex-1 flex items-center justify-center gap-2 bg-text text-bg px-6 py-4 rounded-full text-xs font-bold hover:scale-105 transition-all shadow-xl shadow-text/10">
+          <Send size={16} />
+          Email Me
+        </button>
+      </div>
+
+      <button
+        onClick={onClose}
+        className="text-[10px] uppercase tracking-widest font-bold text-muted hover:text-text transition-colors pt-4"
+      >
+        Return to Homepage
+      </button>
+    </motion.div>
   );
 }
