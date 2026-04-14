@@ -253,6 +253,7 @@ export default function ApplicationForm({ onClose, onComplete }: { onClose: () =
   const [isShowPayment, setIsShowPayment] = useState(false);
   const [expandedService, setExpandedService] = useState<string | null>(null);
   const [userBalance, setUserBalance] = useState(0);
+  const [isUseCredits, setIsUseCredits] = useState(true);
   
   // Pre-populate data if user is logged in
   useEffect(() => {
@@ -292,8 +293,8 @@ export default function ApplicationForm({ onClose, onComplete }: { onClose: () =
   }, [formData.selectedServices]);
 
   const discountAmount = useMemo(() => {
-    return Math.min(totalCost, userBalance);
-  }, [totalCost, userBalance]);
+    return isUseCredits ? Math.min(totalCost, userBalance) : 0;
+  }, [totalCost, userBalance, isUseCredits]);
 
   const finalAmount = useMemo(() => {
     return totalCost - discountAmount;
@@ -576,12 +577,17 @@ export default function ApplicationForm({ onClose, onComplete }: { onClose: () =
                          
                         <div className="relative z-10">
                           <h4 className="text-xl font-space font-bold tracking-tight">Checkout Summary.</h4>
-                          <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest opacity-60">
+                          <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest opacity-60 mt-1">
                              <span>{formData.selectedServices.length} Selected</span>
-                             {discountAmount > 0 && (
-                                <span className="text-green-400 bg-white/10 px-2 py-0.5 rounded-full border border-white/5 animate-pulse">
-                                   Credits Applied: -€{discountAmount}
-                                </span>
+                             {userBalance > 0 && (
+                                <button 
+                                  type="button"
+                                  onClick={() => setIsUseCredits(!isUseCredits)}
+                                  className={`flex items-center gap-2 px-3 py-1 rounded-full border transition-all ${isUseCredits ? 'bg-green-400 text-bg border-green-400' : 'bg-white/10 text-white/40 border-white/5'}`}
+                                >
+                                   {isUseCredits ? <Check size={10} /> : <div className="w-2.5 h-2.5 rounded-full bg-white/10" />}
+                                   Use Credits (€{userBalance})
+                                </button>
                              )}
                           </div>
                         </div>
@@ -589,7 +595,11 @@ export default function ApplicationForm({ onClose, onComplete }: { onClose: () =
                           <div className="text-right">
                             <span className="block text-[8px] uppercase tracking-widest font-bold opacity-40">Amount to Pay</span>
                             <span className="text-3xl font-space font-bold">€{finalAmount}</span>
-                            {discountAmount > 0 && <span className="block text-[8px] line-through opacity-20">Total €{totalCost}</span>}
+                            {(discountAmount > 0 || (!isUseCredits && userBalance > 0)) && (
+                               <span className="block text-[8px] opacity-20">
+                                  {isUseCredits ? `Selected Total €${totalCost}` : `€${userBalance} Credits Available`}
+                               </span>
+                            )}
                           </div>
                         </div>
                       </motion.div>

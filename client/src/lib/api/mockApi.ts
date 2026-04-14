@@ -156,6 +156,28 @@ export const mockApi = {
     return false;
   },
 
+  deductCredits: async (userId: string, amount: number): Promise<boolean> => {
+    await new Promise((resolve) => setTimeout(resolve, 800));
+    const users = getFromStorage<User[]>(USERS_KEY) || [];
+    const index = users.findIndex(u => u.id === userId);
+    
+    if (index !== -1) {
+      if ((users[index].balance || 0) < amount) return false;
+      
+      users[index].balance -= amount;
+      saveToStorage(USERS_KEY, users);
+      
+      // Update session if it's the current user
+      const session = getFromStorage<{ user: User; token: string }>(SESSION_KEY);
+      if (session && session.user.id === userId) {
+        session.user.balance -= amount;
+        saveToStorage(SESSION_KEY, session);
+      }
+      return true;
+    }
+    return false;
+  },
+
   // Verification
   verifyEmail: async (token: string): Promise<boolean> => {
     await new Promise((resolve) => setTimeout(resolve, 1000));
