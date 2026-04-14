@@ -22,7 +22,8 @@ import {
   FileText,
   Clock,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Home
 } from 'lucide-react';
 import { Application, ApplicationStatus } from '../data/applications';
 import { mockApi, User as UserType } from '../lib/api/mockApi';
@@ -180,24 +181,35 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
         </div>
       </main>
 
-      {/* Application Detail View - Restored Cleaner/Cooler Style */}
+      {/* Unified Application Detail View (Admin Version) */}
       <AnimatePresence>
         {selectedApp && (
           <div className="fixed inset-0 z-[500] flex items-center justify-end">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSelectedApp(null)} className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSelectedApp(null)} className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
             <motion.div 
-              initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              className="relative w-full max-w-2xl h-full bg-white shadow-2xl p-12 overflow-y-auto"
+              initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="relative w-full max-w-2xl h-full bg-white border-l border-black/5 shadow-2xl p-8 overflow-y-auto"
             >
               <div className="flex justify-between items-center mb-12">
-                 <h2 className="text-2xl font-space font-bold tracking-tighter uppercase">Application Details.</h2>
-                 <button onClick={() => setSelectedApp(null)} className="p-3 hover:bg-black/5 rounded-full transition-colors"><X size={20} /></button>
+                 <h2 className="text-2xl font-space font-bold tracking-tighter uppercase">Document Details.</h2>
+                 <button onClick={() => setSelectedApp(null)} className="p-2 hover:bg-black/5 rounded-full transition-colors"><X size={20} /></button>
               </div>
 
               <div className="space-y-12">
-                 {/* Status Section */}
-                 <section className="bg-black/5 p-8 rounded-[32px] space-y-6">
-                    <p className="text-[10px] uppercase tracking-widest font-bold text-black/40">Current Status</p>
+                 {/* Status Hero - Mirrored from ProfilePage */}
+                 <div className="bg-black/5 p-8 rounded-[40px] flex items-center justify-between">
+                    <div>
+                        <p className="text-[8px] uppercase tracking-[0.3em] font-bold text-black/40 mb-2">Application Status</p>
+                        <p className="text-3xl font-space font-bold tracking-tighter uppercase">{selectedApp.status}</p>
+                    </div>
+                    <div className="w-16 h-16 bg-white rounded-[24px] flex items-center justify-center shadow-lg border border-black/5">
+                         {selectedApp.status === "Approved" ? <CheckCircle2 size={32} className="text-green-500" /> : <Clock size={32} className="text-black/20" />}
+                    </div>
+                 </div>
+
+                 {/* Admin Action Section */}
+                 <section className="space-y-4">
+                    <p className="text-[10px] uppercase tracking-widest font-bold text-black/40">Admin Actions</p>
                     <div className="flex flex-wrap gap-2">
                        {(['Pending', 'Reviewing', 'Approved', 'Rejected'] as ApplicationStatus[]).map(s => (
                           <button 
@@ -215,33 +227,54 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
                     </div>
                  </section>
 
-                 {/* Information Grid */}
-                 <section className="grid grid-cols-2 gap-8">
+                 {/* Info Grid - Mirrored from ProfilePage */}
+                 <div className="grid grid-cols-2 gap-8">
                     <DetailItem icon={<User size={14}/>} label="Full Name" value={selectedApp.name} />
-                    <EditorialInfo label="Email" value={selectedApp.email} />
+                    <DetailItem icon={<Calendar size={14}/>} label="DOB" value={selectedApp.dob} />
+                    <DetailItem icon={<MapPin size={14}/>} label="Place of Birth" value={selectedApp.pob} />
                     <DetailItem icon={<Globe size={14}/>} label="Nationality" value={selectedApp.nationality} />
-                    <DetailItem icon={<MapPin size={14}/>} label="POB" value={selectedApp.pob} />
-                    <DetailItem icon={<Hash size={14}/>} label="ID Number" value={selectedApp.id} />
-                    <DetailItem icon={<Calendar size={14}/>} label="Submitted" value={new Date(selectedApp.submittedAt).toLocaleDateString()} />
-                 </section>
+                    <DetailItem icon={<Hash size={14}/>} label="Codice Fiscale" value={selectedApp.codiceFiscale} />
+                    <DetailItem icon={<Phone size={14}/>} label="Phone" value={selectedApp.phone} />
+                    <DetailItem icon={<Mail size={14}/>} label="Email" value={selectedApp.email} />
+                    <DetailItem icon={<Home size={14}/>} label="Address" value={selectedApp.address} />
+                 </div>
 
-                 {/* Documents */}
-                 <section className="space-y-4">
-                    <h3 className="text-[10px] uppercase tracking-widest font-bold text-black/40">Linked Documents</h3>
-                    <div className="grid gap-2">
-                       {["Passport Scan", "Residence Permit", "Tax Code"].map(doc => (
-                          <div key={doc} className="flex items-center gap-4 p-4 bg-black/[0.02] border border-black/5 rounded-2xl group hover:bg-white hover:border-black/20 transition-all cursor-pointer">
-                             <FileText size={18} className="text-black/20" />
-                             <span className="text-xs font-bold text-black/60 flex-1">{doc}</span>
-                             <button className="text-[8px] uppercase font-bold tracking-widest text-black/20 group-hover:text-black">Preview</button>
+                 {/* Services Section - Mirrored from ProfilePage */}
+                 <div className="space-y-4">
+                    <h3 className="text-[10px] uppercase tracking-widest font-bold text-black/40">Included Services</h3>
+                    <div className="space-y-2">
+                       {selectedApp.selectedServices.map((s, i) => (
+                          <div key={i} className="flex justify-between items-center p-5 bg-black/[0.02] border border-black/5 rounded-[24px] hover:bg-white hover:shadow-xl hover:shadow-black/5 transition-all">
+                             <div className="space-y-1">
+                                 <span className="block font-bold text-sm">{s.name}</span>
+                                 <span className="flex items-center gap-1 text-[8px] uppercase tracking-widest font-bold text-black/40">
+                                     <Clock size={10} /> {s.duration}
+                                 </span>
+                             </div>
+                             <span className="text-xl font-space font-bold">€{s.price}</span>
                           </div>
                        ))}
                     </div>
-                 </section>
+                 </div>
+
+                 {/* Documents Section - Mirrored from ProfilePage */}
+                 <div className="space-y-4">
+                    <h3 className="text-[10px] uppercase tracking-widest font-bold text-black/40">Attached Documents</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                       {["Passport Scan", "Codice Fiscale"].map(doc => (
+                          <div key={doc} className="group p-4 bg-black/5 border border-black/5 rounded-2xl flex items-center gap-4 hover:bg-black hover:text-white transition-all cursor-pointer">
+                             <div className="w-10 h-10 bg-white/50 rounded-lg flex items-center justify-center">
+                                 <FileText size={18} />
+                             </div>
+                             <span className="text-[10px] font-bold uppercase tracking-widest">{doc}</span>
+                          </div>
+                       ))}
+                    </div>
+                 </div>
 
                  <div className="pt-8">
-                    <button onClick={() => setSelectedApp(null)} className="w-full bg-black text-white py-4 rounded-full font-bold text-sm tracking-widest uppercase hover:scale-[1.02] transition-all">
-                       Close Details
+                    <button onClick={() => setSelectedApp(null)} className="w-full bg-black text-white py-4 rounded-full font-bold text-sm tracking-widest uppercase hover:scale-105 transition-all shadow-2xl shadow-black/20">
+                       Close Detail View
                     </button>
                  </div>
               </div>
@@ -250,7 +283,7 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
         )}
       </AnimatePresence>
 
-      {/* Credit Issuance Modal - Re-polished */}
+      {/* Credit Issuance Modal */}
       <AnimatePresence>
         {isCreditModalOpen && selectedUser && (
           <div className="fixed inset-0 z-[600] flex items-center justify-center p-6 bg-black/40 backdrop-blur-sm">
@@ -429,18 +462,9 @@ function DetailItem({ icon, label, value }: any) {
         <p className="text-[10px] uppercase tracking-widest font-bold text-black/40 flex items-center gap-2">
           {icon} {label}
         </p>
-        <p className="text-xs font-bold text-black/80">{value || "N/A"}</p>
+        <p className="text-sm font-bold text-black/80">{value || "N/A"}</p>
       </div>
     );
-}
-
-function EditorialInfo({ label, value }: { label: string, value: string }) {
-  return (
-    <div className="space-y-1">
-       <p className="text-[10px] uppercase tracking-widest font-bold text-black/20">{label}</p>
-       <p className="text-sm font-bold tracking-tight">{value || "—"}</p>
-    </div>
-  );
 }
 
 function OverviewPlaceholder() {
