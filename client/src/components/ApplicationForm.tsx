@@ -37,6 +37,7 @@ import {
 import { useState, useRef, useMemo, useEffect } from "react";
 import React from "react";
 import { mockApi } from "../lib/api/mockApi";
+import StripePayment from "./auth/StripePayment";
 
 type Step = 1 | 2 | 3 | 4;
 
@@ -242,74 +243,27 @@ function CustomCalendar({ value, onChange, onClose }: { value: string, onChange:
   );
 }
 
-function OTPModal({ type, onVerify, onClose }: { type: 'email' | 'phone', onVerify: () => void, onClose: () => void }) {
-  const [otp, setOtp] = useState(["", "", "", ""]);
-  
-  const handleChange = (val: string, index: number) => {
-    if (val.length > 1) return;
-    const newOtp = [...otp];
-    newOtp[index] = val;
-    setOtp(newOtp);
-    if (val && index < 3) {
-      const nextInput = document.getElementById(`otp-${index + 1}`);
-      nextInput?.focus();
-    }
-  };
 
-  return (
-    <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        onClick={onClose}
-        className="absolute inset-0 bg-bg/80 backdrop-blur-sm"
-      />
-      <motion.div 
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.9, opacity: 0 }}
-        className="relative bg-surface border border-border p-8 rounded-[32px] max-w-sm w-full shadow-2xl text-center"
-      >
-        <div className="w-12 h-12 bg-text/5 rounded-2xl flex items-center justify-center mx-auto mb-6">
-          {type === 'email' ? <Mail size={20} /> : <Phone size={20} />}
-        </div>
-        <h3 className="text-xl font-space font-bold mb-2">Verify your {type}</h3>
-        <p className="text-xs text-muted mb-8">We've sent a 4-digit code to your {type}. Please enter it below.</p>
-        
-        <div className="flex justify-center gap-3 mb-8">
-          {otp.map((digit, i) => (
-            <input
-              key={i}
-              id={`otp-${i}`}
-              type="text"
-              value={digit}
-              onChange={(e) => handleChange(e.target.value, i)}
-              className="w-12 h-14 bg-bg border border-border rounded-xl text-center text-xl font-bold focus:border-text/30 outline-none"
-            />
-          ))}
-        </div>
-
-        <button 
-          onClick={onVerify}
-          className="w-full bg-text text-bg py-4 rounded-2xl text-xs font-bold uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all"
-        >
-          Verify Code
-        </button>
-      </motion.div>
-    </div>
-  );
-}
 
 export default function ApplicationForm({ onClose }: { onClose: () => void }) {
   const [step, setStep] = useState<Step>(1);
   const [formData, setFormData] = useState<FormData>(initialData);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isShowPayment, setIsShowPayment] = useState(false);
   const [expandedService, setExpandedService] = useState<string | null>(null);
-  const [isEmailVerified, setIsEmailVerified] = useState(false);
-  const [isPhoneVerified, setIsPhoneVerified] = useState(false);
-  const [otpModal, setOtpModal] = useState<'email' | 'phone' | null>(null);
+  
+  // Pre-populate data if user is logged in
+  useEffect(() => {
+    const user = mockApi.getCurrentUser();
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        name: `${user.firstName} ${user.lastName}`,
+        email: user.email
+      }));
+    }
+  }, []);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -347,8 +301,13 @@ export default function ApplicationForm({ onClose }: { onClose: () => void }) {
 
   const [submittedAppId, setSubmittedAppId] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setIsShowPayment(true);
+  };
+
+  const handlePaymentSuccess = async () => {
+    setIsShowPayment(false);
     setIsLoading(true);
     
     try {
@@ -458,18 +417,6 @@ export default function ApplicationForm({ onClose }: { onClose: () => void }) {
                         icon={<Phone size={14} />}
                         placeholder="+39 123 456 7890"
                       />
-                      <button 
-                        type="button"
-                        onClick={() => setOtpModal('phone')}
-                        disabled={isPhoneVerified || !formData.phone}
-                        className={`absolute right-3 bottom-2.5 px-3 py-1 rounded-lg text-[8px] font-bold uppercase tracking-widest transition-all ${
-                          isPhoneVerified 
-                            ? 'bg-green-500/10 text-green-500 border border-green-500/20' 
-                            : 'bg-text text-bg hover:scale-105 disabled:opacity-20'
-                        }`}
-                      >
-                        {isPhoneVerified ? 'Verified' : 'Verify'}
-                      </button>
                     </div>
                     <div className="relative">
                       <InputField
@@ -480,19 +427,8 @@ export default function ApplicationForm({ onClose }: { onClose: () => void }) {
                         onChange={handleInputChange}
                         icon={<Mail size={14} />}
                         placeholder="john@example.com"
+                        readOnly={!!mockApi.getCurrentUser()}
                       />
-                      <button 
-                        type="button"
-                        onClick={() => setOtpModal('email')}
-                        disabled={isEmailVerified || !formData.email}
-                        className={`absolute right-3 bottom-2.5 px-3 py-1 rounded-lg text-[8px] font-bold uppercase tracking-widest transition-all ${
-                          isEmailVerified 
-                            ? 'bg-green-500/10 text-green-500 border border-green-500/20' 
-                            : 'bg-text text-bg hover:scale-105 disabled:opacity-20'
-                        }`}
-                      >
-                        {isEmailVerified ? 'Verified' : 'Verify'}
-                      </button>
                     </div>
                     <InputField
                       label="Residential Address"
@@ -688,7 +624,7 @@ export default function ApplicationForm({ onClose }: { onClose: () => void }) {
                       onClick={nextStep}
                       disabled={
                         (step === 1 && (!formData.name || !formData.dob)) ||
-                        (step === 2 && (!formData.codiceFiscale || !formData.phone || !isPhoneVerified || !isEmailVerified))
+                        (step === 2 && (!formData.codiceFiscale || !formData.phone))
                       }
                       className="w-full sm:w-auto flex items-center justify-center gap-2 bg-text text-bg px-10 py-3 rounded-full text-xs font-bold hover:scale-105 active:scale-95 transition-all disabled:opacity-30 disabled:scale-100 shadow-xl shadow-text/10"
                     >
@@ -698,10 +634,10 @@ export default function ApplicationForm({ onClose }: { onClose: () => void }) {
                   ) : (
                     <button
                       type="button"
-                      onClick={handleSubmit}
+                      onClick={() => setIsShowPayment(true)}
                       className="w-full sm:w-auto flex items-center justify-center gap-2 bg-text text-bg px-10 py-3 rounded-full text-xs font-bold hover:scale-105 active:scale-95 transition-all shadow-xl shadow-text/10"
                     >
-                      {isLoading ? "Submitting..." : "Complete & Submit"}
+                      {isLoading ? "Processing..." : `Pay €${totalCost} & Submit`}
                       <Check size={16} />
                     </button>
                   )}
@@ -714,16 +650,14 @@ export default function ApplicationForm({ onClose }: { onClose: () => void }) {
         </AnimatePresence>
       </div>
 
+
+
       <AnimatePresence>
-        {otpModal && (
-          <OTPModal 
-            type={otpModal} 
-            onVerify={() => {
-              if (otpModal === 'email') setIsEmailVerified(true);
-              else setIsPhoneVerified(true);
-              setOtpModal(null);
-            }} 
-            onClose={() => setOtpModal(null)} 
+        {isShowPayment && (
+          <StripePayment 
+            amount={totalCost}
+            onSuccess={handlePaymentSuccess}
+            onCancel={() => setIsShowPayment(false)}
           />
         )}
       </AnimatePresence>

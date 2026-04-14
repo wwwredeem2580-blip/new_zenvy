@@ -45,7 +45,7 @@ export const mockApi = {
       id: Math.random().toString(36).substr(2, 9),
       firstName: data.firstName || '',
       lastName: data.lastName || '',
-      email: data.email || '',
+      email: (data.email || '').trim().toLowerCase(),
       role: 'user',
       emailVerified: false,
       phoneVerified: false,
@@ -66,7 +66,8 @@ export const mockApi = {
     await new Promise((resolve) => setTimeout(resolve, 800));
     
     const users = getFromStorage<User[]>(USERS_KEY) || [];
-    let user = users.find((u) => u.email === email);
+    const normalizedEmail = email.trim().toLowerCase();
+    let user = users.find((u) => u.email.toLowerCase() === normalizedEmail);
 
     if (!user) {
       // For demo purposes, create a user if not found
@@ -74,7 +75,7 @@ export const mockApi = {
         id: 'demo_user_123',
         firstName: 'John',
         lastName: 'Doe',
-        email: email,
+        email: normalizedEmail,
         role: 'user',
         emailVerified: true,
         phoneVerified: false,
@@ -157,7 +158,8 @@ export const mockApi = {
 
   getApplicationsByEmail: async (email: string): Promise<Application[]> => {
     const apps = await mockApi.getApplications();
-    return apps.filter(app => app.email.toLowerCase() === email.toLowerCase());
+    const normalizedEmail = (email || '').trim().toLowerCase();
+    return apps.filter(app => (app.email || '').trim().toLowerCase() === normalizedEmail);
   },
 
   submitApplication: async (app: Partial<Application>): Promise<Application> => {
@@ -165,6 +167,7 @@ export const mockApi = {
     const apps = await mockApi.getApplications();
     const newApp: Application = {
       ...app as Application,
+      email: (app.email || '').trim().toLowerCase(), // Robust email handling
       id: 'CAF-' + Math.floor(100000 + Math.random() * 900000).toString(),
       status: 'Pending',
       submittedAt: new Date().toISOString(),
