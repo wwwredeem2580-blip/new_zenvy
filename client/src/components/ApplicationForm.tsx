@@ -245,13 +245,14 @@ function CustomCalendar({ value, onChange, onClose }: { value: string, onChange:
 
 
 
-export default function ApplicationForm({ onClose }: { onClose: () => void }) {
+export default function ApplicationForm({ onClose, onComplete }: { onClose: () => void; onComplete?: () => void }) {
   const [step, setStep] = useState<Step>(1);
   const [formData, setFormData] = useState<FormData>(initialData);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isShowPayment, setIsShowPayment] = useState(false);
   const [expandedService, setExpandedService] = useState<string | null>(null);
+  const [userBalance, setUserBalance] = useState(0);
   
   // Pre-populate data if user is logged in
   useEffect(() => {
@@ -262,6 +263,7 @@ export default function ApplicationForm({ onClose }: { onClose: () => void }) {
         name: `${user.firstName} ${user.lastName}`,
         email: user.email
       }));
+      setUserBalance(user.balance || 0);
     }
   }, []);
 
@@ -289,6 +291,14 @@ export default function ApplicationForm({ onClose }: { onClose: () => void }) {
     return formData.selectedServices.reduce((acc, curr) => acc + curr.price, 0);
   }, [formData.selectedServices]);
 
+  const discountAmount = useMemo(() => {
+    return Math.min(totalCost, userBalance);
+  }, [totalCost, userBalance]);
+
+  const finalAmount = useMemo(() => {
+    return totalCost - discountAmount;
+  }, [totalCost, discountAmount]);
+
   const handleFileUpload = (key: string, file: File | null) => {
     setFormData((prev) => ({
       ...prev,
@@ -303,7 +313,11 @@ export default function ApplicationForm({ onClose }: { onClose: () => void }) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsShowPayment(true);
+    if (finalAmount === 0) {
+      handlePaymentSuccess();
+    } else {
+      setIsShowPayment(true);
+    }
   };
 
   const handlePaymentSuccess = async () => {
@@ -311,6 +325,11 @@ export default function ApplicationForm({ onClose }: { onClose: () => void }) {
     setIsLoading(true);
     
     try {
+      const user = mockApi.getCurrentUser();
+      if (user && discountAmount > 0) {
+        await mockApi.deductCredits(user.id, discountAmount);
+      }
+
       const application = await mockApi.submitApplication({
         name: formData.name,
         dob: formData.dob,
@@ -325,6 +344,7 @@ export default function ApplicationForm({ onClose }: { onClose: () => void }) {
       
       setSubmittedAppId(application.id);
       setIsSubmitted(true);
+      if (onComplete) onComplete();
     } catch (error) {
       console.error("Submission error:", error);
     } finally {
@@ -550,16 +570,26 @@ export default function ApplicationForm({ onClose }: { onClose: () => void }) {
                       <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="mt-8 p-6 bg-text text-bg rounded-[24px] flex flex-col md:flex-row justify-between items-center gap-4 shadow-2xl"
+                        className="mt-8 p-6 bg-text text-bg rounded-[24px] flex flex-col md:flex-row justify-between items-center gap-4 shadow-2xl relative overflow-hidden"
                       >
-                        <div>
-                          <h4 className="text-xl font-space font-bold tracking-tight">Selection Summary</h4>
-                          <p className="text-xs font-medium opacity-70">{formData.selectedServices.length} services selected</p>
+                         <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-3xl -translate-y-16 translate-x-16" />
+                         
+                        <div className="relative z-10">
+                          <h4 className="text-xl font-space font-bold tracking-tight">Checkout Summary.</h4>
+                          <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest opacity-60">
+                             <span>{formData.selectedServices.length} Selected</span>
+                             {discountAmount > 0 && (
+                                <span className="text-green-400 bg-white/10 px-2 py-0.5 rounded-full border border-white/5 animate-pulse">
+                                   Credits Applied: -€{discountAmount}
+                                </span>
+                             )}
+                          </div>
                         </div>
-                        <div className="flex items-center gap-6">
+                        <div className="flex items-center gap-6 relative z-10">
                           <div className="text-right">
-                            <span className="block text-[8px] uppercase tracking-widest font-bold opacity-60">Estimated Total</span>
-                            <span className="text-3xl font-space font-bold">€{totalCost}</span>
+                            <span className="block text-[8px] uppercase tracking-widest font-bold opacity-40">Amount to Pay</span>
+                            <span className="text-3xl font-space font-bold">€{finalAmount}</span>
+                            {discountAmount > 0 && <span className="block text-[8px] line-through opacity-20">Total €{totalCost}</span>}
                           </div>
                         </div>
                       </motion.div>
@@ -634,10 +664,16 @@ export default function ApplicationForm({ onClose }: { onClose: () => void }) {
                   ) : (
                     <button
                       type="button"
-                      onClick={() => setIsShowPayment(true)}
+                      onClick={() => {
+                         if (finalAmount === 0) {
+                            handlePaymentSuccess();
+                         } else {
+                            setIsShowPayment(true);
+                         }
+                      }}
                       className="w-full sm:w-auto flex items-center justify-center gap-2 bg-text text-bg px-10 py-3 rounded-full text-xs font-bold hover:scale-105 active:scale-95 transition-all shadow-xl shadow-text/10"
                     >
-                      {isLoading ? "Processing..." : `Pay €${totalCost} & Submit`}
+                      {isLoading ? "Processing..." : finalAmount === 0 ? "Use Credits & Submit" : `Pay €${finalAmount} & Submit`}
                       <Check size={16} />
                     </button>
                   )}
@@ -655,7 +691,7 @@ export default function ApplicationForm({ onClose }: { onClose: () => void }) {
       <AnimatePresence>
         {isShowPayment && (
           <StripePayment 
-            amount={totalCost}
+            amount={finalAmount}
             onSuccess={handlePaymentSuccess}
             onCancel={() => setIsShowPayment(false)}
           />

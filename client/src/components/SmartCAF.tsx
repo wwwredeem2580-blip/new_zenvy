@@ -60,7 +60,13 @@ export default function SmartCAF({ onExit }: { onExit: () => void }) {
   const renderPage = () => {
     switch (currentPage) {
       case 'apply':
-        return <ApplicationForm onClose={() => setCurrentPage('home')} />;
+        return <ApplicationForm 
+          onClose={() => setCurrentPage('home')} 
+          onComplete={async () => {
+             const freshUser = mockApi.getCurrentUser();
+             if (freshUser) setUser(freshUser);
+          }}
+        />;
       case 'admin':
         return <AdminPage onBack={() => setCurrentPage('home')} />;
       case 'profile':
