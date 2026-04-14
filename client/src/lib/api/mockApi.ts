@@ -14,6 +14,7 @@ export interface User {
   role: 'user' | 'admin' | 'subagent';
   emailVerified: boolean;
   phoneVerified: boolean;
+  balance: number;
   createdAt: string;
 }
 
@@ -48,6 +49,7 @@ export const mockApi = {
       role: 'user',
       emailVerified: false,
       phoneVerified: false,
+      balance: 1250, // Initial demo balance
       createdAt: new Date().toISOString(),
     };
 
@@ -76,6 +78,7 @@ export const mockApi = {
         role: 'user',
         emailVerified: true,
         phoneVerified: false,
+        balance: 1450.50,
         createdAt: new Date().toISOString(),
       };
       users.push(user);
@@ -99,6 +102,7 @@ export const mockApi = {
       role: 'user',
       emailVerified: true,
       phoneVerified: false,
+      balance: 2850.75,
       createdAt: new Date().toISOString(),
     };
 
@@ -149,6 +153,11 @@ export const mockApi = {
       saveToStorage(APPLICATIONS_KEY, apps);
     }
     return apps;
+  },
+
+  getApplicationsByEmail: async (email: string): Promise<Application[]> => {
+    const apps = await mockApi.getApplications();
+    return apps.filter(app => app.email.toLowerCase() === email.toLowerCase());
   },
 
   submitApplication: async (app: Partial<Application>): Promise<Application> => {

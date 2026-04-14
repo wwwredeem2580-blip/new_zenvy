@@ -19,10 +19,11 @@ import {
 import ApplicationForm from "./ApplicationForm";
 import AdminPage from "./AdminPage";
 import TrackPage from "./TrackPage";
+import ProfilePage from "./ProfilePage";
 import AuthOverlay from "./auth/AuthOverlay";
 import { mockApi, User } from "../lib/api/mockApi";
 
-type CAFPage = 'home' | 'apply' | 'track' | 'admin';
+type CAFPage = 'home' | 'apply' | 'track' | 'admin' | 'profile';
 
 export default function SmartCAF({ onExit }: { onExit: () => void }) {
   const [currentPage, setCurrentPage] = useState<CAFPage>('home');
@@ -65,6 +66,8 @@ export default function SmartCAF({ onExit }: { onExit: () => void }) {
         return <TrackPage onBack={() => setCurrentPage('home')} />;
       case 'admin':
         return <AdminPage onBack={() => setCurrentPage('home')} />;
+      case 'profile':
+        return user ? <ProfilePage user={user} onBack={() => setCurrentPage('home')} /> : null;
       default:
         return <CAFHome onStart={handleStartApply} user={user} />;
     }
@@ -134,7 +137,10 @@ export default function SmartCAF({ onExit }: { onExit: () => void }) {
                       <p className="text-xs font-bold truncate">{user.email}</p>
                       <p className="text-[9px] uppercase tracking-widest font-bold text-black/40">Role: {user.role}</p>
                     </div>
-                    <button className="w-full flex items-center gap-3 px-3 py-2 text-xs font-bold text-black/60 hover:text-black hover:bg-black/5 rounded-lg transition-colors">
+                    <button 
+                      onClick={() => { setCurrentPage('profile'); setIsProfileOpen(false); }}
+                      className="w-full flex items-center gap-3 px-3 py-2 text-xs font-bold text-black/60 hover:text-black hover:bg-black/5 rounded-lg transition-colors"
+                    >
                       <UserIcon size={14} /> Profile
                     </button>
                     <button 
