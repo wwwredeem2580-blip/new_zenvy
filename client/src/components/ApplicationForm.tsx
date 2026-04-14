@@ -36,6 +36,7 @@ import {
 } from "lucide-react";
 import { useState, useRef, useMemo, useEffect } from "react";
 import React from "react";
+import { mockApi } from "../lib/api/mockApi";
 
 type Step = 1 | 2 | 3 | 4;
 
@@ -304,6 +305,7 @@ export default function ApplicationForm({ onClose }: { onClose: () => void }) {
   const [step, setStep] = useState<Step>(1);
   const [formData, setFormData] = useState<FormData>(initialData);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [expandedService, setExpandedService] = useState<string | null>(null);
   const [isEmailVerified, setIsEmailVerified] = useState(false);
   const [isPhoneVerified, setIsPhoneVerified] = useState(false);
@@ -343,12 +345,32 @@ export default function ApplicationForm({ onClose }: { onClose: () => void }) {
   const nextStep = () => setStep((prev) => (prev + 1) as Step);
   const prevStep = () => setStep((prev) => (prev - 1) as Step);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [submittedAppId, setSubmittedAppId] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate API call
-    setTimeout(() => {
+    setIsLoading(true);
+    
+    try {
+      const application = await mockApi.submitApplication({
+        name: formData.name,
+        dob: formData.dob,
+        pob: formData.pob,
+        nationality: formData.nationality,
+        codiceFiscale: formData.codiceFiscale,
+        phone: formData.phone,
+        email: formData.email,
+        address: formData.address,
+        selectedServices: formData.selectedServices
+      });
+      
+      setSubmittedAppId(application.id);
       setIsSubmitted(true);
-    }, 1500);
+    } catch (error) {
+      console.error("Submission error:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const isStep1Valid = formData.name && formData.dob && formData.codiceFiscale && formData.phone;
@@ -679,7 +701,7 @@ export default function ApplicationForm({ onClose }: { onClose: () => void }) {
                       onClick={handleSubmit}
                       className="w-full sm:w-auto flex items-center justify-center gap-2 bg-text text-bg px-10 py-3 rounded-full text-xs font-bold hover:scale-105 active:scale-95 transition-all shadow-xl shadow-text/10"
                     >
-                      Complete & Submit
+                      {isLoading ? "Submitting..." : "Complete & Submit"}
                       <Check size={16} />
                     </button>
                   )}
@@ -687,7 +709,7 @@ export default function ApplicationForm({ onClose }: { onClose: () => void }) {
               </form>
             </motion.div>
           ) : (
-            <SuccessState onClose={onClose} />
+            <SuccessState onClose={onClose} appId={submittedAppId} />
           )}
         </AnimatePresence>
       </div>
@@ -826,9 +848,7 @@ function FileUploadSlot({ label, icon, description, onFileSelect, file }: {
   );
 }
 
-function SuccessState({ onClose }: { onClose: () => void }) {
-  const appId = Math.floor(100000 + Math.random() * 900000);
-
+function SuccessState({ onClose, appId }: { onClose: () => void; appId: string | null }) {
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}

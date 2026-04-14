@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Search, 
@@ -20,15 +20,34 @@ import {
   AlertCircle,
   Globe,
   Hash,
-  Home
+  Home,
+  Loader2
 } from 'lucide-react';
-import { mockApplications, Application, ApplicationStatus } from '../data/applications';
+import { Application, ApplicationStatus } from '../data/applications';
+import { mockApi } from '../lib/api/mockApi';
 
 export default function AdminPage({ onBack }: { onBack: () => void }) {
-  const [applications, setApplications] = useState<Application[]>(mockApplications);
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<ApplicationStatus | "All">("All");
   const [selectedApp, setSelectedApp] = useState<Application | null>(null);
+
+  useEffect(() => {
+    loadApplications();
+  }, []);
+
+  const loadApplications = async () => {
+    setIsLoading(true);
+    try {
+      const data = await mockApi.getApplications();
+      setApplications(data);
+    } catch (error) {
+      console.error("Failed to load applications", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const filteredApps = applications.filter(app => {
     const matchesSearch = app.name.toLowerCase().includes(search.toLowerCase()) || 
@@ -37,10 +56,16 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
     return matchesSearch && matchesStatus;
   });
 
-  const updateStatus = (id: string, newStatus: ApplicationStatus) => {
-    setApplications(prev => prev.map(app => app.id === id ? { ...app, status: newStatus } : app));
-    if (selectedApp?.id === id) {
-      setSelectedApp(prev => prev ? { ...prev, status: newStatus } : null);
+  const updateStatus = async (id: string, newStatus: ApplicationStatus) => {
+    try {
+      await mockApi.updateApplicationStatus(id, newStatus);
+      // Update local state for immediate feedback
+      setApplications(prev => prev.map(app => app.id === id ? { ...app, status: newStatus } : app));
+      if (selectedApp?.id === id) {
+        setSelectedApp(prev => prev ? { ...prev, status: newStatus } : null);
+      }
+    } catch (error) {
+      console.error("Failed to update status", error);
     }
   };
 
@@ -74,30 +99,41 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
           </div>
         </div>
 
-        <div className="grid gap-4">
-          {filteredApps.map(app => (
-            <motion.div 
-              key={app.id}
-              layoutId={app.id}
-              onClick={() => setSelectedApp(app)}
-              className="bg-surface border border-border p-4 rounded-2xl flex items-center justify-between cursor-pointer hover:border-text/20 transition-all group"
-            >
-              <div className="flex items-center gap-6">
-                <div className="w-10 h-10 rounded-full bg-bg flex items-center justify-center font-bold text-xs text-text border border-border">
-                  {app.name.charAt(0)}
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-24 space-y-4">
+            <Loader2 size={48} className="animate-spin text-text/20" />
+            <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted">Fetching Applications...</p>
+          </div>
+        ) : filteredApps.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-24 space-y-4 border-2 border-dashed border-border rounded-[32px]">
+            <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted">No applications found</p>
+          </div>
+        ) : (
+          <div className="grid gap-4">
+            {filteredApps.map(app => (
+              <motion.div 
+                key={app.id}
+                layoutId={app.id}
+                onClick={() => setSelectedApp(app)}
+                className="bg-surface border border-border p-4 rounded-2xl flex items-center justify-between cursor-pointer hover:border-text/20 transition-all group"
+              >
+                <div className="flex items-center gap-6">
+                  <div className="w-10 h-10 rounded-full bg-bg flex items-center justify-center font-bold text-xs text-text border border-border">
+                    {app.name.charAt(0)}
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-sm text-text">{app.name}</h3>
+                    <p className="text-[10px] text-muted uppercase tracking-widest">ID: #{app.id} • {new Date(app.submittedAt).toLocaleDateString()}</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-bold text-sm text-text">{app.name}</h3>
-                  <p className="text-[10px] text-muted uppercase tracking-widest">ID: #{app.id} • {new Date(app.submittedAt).toLocaleDateString()}</p>
+                <div className="flex items-center gap-8">
+                  <StatusBadge status={app.status} />
+                  <ChevronRight size={16} className="text-muted group-hover:translate-x-1 transition-transform" />
                 </div>
-              </div>
-              <div className="flex items-center gap-8">
-                <StatusBadge status={app.status} />
-                <ChevronRight size={16} className="text-muted group-hover:translate-x-1 transition-transform" />
-              </div>
-            </motion.div>
-          ))}
-        </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
       </div>
 
       <AnimatePresence>

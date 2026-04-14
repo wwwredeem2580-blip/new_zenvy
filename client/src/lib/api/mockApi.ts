@@ -4,6 +4,8 @@
  * Uses localStorage to persist state across refreshes.
  */
 
+import { Application, ApplicationStatus, mockApplications } from "../../data/applications";
+
 export interface User {
   id: string;
   firstName: string;
@@ -17,6 +19,7 @@ export interface User {
 
 const USERS_KEY = 'smart_caf_mock_users';
 const SESSION_KEY = 'smart_caf_session';
+const APPLICATIONS_KEY = 'smart_caf_mock_applications';
 
 // Helper to get from localStorage
 const getFromStorage = <T>(key: string): T | null => {
@@ -132,6 +135,43 @@ export const mockApi = {
         users[userIndex].emailVerified = true;
         saveToStorage(USERS_KEY, users);
       }
+      return true;
+    }
+    return false;
+  },
+
+  // Applications
+  getApplications: async (): Promise<Application[]> => {
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    let apps = getFromStorage<Application[]>(APPLICATIONS_KEY);
+    if (!apps) {
+      apps = mockApplications;
+      saveToStorage(APPLICATIONS_KEY, apps);
+    }
+    return apps;
+  },
+
+  submitApplication: async (app: Partial<Application>): Promise<Application> => {
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    const apps = await mockApi.getApplications();
+    const newApp: Application = {
+      ...app as Application,
+      id: 'CAF-' + Math.floor(100000 + Math.random() * 900000).toString(),
+      status: 'Pending',
+      submittedAt: new Date().toISOString(),
+    };
+    apps.unshift(newApp);
+    saveToStorage(APPLICATIONS_KEY, apps);
+    return newApp;
+  },
+
+  updateApplicationStatus: async (id: string, status: ApplicationStatus): Promise<boolean> => {
+    await new Promise((resolve) => setTimeout(resolve, 800));
+    const apps = await mockApi.getApplications();
+    const index = apps.findIndex(a => a.id === id);
+    if (index !== -1) {
+      apps[index].status = status;
+      saveToStorage(APPLICATIONS_KEY, apps);
       return true;
     }
     return false;
