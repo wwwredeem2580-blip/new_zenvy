@@ -28,13 +28,26 @@ import { mockApi, User } from "../lib/api/mockApi";
 import { Application, ApplicationStatus } from "../data/applications";
 
 export default function ProfilePage({ onBack, user }: { onBack: () => void; user: User }) {
+  const [localUser, setLocalUser] = useState<User>(user);
   const [applications, setApplications] = useState<Application[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedApp, setSelectedApp] = useState<Application | null>(null);
 
   useEffect(() => {
+    refreshUser();
     loadUserApplications();
   }, [user]);
+
+  const refreshUser = async () => {
+    try {
+      const freshUser = await mockApi.getUserById(user.id);
+      if (freshUser) {
+        setLocalUser(freshUser);
+      }
+    } catch (error) {
+      console.error("Failed to refresh user data", error);
+    }
+  };
 
   const loadUserApplications = async () => {
     setIsLoading(true);
@@ -95,7 +108,7 @@ export default function ProfilePage({ onBack, user }: { onBack: () => void; user
                 <p className="text-[10px] text-white/40 uppercase tracking-[0.2em] font-bold">My Balance</p>
                 <div className="flex items-baseline gap-2">
                     <span className="text-3xl font-space font-bold text-white tracking-tighter">
-                        {formatCurrency(user.balance)}
+                        {formatCurrency(localUser.balance)}
                     </span>
                     <TrendingUp size={14} className="text-green-400" />
                 </div>
@@ -116,7 +129,7 @@ export default function ProfilePage({ onBack, user }: { onBack: () => void; user
                <div className="flex justify-between items-end">
                   <div className="space-y-1">
                      <p className="text-[8px] text-white/20 uppercase tracking-widest font-bold">Account Holder</p>
-                     <p className="text-sm text-white font-medium tracking-tight uppercase">{user.firstName} {user.lastName}</p>
+                     <p className="text-sm text-white font-medium tracking-tight uppercase">{localUser.firstName} {localUser.lastName}</p>
                   </div>
                   <div className="flex -space-x-2">
                      <div className="w-8 h-8 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm" />
@@ -133,11 +146,11 @@ export default function ProfilePage({ onBack, user }: { onBack: () => void; user
                 <h3 className="text-xl font-space font-bold">Account Details.</h3>
              </div>
              <div className="space-y-4">
-                <InfoRow icon={<UserIcon size={14} />} label="Full Name" value={`${user.firstName} ${user.lastName}`} />
-                <InfoRow icon={<Mail size={14} />} label="Email Address" value={user.email} />
-                <InfoRow icon={<Hash size={14} />} label="Member ID" value={`#${user.id}`} />
-                <InfoRow icon={<Calendar size={14} />} label="Joined" value={new Date(user.createdAt).toLocaleDateString()} />
-             </div>
+                 <InfoRow icon={<UserIcon size={14} />} label="Full Name" value={`${localUser.firstName} ${localUser.lastName}`} />
+                 <InfoRow icon={<Mail size={14} />} label="Email Address" value={localUser.email} />
+                 <InfoRow icon={<Hash size={14} />} label="Member ID" value={`#${localUser.id}`} />
+                 <InfoRow icon={<Calendar size={14} />} label="Joined" value={new Date(localUser.createdAt).toLocaleDateString()} />
+              </div>
           </div>
         </div>
 

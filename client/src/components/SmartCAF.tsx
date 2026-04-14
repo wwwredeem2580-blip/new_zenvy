@@ -18,12 +18,11 @@ import {
 } from "lucide-react";
 import ApplicationForm from "./ApplicationForm";
 import AdminPage from "./AdminPage";
-import TrackPage from "./TrackPage";
 import ProfilePage from "./ProfilePage";
 import AuthOverlay from "./auth/AuthOverlay";
 import { mockApi, User } from "../lib/api/mockApi";
 
-type CAFPage = 'home' | 'apply' | 'track' | 'admin' | 'profile';
+type CAFPage = 'home' | 'apply' | 'admin' | 'profile';
 
 export default function SmartCAF({ onExit }: { onExit: () => void }) {
   const [currentPage, setCurrentPage] = useState<CAFPage>('home');
@@ -62,8 +61,6 @@ export default function SmartCAF({ onExit }: { onExit: () => void }) {
     switch (currentPage) {
       case 'apply':
         return <ApplicationForm onClose={() => setCurrentPage('home')} />;
-      case 'track':
-        return <TrackPage onBack={() => setCurrentPage('home')} />;
       case 'admin':
         return <AdminPage onBack={() => setCurrentPage('home')} />;
       case 'profile':
@@ -93,23 +90,19 @@ export default function SmartCAF({ onExit }: { onExit: () => void }) {
         {/* Desktop Nav */}
         <div className="hidden md:flex items-center bg-black/5 rounded-full px-6 py-2 space-x-8 border border-black/5">
           <button 
-            onClick={() => setCurrentPage('home')}
-            className={`text-[10px] uppercase tracking-widest font-bold transition-colors ${currentPage === 'home' ? 'text-black' : 'text-black/40 hover:text-black'}`}
-          >
-            Home
-          </button>
-          <button 
-            onClick={() => setCurrentPage('track')}
-            className={`text-[10px] uppercase tracking-widest font-bold transition-colors ${currentPage === 'track' ? 'text-black' : 'text-black/40 hover:text-black'}`}
-          >
-            Track Status
-          </button>
-          <button 
             onClick={() => setCurrentPage('admin')}
             className={`text-[10px] uppercase tracking-widest font-bold transition-colors ${currentPage === 'admin' ? 'text-black' : 'text-black/40 hover:text-black'}`}
           >
             Admin
           </button>
+          {user && (
+            <button 
+              onClick={() => setCurrentPage('profile')}
+              className={`text-[10px] uppercase tracking-widest font-bold transition-colors ${currentPage === 'profile' ? 'text-black' : 'text-black/40 hover:text-black'}`}
+            >
+              My Dashboard
+            </button>
+          )}
         </div>
 
         <div className="flex items-center gap-4">
@@ -195,15 +188,17 @@ export default function SmartCAF({ onExit }: { onExit: () => void }) {
                 onClick={() => { setCurrentPage('home'); setIsMenuOpen(false); }} 
               />
               <MobileNavLink 
-                icon={<Search size={20} />} 
-                label="Track Status" 
-                onClick={() => { setCurrentPage('track'); setIsMenuOpen(false); }} 
-              />
-              <MobileNavLink 
                 icon={<LayoutDashboard size={20} />} 
                 label="Admin Dashboard" 
                 onClick={() => { setCurrentPage('admin'); setIsMenuOpen(false); }} 
               />
+              {user && (
+                <MobileNavLink 
+                  icon={<UserIcon size={20} />} 
+                  label="My Profile" 
+                  onClick={() => { setCurrentPage('profile'); setIsMenuOpen(false); }} 
+                />
+              )}
               <div className="pt-8 border-t border-black/10 flex flex-col gap-6">
                 {!user ? (
                    <button 
@@ -328,8 +323,8 @@ function CAFHome({ onStart, user }: { onStart: () => void; user: User | null }) 
             />
             <FeatureCard 
               icon={<Search className="text-black" />} 
-              title="Real-time Tracking" 
-              desc="Know exactly where your application stands."
+              title="Dashboard Tracking" 
+              desc="Monitor your application journey from your personal profile."
             />
             <FeatureCard 
               icon={<ClipboardList className="text-black" />} 
