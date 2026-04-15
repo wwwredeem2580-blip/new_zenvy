@@ -24,7 +24,7 @@ function EditorialStat({ label, value, trend }: { label: string, value: string, 
         <div className="space-y-2">
             <p className="text-[10px] uppercase tracking-widest font-bold text-black/40">{label}</p>
             <div className="flex items-baseline gap-2">
-                <h3 className="text-5xl font-space font-bold tracking-tighter">{value}</h3>
+                <h3 className="text-4xl font-space font-bold tracking-tighter">{value}</h3>
                 <span className="text-[10px] font-bold text-green-600 uppercase font-space">{trend}</span>
             </div>
         </div>

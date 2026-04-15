@@ -45,7 +45,7 @@ export function UsersView({
   };
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-2">
        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 border-b border-black/5 pb-12">
           <div className="relative flex-1 max-w-md">
              <Search className="absolute left-0 top-1/2 -translate-y-1/2 text-black/20" size={20} />
@@ -54,7 +54,7 @@ export function UsersView({
                placeholder="Search registry..."
                value={search}
                onChange={(e) => setSearch(e.target.value)}
-               className="w-full pl-8 pr-4 py-2 bg-transparent text-sm focus:outline-none placeholder:text-black/10"
+               className="w-full pl-8 pr-4 py-2 bg-transparent text-sm focus:outline-none placeholder:text-black/40"
              />
           </div>
 
@@ -75,12 +75,12 @@ export function UsersView({
           {filtered.map((user: UserType) => (
              <div 
                 key={user.id} 
-                className="group flex items-center justify-between py-6 px-8 hover:bg-black/[0.02] rounded-[40px] transition-all"
+                className="group flex items-center justify-between py-4 px-4 hover:bg-black/[0.02] border-b border-black/5 transition-all"
              >
                 <div className="flex items-center gap-10">
                    <div className="relative">
-                      <div className="w-12 h-12 bg-black text-white rounded-2xl flex items-center justify-center font-bold text-lg uppercase">
-                        {user.firstName[0]}
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-lg uppercase">
+                        <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.email+user.id}`} alt={user.email}/>
                       </div>
                       {user.role === 'admin' && (
                          <div className="absolute -top-1 -right-1 w-5 h-5 bg-yellow-400 border-2 border-white rounded-full flex items-center justify-center">
@@ -94,8 +94,8 @@ export function UsersView({
                       )}
                    </div>
                    <div className="flex flex-col">
-                      <span className="text-xl font-bold tracking-tight">{user.firstName} {user.lastName}</span>
-                      <span className="text-[10px] text-black/40 font-bold uppercase tracking-widest">{user.email}</span>
+                      <span className="text-md font-bold tracking-tight">{user.firstName} {user.lastName}</span>
+                      <span className="text-[9px] max-w-[150px] overflow-hidden text-ellipsis text-black/60 font-bold tracking-widest">{user.email}</span>
                    </div>
                 </div>
 

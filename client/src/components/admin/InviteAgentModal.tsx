@@ -39,7 +39,7 @@ export function InviteAgentModal({ onClose, onInvited }: { onClose: () => void, 
           
           <div className="space-y-2">
              <p className="text-[10px] uppercase tracking-[0.4em] font-bold text-black/40 text-center">Team Expansion</p>
-             <h3 className="text-4xl font-space font-bold tracking-tighter uppercase text-center">Invite Agent.</h3>
+             <h3 className="text-2xl font-space font-bold tracking-tighter uppercase text-center">Invite Agent.</h3>
           </div>
 
           {!inviteLink ? (
@@ -52,7 +52,7 @@ export function InviteAgentModal({ onClose, onInvited }: { onClose: () => void, 
                      value={name}
                      onChange={e => setName(e.target.value)}
                      placeholder="John Smith"
-                     className="w-full bg-black/5 border border-black/5 rounded-[24px] px-8 py-5 text-lg font-bold focus:outline-none"
+                     className="w-full bg-black/5 border border-black/5 rounded-[16px] px-4 py-3 text-sm font-bold focus:outline-none"
                    />
                 </div>
                 <div className="space-y-4">
@@ -63,32 +63,32 @@ export function InviteAgentModal({ onClose, onInvited }: { onClose: () => void, 
                      value={email}
                      onChange={e => setEmail(e.target.value)}
                      placeholder="agent@smartcaf.it"
-                     className="w-full bg-black/5 border border-black/5 rounded-[24px] px-8 py-5 text-lg font-bold focus:outline-none"
+                     className="w-full bg-black/5 border border-black/5 rounded-[16px] px-4 py-3 text-sm font-bold focus:outline-none"
                    />
                 </div>
                 <button 
                   type="submit"
                   disabled={isSending}
-                  className="w-full bg-black text-white py-6 rounded-[24px] font-bold text-sm tracking-[0.2em] uppercase hover:scale-[1.02] shadow-2xl shadow-black/20"
+                  className="w-full bg-black text-white py-4 rounded-[16px] font-bold text-xs tracking-[0.2em] hover:scale-[1.02] shadow-2xl shadow-black/20"
                 >
-                   {isSending ? "Generating Invite..." : "Send Invitation Link ↗"}
+                   {isSending ? "Generating Invite..." : "Generate Invitation Link ↗"}
                 </button>
              </form>
           ) : (
              <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="bg-green-50 p-8 rounded-[32px] border border-green-100 space-y-4">
+                <div className="bg-green-50 p-6 rounded-[32px] border border-green-100 space-y-4">
                    <div className="flex items-center gap-3 text-green-600">
                       <CheckCircle2 size={24} />
-                      <span className="font-bold text-sm uppercase tracking-widest">Invitation Ready</span>
+                      <span className="font-bold text-xs uppercase tracking-widest">Invitation Ready</span>
                    </div>
-                   <p className="text-sm text-green-800/60 leading-relaxed">
+                   <p className="text-xs text-green-800/60 leading-relaxed">
                       Copy the link below and send it to your new agent. They can use it to set their password and join the hub.
                    </p>
                 </div>
-                <div className="p-6 bg-black/5 rounded-2xl break-all font-mono text-[10px] border border-black/5 select-all cursor-pointer hover:bg-black/10 transition-colors" title="Click to select all">
+                <div className="p-6 bg-black/5 rounded-2xl break-all font-mono text-[12px] border border-black/5 select-all cursor-pointer hover:bg-black/10 transition-colors" title="Click to select all">
                    {inviteLink}
                 </div>
-                <button onClick={onInvited} className="w-full py-4 rounded-xl border-2 border-black font-bold text-[10px] uppercase tracking-widest hover:bg-black hover:text-white transition-all">
+                <button onClick={onInvited} className="w-full py-4 rounded-xl border-2 bg-black/90 text-white font-bold text-[12px] uppercase tracking-widest hover:bg-black hover:text-white transition-all">
                    Done
                 </button>
              </div>

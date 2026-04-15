@@ -49,7 +49,7 @@ export function PermissionsModal({
           
           <div className="space-y-2">
              <p className="text-[10px] uppercase tracking-[0.4em] font-bold text-black/40 text-center">Override Management</p>
-             <h3 className="text-4xl font-space font-bold tracking-tighter uppercase text-center">Permissions.</h3>
+             <h3 className="text-2xl font-space font-bold tracking-tighter uppercase text-center">Permissions.</h3>
              <p className="text-sm text-black/40 font-light text-center">Configuring agent: <span className="text-black font-bold">{user.firstName} {user.lastName}</span></p>
           </div>
 
@@ -70,7 +70,7 @@ export function PermissionsModal({
           <button 
             onClick={handleSave}
             disabled={isSaving}
-            className="w-full bg-black text-white py-6 rounded-[24px] font-bold text-sm tracking-[0.2em] uppercase shadow-2xl"
+            className="w-full bg-black text-white py-4 rounded-[16px] font-bold text-xs tracking-[0.2em] uppercase shadow-2xl"
           >
              {isSaving ? "Saving..." : "Apply Changes ↗"}
           </button>

@@ -33,7 +33,9 @@ import {
   Download,
   Shield,
   Search,
-  Home
+  Home,
+  PlusIcon,
+  FolderPlus
 } from 'lucide-react';
 
 import { OverviewView } from './admin/OverviewView';
@@ -207,18 +209,18 @@ export default function AdminPage() {
       </header>
 
       {/* Main Workspace - Centered Content */}
-      <main className="flex-1 lg:pt-32 pt-24 pb-24 lg:pb-24 overflow-y-auto">
+      <main className="flex-1 mt-2 lg:pt-32 pt-24 pb-24 lg:pb-24 overflow-y-auto">
         <div className="max-w-6xl mx-auto lg:px-16 px-6">
-          <header className="mb-24">
+          <header className="mb-16">
              <motion.h1 
                initial={{ opacity: 0, x: -20 }}
                animate={{ opacity: 1, x: 0 }}
                key={activeTab}
-               className="text-6xl md:text-8xl font-space font-bold tracking-tighter leading-none mb-6"
+               className="text-4xl md:text-6xl font-space font-bold tracking-tighter leading-none mb-6"
              >
                {activeTab}.
              </motion.h1>
-             <p className="text-lg text-black/40 font-light max-w-xl leading-relaxed">
+             <p className="text-md text-black/50 font-light max-w-xl leading-relaxed">
                {activeTab === 'Applications' && "Review and manage all incoming service requests from our citizens."}
                {activeTab === 'Users' && "Manage registered user accounts, metadata, and financial credit issuance."}
                {activeTab === 'Workspaces' && "Orchestrate cloud storage structures and manage folder-level permissions."}
@@ -229,10 +231,10 @@ export default function AdminPage() {
                <motion.div 
                  initial={{ opacity: 0 }}
                  animate={{ opacity: 1 }}
-                 className="mt-12 flex items-center gap-6"
+                 className="mt-6 flex items-center gap-6"
                >
-                  <button className="flex items-center gap-3 px-8 py-4 bg-white border border-black/10 rounded-2xl font-bold text-sm shadow-sm hover:shadow-md transition-all group">
-                     Export Records
+                  <button className="flex items-center gap-3 px-6 py-2 bg-black/5 border-black/5 rounded-lg font-bold text-sm shadow-sm hover:shadow-md transition-all group">
+                     Export CSV
                      <ArrowUpRight size={18} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                   </button>
                </motion.div>
@@ -246,10 +248,10 @@ export default function AdminPage() {
                >
                   <button 
                     onClick={() => setIsWsModalOpen(true)}
-                    className="flex items-center gap-3 px-10 py-4 bg-black text-white rounded-2xl font-bold text-sm shadow-xl hover:scale-105 transition-all"
+                    className="flex items-center gap-3 px-4 py-2 bg-black/5 border-black/5 text-black rounded-xl font-bold text-sm shadow-xl hover:scale-105 transition-all"
                   >
-                     New Workspace
-                     <ArrowUpRight size={18} />
+                    <FolderPlus size={16} />
+                    New Folder
                   </button>
                </motion.div>
              )}

@@ -7,7 +7,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Folder, Settings2, Trash2, X } from 'lucide-react';
+import { DownloadCloudIcon, Folder, PlusIcon, Settings2, Trash2, UploadCloudIcon, X } from 'lucide-react';
 import { Workspace, WorkspacePermission, User as UserType } from '../../lib/api/mockApi';
 import { mockApi } from '../../lib/api/mockApi';
 
@@ -49,18 +49,18 @@ export function WorkspacesManager({
   }
 
   return (
-    <div className="space-y-12">
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+    <div className="space-y-6">
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         {workspaces.map((ws: Workspace) => (
           <motion.div
             key={ws.id}
             whileHover={{ y: -5 }}
-            className="group relative bg-black/[0.02] border border-black/5 rounded-[32px] p-8 flex flex-col justify-between h-[240px] hover:bg-white hover:shadow-2xl hover:shadow-black/5 transition-all cursor-pointer overflow-hidden"
+            className="group relative bg-black/[0.02] border border-black/5 rounded-[16px] p-8 flex flex-col justify-between h-[180px] hover:bg-white hover:shadow-2xl hover:shadow-black/5 transition-all cursor-pointer overflow-hidden"
             onClick={() => setViewedWorkspace(ws)}
           >
             <div className="relative z-10 flex justify-between items-start">
-               <div className="w-12 h-12 bg-black text-white rounded-2xl flex items-center justify-center rotate-3 group-hover:rotate-0 transition-transform">
-                  <Folder size={24} />
+               <div className="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center rotate-3 group-hover:rotate-0 transition-transform">
+                  <Folder size={18} />
                </div>
                <div className="flex items-center gap-2">
                   <button 
@@ -68,7 +68,7 @@ export function WorkspacesManager({
                       e.stopPropagation();
                       setEditingWorkspace(ws);
                     }}
-                    className="p-2 bg-white/50 rounded-full opacity-0 group-hover:opacity-100 hover:bg-black hover:text-white transition-all shadow-sm"
+                    className="p-2 bg-white/50 rounded-full hover:bg-black hover:text-white transition-all shadow-sm"
                   >
                     <Settings2 size={14} />
                   </button>
@@ -92,7 +92,7 @@ export function WorkspacesManager({
                    onDeleteWorkspace(ws.id);
                  }
               }}
-              className="absolute bottom-8 right-8 p-3 opacity-0 group-hover:opacity-100 hover:bg-red-50 text-red-500 rounded-full transition-all"
+              className="absolute bottom-8 right-8 p-3 hover:bg-red-50 text-red-500 rounded-full transition-all"
             >
                <Trash2 size={16} />
             </button>
@@ -150,24 +150,25 @@ function WorkspaceBrowser({ workspace, onBack, onEdit }: { workspace: Workspace,
 
   return (
     <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-12">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-black/5 pb-12">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-black/5 pb-4">
         <div className="space-y-4">
           <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] font-bold text-black/30">
             <button onClick={onBack} className="hover:text-black transition-colors">Workspaces</button>
             <span>›</span>
             <span className="text-black">{workspace.name}</span>
           </div>
-          <h2 className="text-4xl font-space font-bold tracking-tighter uppercase">{workspace.name}.</h2>
+          <h2 className="text-2xl font-space font-bold tracking-tighter uppercase">{workspace.name}.</h2>
         </div>
         <div className="flex items-center gap-4">
-           <button onClick={onEdit} className="p-4 bg-black/5 rounded-2xl hover:bg-black/10 transition-colors">
-             <Settings2 size={20} />
+           <button onClick={onEdit} className="px-4 py-2 bg-black/5 rounded-xl hover:bg-black/10 transition-colors">
+             <Settings2 size={16} />
            </button>
            <button 
              onClick={handleUpload}
              disabled={isUploading}
-             className="px-8 py-4 bg-black text-white rounded-2xl font-bold text-sm hover:scale-105 transition-all shadow-xl shadow-black/10 disabled:opacity-20"
+             className="flex items-center gap-2 px-6 py-2 bg-black text-white rounded-xl font-bold text-sm hover:scale-105 transition-all shadow-xl shadow-black/10 disabled:opacity-20"
            >
+            <UploadCloudIcon size={16} />
              {isUploading ? "Uploading..." : "Upload File"}
            </button>
         </div>
@@ -183,21 +184,25 @@ function WorkspaceBrowser({ workspace, onBack, onEdit }: { workspace: Workspace,
       ) : (
         <div className="grid gap-3">
           {files.map(file => (
-            <div key={file.id} className="group flex items-center justify-between p-6 bg-black/[0.02] border border-black/5 rounded-[24px] hover:bg-white hover:shadow-xl hover:shadow-black/5 transition-all">
+            <div key={file.id} className="group flex items-center justify-between px-4 py-2 bg-black/[0.02] border border-black/5 rounded-[16px] hover:bg-white hover:shadow-xl hover:shadow-black/5 transition-all">
               <div className="flex items-center gap-6">
-                <div className="w-12 h-12 bg-white border border-black/5 rounded-xl flex items-center justify-center shadow-sm">
-                  <span className="text-black/20">📄</span>
+                <div className="w-8 h-8 rounded-xl flex items-center justify-center">
+                  <span className="text-black/90 text-2xl">📄</span>
                 </div>
                 <div className="flex flex-col">
                   <span className="text-sm font-bold">{file.name}</span>
-                  <span className="text-[8px] uppercase tracking-widest font-bold text-black/30">
+                  <span className="text-[8px] uppercase tracking-widest font-bold text-black/50">
                     {file.size} • {file.uploadedBy} • {new Date(file.uploadedAt).toLocaleDateString()}
                   </span>
                 </div>
               </div>
-              <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                 <button className="p-3 hover:bg-black/5 rounded-full transition-all">⬇</button>
-                 <button onClick={() => handleDeleteFile(file.id)} className="p-3 hover:bg-red-50 text-red-500 rounded-full transition-all">🗑</button>
+              <div className="flex items-center gap-2 transition-opacity">
+                 <button className="p-3 hover:bg-black/5 rounded-full transition-all">
+                  <DownloadCloudIcon size={16} />
+                 </button>
+                 <button onClick={() => handleDeleteFile(file.id)} className="p-3 hover:bg-red-50 text-red-500 rounded-full transition-all">
+                  <Trash2 size={16} />
+                 </button>
               </div>
             </div>
           ))}
@@ -238,16 +243,16 @@ function WorkspaceModal({ users, workspace, onClose, onSaved }: {
   };
 
   return (
-    <div className="fixed inset-0 z-[600] flex items-center justify-center p-6 bg-black/40 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[600] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
        <motion.div 
          initial={{ scale: 0.9, opacity: 0 }} animate={{ opacity: 1, scale: 1 }} exit={{ scale: 0.9, opacity: 0 }}
-         className="bg-white rounded-[40px] w-full max-w-xl p-12 space-y-10 shadow-2xl relative"
+         className="bg-white rounded-[40px] w-full max-w-xl p-6 space-y-6 shadow-2xl relative"
        >
           <button onClick={onClose} className="absolute right-8 top-8 p-2 hover:bg-black/5 rounded-full transition-colors"><X size={20} /></button>
           
           <div className="space-y-2">
              <p className="text-[10px] uppercase tracking-[0.4em] font-bold text-black/40 text-center">Cloud Logistics</p>
-             <h3 className="text-4xl font-space font-bold tracking-tighter uppercase text-center">{isEdit ? 'Edit Settings.' : 'New Workspace.'}</h3>
+             <h3 className="text-2xl font-space font-bold tracking-tighter uppercase text-center">{isEdit ? 'Edit Settings.' : 'New Workspace.'}</h3>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-8">
@@ -259,7 +264,7 @@ function WorkspaceModal({ users, workspace, onClose, onSaved }: {
                   placeholder="e.g. Internal Templates"
                   value={name}
                   onChange={e => setName(e.target.value)}
-                  className="w-full bg-black/5 border border-black/5 rounded-[24px] px-8 py-5 text-lg font-bold focus:outline-none focus:bg-black/10 transition-all"
+                  className="w-full bg-black/5 border border-black/5 rounded-[16px] px-4 py-4 text-sm font-bold focus:outline-none focus:bg-black/10 transition-all"
                 />
              </div>
 
@@ -271,7 +276,7 @@ function WorkspaceModal({ users, workspace, onClose, onSaved }: {
                         key={p}
                         type="button"
                         onClick={() => setPermission(p)}
-                        className={`py-4 rounded-2xl text-[10px] font-bold uppercase tracking-widest border transition-all ${permission === p ? 'bg-black text-white border-black' : 'bg-white border-black/5 text-black/30 hover:border-black/20'}`}
+                        className={`py-2 px-4 rounded-xl text-[10px] font-medium uppercase tracking-widest border transition-all ${permission === p ? 'bg-black text-white border-black' : 'bg-white border-black/5 text-black/30 hover:border-black/20'}`}
                       >
                          {p}
                       </button>
@@ -303,7 +308,7 @@ function WorkspaceModal({ users, workspace, onClose, onSaved }: {
              <button 
                type="submit"
                disabled={isSubmitting || !name}
-               className="w-full bg-black text-white py-6 rounded-[24px] font-bold text-sm tracking-[0.2em] uppercase hover:scale-[1.02] active:scale-95 transition-all shadow-2xl shadow-black/20 disabled:opacity-20 mt-4"
+               className="w-full bg-black text-white py-4 rounded-[16px] font-bold text-xs tracking-[0.2em] uppercase hover:scale-[1.02] active:scale-95 transition-all shadow-2xl shadow-black/20 disabled:opacity-20 mt-4"
              >
                 {isSubmitting ? "Processing..." : "Update Workspace ↗"}
              </button>

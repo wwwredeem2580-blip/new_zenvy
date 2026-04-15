@@ -32,16 +32,16 @@ export function ApplicationsView({ applications, onSelect }: { applications: App
   );
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-2">
       <div className="flex justify-between items-center border-b border-black/5 pb-12">
          <div className="relative flex-1 max-w-md">
             <Search className="absolute left-0 top-1/2 -translate-y-1/2 text-black/20" size={20} />
             <input 
               type="text" 
-              placeholder="Filter by name or ID..."
+              placeholder="Search by name or ID..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-8 pr-4 py-2 bg-transparent text-sm focus:outline-none placeholder:text-black/10"
+              className="w-full pl-8 pr-4 py-2 bg-transparent text-sm focus:outline-none placeholder:text-black/40"
             />
          </div>
       </div>
@@ -51,19 +51,19 @@ export function ApplicationsView({ applications, onSelect }: { applications: App
             <motion.div 
                key={app.id} 
                onClick={() => onSelect(app)}
-               className="group flex items-center justify-between py-5 px-6 hover:bg-black/[0.02] rounded-2xl transition-all cursor-pointer"
+               className="group flex items-center justify-between py-4 px-4 border-b border-black/5 hover:bg-black/[0.02] transition-all cursor-pointer"
             >
                <div className="flex items-center gap-12">
-                  <span className="text-[10px] font-mono font-bold text-black/10">#{app.id}</span>
+                  <span className="text-[10px] max-w-[20px] sm:max-w-none font-mono font-bold text-black/50">#{app.id}</span>
                   <div className="flex flex-col">
-                     <span className="text-lg font-bold">{app.name}</span>
-                     <span className="text-[9px] uppercase tracking-widest font-bold text-black/30">{new Date(app.submittedAt).toLocaleDateString()}</span>
+                     <span className="text-sm font-bold">{app.name}</span>
+                     <span className="text-[10px] uppercase tracking-widest font-bold text-black/30">{new Date(app.submittedAt).toLocaleDateString()}</span>
                   </div>
                </div>
 
                <div className="flex items-center gap-12">
                   <StatusPill status={app.status} />
-                  <ChevronRight size={16} className="text-black/10 group-hover:text-black transition-all" />
+                  <ChevronRight size={12} className="text-black/40 group-hover:text-black transition-all" />
                </div>
             </motion.div>
          ))}
