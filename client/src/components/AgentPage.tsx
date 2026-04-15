@@ -22,7 +22,9 @@ import {
   Trash2,
   ClipboardList,
   CheckCircle2,
-  Clock
+  Clock,
+  UploadCloudIcon,
+  DownloadCloudIcon
 } from 'lucide-react';
 import { Application, ApplicationStatus } from '../data/applications';
 import { mockApi, User as UserType, Workspace, FileRecord, AgentPermissions } from '../lib/api/mockApi';
@@ -120,24 +122,24 @@ export default function AgentPage() {
   );
 
   return (
-    <div className="min-h-screen bg-black/5 text-black font-dm selection:bg-black selection:text-white pt-32 pb-24 px-8 md:px-16">
-      <div className="max-w-6xl mx-auto space-y-16">
-         <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8">
+    <div className="min-h-screen bg-black/5 text-black font-dm selection:bg-black selection:text-white pb-24 px-8 md:px-16">
+      <div className="max-w-6xl mx-auto space-y-6">
+         <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
             <div>
                <button onClick={onBack} className="text-[10px] uppercase tracking-widest font-bold text-black/40 hover:text-black mb-8 transition-colors">
                  ← Back to Portal
                </button>
-               <h1 className="text-5xl md:text-7xl font-space font-bold tracking-tighter uppercase mb-4">
+               <h1 className="text-3xl md:text-7xl font-space font-bold tracking-tighter uppercase mb-4">
                  Agent Hub.
                </h1>
-               <p className="text-lg text-black/40 font-light max-w-xl leading-relaxed">
+               <p className="text-md text-black/40 font-light max-w-xl leading-relaxed">
                  Access your designated cloud workspaces and operational documents.
                </p>
             </div>
             
-            <div className="bg-white p-6 rounded-[32px] shadow-sm border border-black/5 flex items-center gap-6 min-w-[300px]">
-               <div className="w-12 h-12 bg-black text-white rounded-2xl flex items-center justify-center font-bold text-lg uppercase">
-                  {user.firstName[0]}
+            <div className="bg-white px-6 py-2 rounded-[16px] shadow-sm border border-black/5 flex items-center gap-6 min-w-[300px]">
+               <div className="w-12 h-12 border border-black/10 rounded-2xl flex items-center justify-center font-bold text-lg uppercase">
+                  <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.email+user.id}`} alt={user.email}/>
                </div>
                <div className="flex flex-col">
                   <span className="text-sm font-bold">{user.firstName} {user.lastName}</span>
@@ -179,7 +181,7 @@ export default function AgentPage() {
                animate={{ opacity: 1, x: 0 }}
                className="space-y-12"
             >
-               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-black/5 pb-12">
+               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-black/5 pb-6">
                   <div className="space-y-4">
                      <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] font-bold text-black/30">
                         <button onClick={() => setSelectedWorkspace(null)} className="hover:text-black transition-colors">Workspaces</button>
@@ -187,7 +189,7 @@ export default function AgentPage() {
                         <span className="text-black">{selectedWorkspace.name}</span>
                      </div>
                      <div className="flex items-center gap-4">
-                        <h2 className="text-4xl font-space font-bold tracking-tighter uppercase">{selectedWorkspace.name}.</h2>
+                        <h2 className="text-2xl font-space font-bold tracking-tighter uppercase">{selectedWorkspace.name}.</h2>
                         {selectedWorkspace.permission === 'Read-only' && (
                            <span className="px-3 py-1 bg-black/5 rounded-full text-[10px] tracking-widest text-black/40 flex items-center gap-1">
                               <ShieldAlert size={12} /> Read-only
@@ -200,9 +202,9 @@ export default function AgentPage() {
                      <button 
                         onClick={() => handleFileUpload(`Agent_Upload_${Math.floor(Math.random()*100)}.pdf`)}
                         disabled={isUploading}
-                        className="px-8 py-4 bg-black text-white rounded-2xl font-bold text-sm shadow-xl hover:scale-105 transition-all disabled:opacity-20 flex items-center gap-2"
+                        className="px-6 py-2 bg-black text-white rounded-xl font-bold text-sm shadow-xl hover:scale-105 transition-all disabled:opacity-20 flex items-center gap-2"
                      >
-                        {isUploading ? "Uploading..." : "Add File"} <ArrowUpRight size={16} />
+                        <UploadCloudIcon size={16} /> {isUploading ? "Uploading..." : "Add File"}
                      </button>
                   )}
                </div>
@@ -216,22 +218,22 @@ export default function AgentPage() {
                   ) : (
                      <div className="grid gap-3">
                         {workspaceFiles.map(file => (
-                           <div key={file.id} className="group flex items-center justify-between p-6 bg-black/[0.02] border border-black/5 rounded-[24px] hover:bg-white hover:shadow-xl hover:shadow-black/5 transition-all">
+                           <div key={file.id} className="group flex items-center justify-between px-4 py-2 bg-black/[0.02] border border-black/5 rounded-[16px] hover:bg-white hover:shadow-xl hover:shadow-black/5 transition-all">
                               <div className="flex items-center gap-6">
-                                 <div className="w-12 h-12 bg-white border border-black/5 rounded-xl flex items-center justify-center shadow-sm shrink-0">
-                                    <FileText size={20} className="text-black/20" />
+                                 <div className="w-8 h-8 rounded-xl flex items-center justify-center">
+                                    <span className="text-black/90 text-2xl">📄</span>
                                  </div>
                                  <div className="flex flex-col">
                                     <span className="text-sm font-bold">{file.name}</span>
-                                    <span className="text-[8px] uppercase tracking-widest font-bold text-black/30 mt-1">
-                                       {file.size} • By {file.uploadedBy}
+                                    <span className="text-[8px] uppercase tracking-widest font-bold text-black/50">
+                                       {file.size} • {file.uploadedBy} • {new Date(file.uploadedAt).toLocaleDateString()}
                                     </span>
                                  </div>
                               </div>
                               
-                              <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <div className="flex items-center gap-2 transition-opacity">
                                  <button className="p-3 hover:bg-black/5 rounded-full transition-all">
-                                    <Download size={16} />
+                                    <DownloadCloudIcon size={16} />
                                  </button>
                                  {selectedWorkspace.permission !== 'Read-only' && permissions.canDeleteFiles && (
                                     <button 
@@ -259,7 +261,7 @@ export default function AgentPage() {
                            placeholder="Search your workspaces..."
                            value={search}
                            onChange={(e) => setSearch(e.target.value)}
-                           className="w-full pl-10 pr-4 py-4 bg-transparent border-b border-black/10 text-sm focus:outline-none focus:border-black placeholder:text-black/20 font-bold transition-all"
+                           className="w-full pl-10 pr-4 py-4 bg-transparent border-b border-black/10 text-sm focus:outline-none focus:border-black placeholder:text-black/40 font-bold transition-all"
                         />
                      </div>
 
@@ -268,11 +270,11 @@ export default function AgentPage() {
                            <div 
                               key={ws.id}
                               onClick={() => handleSelectWorkspace(ws)}
-                              className="group bg-white border border-black/5 rounded-[32px] p-8 flex flex-col justify-between h-[220px] hover:shadow-2xl hover:shadow-black/5 transition-all cursor-pointer"
+                              className="group bg-white border border-black/5 rounded-[16px] p-8 flex flex-col justify-between h-[180px] hover:shadow-2xl hover:shadow-black/5 transition-all cursor-pointer"
                            >
                               <div className="flex justify-between items-start">
-                                 <div className="w-12 h-12 bg-black/5 text-black rounded-2xl flex items-center justify-center group-hover:bg-black group-hover:text-white transition-all">
-                                    <Folder size={20} />
+                                 <div className="w-10 h-10 bg-black/5 text-black rounded-xl flex items-center justify-center group-hover:bg-black group-hover:text-white transition-all">
+                                    <Folder size={18} />
                                  </div>
                                  {ws.permission === 'Read-only' && (
                                     <span className="p-2 bg-black/5 rounded-full text-black/40 group-hover:text-black transition-colors">
@@ -296,33 +298,32 @@ export default function AgentPage() {
                         <Search className="absolute left-0 top-1/2 -translate-y-1/2 text-black/20" size={20} />
                         <input 
                            type="text" 
-                           placeholder="Filter queue by name..."
+                           placeholder="Search by name or ID..."
                            value={search}
                            onChange={(e) => setSearch(e.target.value)}
-                           className="w-full pl-10 pr-4 py-4 bg-transparent border-b border-black/10 text-sm focus:outline-none focus:border-black placeholder:text-black/20 font-bold transition-all"
+                           className="w-full pl-10 pr-4 py-4 bg-transparent border-b border-black/10 text-sm focus:outline-none focus:border-black placeholder:text-black/40 font-bold transition-all"
                         />
                      </div>
 
-                     <div className="space-y-3">
+                     <div className="space-y-0">
                         {applications.filter(a => a.name.toLowerCase().includes(search.toLowerCase())).map(app => (
                            <div 
                               key={app.id}
                               onClick={() => setSelectedApp(app)}
-                              className="group flex items-center justify-between p-6 bg-white border border-black/5 rounded-[24px] hover:shadow-xl hover:shadow-black/5 transition-all cursor-pointer"
+                              className="group flex items-center justify-between py-4 px-4 border-b border-black/5 hover:bg-black/[0.02] transition-all cursor-pointer"
                            >
-                              <div className="flex items-center gap-8">
-                                 <span className="text-[10px] font-mono font-bold text-black/10">#{app.id}</span>
+                              <div className="flex items-center gap-12">
+                                 <span className="text-[10px] max-w-[20px] sm:max-w-none font-mono font-bold text-black/50">#{app.id}</span>
                                  <div className="flex flex-col">
                                     <span className="text-sm font-bold">{app.name}</span>
-                                    <span className="text-[8px] uppercase tracking-widest font-bold text-black/30 mt-1">{app.nationality} • {app.codiceFiscale}</span>
+                                    <span className="text-[10px] uppercase tracking-widest font-bold text-black/30">
+                                       {new Date(app.submittedAt).toLocaleDateString()}
+                                    </span>
                                  </div>
                               </div>
-                              <div className="flex items-center gap-12">
-                                 <div className="flex items-center gap-3">
-                                    <div className={`w-1.5 h-1.5 rounded-full ${app.status === 'Approved' ? 'bg-green-500' : 'bg-yellow-500'}`} />
-                                    <span className="text-[10px] uppercase tracking-widest font-bold text-black/40">{app.status}</span>
-                                 </div>
-                                 <ChevronRight size={16} className="text-black/10 group-hover:text-black group-hover:translate-x-1 transition-all" />
+                              <div className="flex items-center gap-6">
+                                 <StatusPill status={app.status} />
+                                 <ChevronRight size={12} className="text-black/40 group-hover:text-black transition-all" />
                               </div>
                            </div>
                         ))}
@@ -394,6 +395,21 @@ export default function AgentPage() {
          </AnimatePresence>
       </div>
     </div>
+  );
+}
+
+function StatusPill({ status }: { status: ApplicationStatus }) {
+  const styles: Record<ApplicationStatus, string> = {
+    'Pending': 'bg-yellow-400 text-black',
+    'Reviewing': 'bg-blue-400 text-white',
+    'Approved': 'bg-green-500 text-white',
+    'Rejected': 'bg-red-500 text-white'
+  };
+
+  return (
+    <span className={`px-3 py-1 rounded-full text-[8px] font-bold uppercase tracking-widest ${styles[status]}`}>
+      {status}
+    </span>
   );
 }
 
