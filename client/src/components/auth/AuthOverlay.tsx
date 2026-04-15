@@ -12,7 +12,13 @@ export default function AuthOverlay({
   onClose: () => void;
   onSuccess: (user: any) => void;
 }) {
-  const [mode, setMode] = useState<'login' | 'register'>('login');
+  const [mode, setMode] = useState<'login' | 'register' | 'invite'>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('invite_token') ? 'invite' : 'login';
+    }
+    return 'login';
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [tempUser, setTempUser] = useState<any>(null);
@@ -34,7 +40,7 @@ export default function AuthOverlay({
         const { user } = await mockApi.login(formData.email, formData.password);
         onSuccess(user);
         onClose();
-      } else {
+      } else if (mode === 'register') {
         const { user } = await mockApi.register({
           email: formData.email,
           firstName: formData.firstName,
@@ -42,6 +48,18 @@ export default function AuthOverlay({
         });
         setTempUser(user);
         setIsVerifying(true);
+      } else {
+        // Invite mode
+        const token = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('invite_token') : null;
+        if (token) {
+           const { user } = await mockApi.acceptInvite(token, formData.password);
+           // Clear URL param safely
+           if (typeof window !== 'undefined') {
+              window.history.replaceState({}, '', window.location.pathname);
+           }
+           onSuccess(user);
+           onClose();
+        }
       }
     } catch (error) {
       console.error("Auth error:", error);
@@ -172,128 +190,138 @@ export default function AuthOverlay({
             </div>
           ) : (
             /* Main Auth View */
-            <>
-              <div className="p-8 pb-4 flex justify-between items-start">
-                <div className="space-y-1">
-                  <h2 className="text-3xl font-space font-bold tracking-tighter">
-                    {mode === 'login' ? 'Welcome Back' : 'Create Account'}
-                  </h2>
-                  <p className="text-sm text-black/40 font-medium">
-                    {mode === 'login' ? 'Login to manage your CAF applications' : 'Join Smart CAF to start your journey'}
-                  </p>
-                </div>
-                <button 
-                  onClick={onClose}
-                  className="p-2 hover:bg-black/5 rounded-full transition-colors"
-                >
-                  <X size={20} />
-                </button>
-              </div>
+             <>
+               <div className="p-8 pb-4 flex justify-between items-start">
+                 <div className="space-y-1">
+                   <h2 className="text-3xl font-space font-bold tracking-tighter">
+                     {mode === 'login' ? 'Welcome Back' : mode === 'invite' ? 'Welcome Agent' : 'Create Account'}
+                   </h2>
+                   <p className="text-sm text-black/40 font-medium">
+                     {mode === 'login' ? 'Login to manage your CAF applications' : 
+                      mode === 'invite' ? 'Secure your account to access the Agent Hub' :
+                      'Join Smart CAF to start your journey'}
+                   </p>
+                 </div>
+                 <button 
+                   onClick={onClose}
+                   className="p-2 hover:bg-black/5 rounded-full transition-colors"
+                 >
+                   <X size={20} />
+                 </button>
+               </div>
 
-              <div className="p-8 pt-4 space-y-6">
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  {mode === 'register' && (
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <label className="text-[10px] uppercase tracking-widest font-bold text-black/40 pl-1">First Name</label>
-                        <div className="relative">
-                          <User className="absolute left-4 top-1/2 -translate-y-1/2 text-black/20" size={16} />
-                          <input 
-                            required
-                            type="text" 
-                            value={formData.firstName}
-                            onChange={(e) => setFormData({...formData, firstName: e.target.value})}
-                            className="w-full pl-10 pr-4 py-3 bg-black/5 border border-black/5 rounded-xl focus:outline-none focus:border-black/20 transition-colors text-sm"
-                            placeholder="John"
-                          />
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-[10px] uppercase tracking-widest font-bold text-black/40 pl-1">Last Name</label>
-                        <div className="relative">
-                          <User className="absolute left-4 top-1/2 -translate-y-1/2 text-black/20" size={16} />
-                          <input 
-                            required
-                            type="text" 
-                            value={formData.lastName}
-                            onChange={(e) => setFormData({...formData, lastName: e.target.value})}
-                            className="w-full pl-10 pr-4 py-3 bg-black/5 border border-black/5 rounded-xl focus:outline-none focus:border-black/20 transition-colors text-sm"
-                            placeholder="Doe"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
+               <div className="p-8 pt-4 space-y-6">
+                 <form onSubmit={handleSubmit} className="space-y-4">
+                   {mode === 'register' && (
+                     <div className="grid grid-cols-2 gap-4">
+                       <div className="space-y-2">
+                         <label className="text-[10px] uppercase tracking-widest font-bold text-black/40 pl-1">First Name</label>
+                         <div className="relative">
+                           <User className="absolute left-4 top-1/2 -translate-y-1/2 text-black/20" size={16} />
+                           <input 
+                             required
+                             type="text" 
+                             value={formData.firstName}
+                             onChange={(e) => setFormData({...formData, firstName: e.target.value})}
+                             className="w-full pl-10 pr-4 py-3 bg-black/5 border border-black/5 rounded-xl focus:outline-none focus:border-black/20 transition-colors text-sm"
+                             placeholder="John"
+                           />
+                         </div>
+                       </div>
+                       <div className="space-y-2">
+                         <label className="text-[10px] uppercase tracking-widest font-bold text-black/40 pl-1">Last Name</label>
+                         <div className="relative">
+                           <User className="absolute left-4 top-1/2 -translate-y-1/2 text-black/20" size={16} />
+                           <input 
+                             required
+                             type="text" 
+                             value={formData.lastName}
+                             onChange={(e) => setFormData({...formData, lastName: e.target.value})}
+                             className="w-full pl-10 pr-4 py-3 bg-black/5 border border-black/5 rounded-xl focus:outline-none focus:border-black/20 transition-colors text-sm"
+                             placeholder="Doe"
+                           />
+                         </div>
+                       </div>
+                     </div>
+                   )}
 
-                  <div className="space-y-2">
-                    <label className="text-[10px] uppercase tracking-widest font-bold text-black/40 pl-1">Email Address</label>
-                    <div className="relative">
-                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-black/20" size={16} />
-                      <input 
-                        required
-                        type="email" 
-                        value={formData.email}
-                        onChange={(e) => setFormData({...formData, email: e.target.value})}
-                        className="w-full pl-10 pr-4 py-3 bg-black/5 border border-black/5 rounded-xl focus:outline-none focus:border-black/20 transition-colors text-sm"
-                        placeholder="name@example.com"
-                      />
-                    </div>
-                  </div>
+                   {mode !== 'invite' && (
+                     <div className="space-y-2">
+                       <label className="text-[10px] uppercase tracking-widest font-bold text-black/40 pl-1">Email Address</label>
+                       <div className="relative">
+                         <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-black/20" size={16} />
+                         <input 
+                           required
+                           type="email" 
+                           value={formData.email}
+                           onChange={(e) => setFormData({...formData, email: e.target.value})}
+                           className="w-full pl-10 pr-4 py-3 bg-black/5 border border-black/5 rounded-xl focus:outline-none focus:border-black/20 transition-colors text-sm"
+                           placeholder="name@example.com"
+                         />
+                       </div>
+                     </div>
+                   )}
 
-                  <div className="space-y-2">
-                    <label className="text-[10px] uppercase tracking-widest font-bold text-black/40 pl-1">Password</label>
-                    <div className="relative">
-                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-black/20" size={16} />
-                      <input 
-                        required
-                        type="password" 
-                        value={formData.password}
-                        onChange={(e) => setFormData({...formData, password: e.target.value})}
-                        className="w-full pl-10 pr-4 py-3 bg-black/5 border border-black/5 rounded-xl focus:outline-none focus:border-black/20 transition-colors text-sm"
-                        placeholder="••••••••"
-                      />
-                    </div>
-                  </div>
+                   <div className="space-y-2">
+                     <label className="text-[10px] uppercase tracking-widest font-bold text-black/40 pl-1">
+                        {mode === 'invite' ? 'Create Password' : 'Password'}
+                     </label>
+                     <div className="relative">
+                       <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-black/20" size={16} />
+                       <input 
+                         required
+                         type="password" 
+                         value={formData.password}
+                         onChange={(e) => setFormData({...formData, password: e.target.value})}
+                         className="w-full pl-10 pr-4 py-3 bg-black/5 border border-black/5 rounded-xl focus:outline-none focus:border-black/20 transition-colors text-sm"
+                         placeholder="••••••••"
+                       />
+                     </div>
+                   </div>
 
-                  <button 
-                    type="submit"
-                    disabled={isLoading}
-                    className="w-full bg-black text-white py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:scale-[1.02] transition-all disabled:opacity-50 disabled:scale-100"
-                  >
-                    {isLoading ? <Loader2 size={18} className="animate-spin" /> : (
-                      <>
-                        {mode === 'login' ? 'Sign In' : 'Create Account'}
-                        <ArrowRight size={18} />
-                      </>
-                    )}
-                  </button>
-                </form>
+                   <button 
+                     type="submit"
+                     disabled={isLoading}
+                     className="w-full bg-black text-white py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:scale-[1.02] transition-all disabled:opacity-50 disabled:scale-100"
+                   >
+                     {isLoading ? <Loader2 size={18} className="animate-spin" /> : (
+                       <>
+                         {mode === 'invite' ? 'Complete Setup' : mode === 'login' ? 'Sign In' : 'Create Account'}
+                         <ArrowRight size={18} />
+                       </>
+                     )}
+                   </button>
+                 </form>
 
-                <div className="relative h-px bg-black/5 w-full">
-                  <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-4 text-[10px] uppercase tracking-widest font-bold text-black/20">or</span>
-                </div>
+                 {mode !== 'invite' && (
+                   <>
+                     <div className="relative h-px bg-black/5 w-full">
+                       <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-4 text-[10px] uppercase tracking-widest font-bold text-black/20">or</span>
+                     </div>
 
-                <button 
-                  onClick={handleGoogleLogin}
-                  disabled={isLoading}
-                  className="w-full flex items-center justify-center gap-3 py-4 rounded-xl border border-black/10 font-bold text-sm hover:bg-black/5 transition-colors disabled:opacity-50"
-                >
-                  <Chrome size={18} />
-                  Continue with Google
-                </button>
+                     <button 
+                       onClick={handleGoogleLogin}
+                       disabled={isLoading}
+                       className="w-full flex items-center justify-center gap-3 py-4 rounded-xl border border-black/10 font-bold text-sm hover:bg-black/5 transition-colors disabled:opacity-50"
+                     >
+                       <Chrome size={18} />
+                       Continue with Google
+                     </button>
 
-                <p className="text-center text-xs text-black/40 font-medium">
-                  {mode === 'login' ? "Don't have an account?" : "Already have an account?"}
-                  <button 
-                    onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
-                    className="ml-1 text-black font-bold hover:underline"
-                  >
-                    {mode === 'login' ? 'Sign Up' : 'Login'}
-                  </button>
-                </p>
-              </div>
-            </>
-          )}
+                     <p className="text-center text-xs text-black/40 font-medium">
+                       {mode === 'login' ? "Don't have an account?" : "Already have an account?"}
+                       <button 
+                         onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
+                         className="ml-1 text-black font-bold hover:underline"
+                       >
+                         {mode === 'login' ? 'Sign Up' : 'Login'}
+                       </button>
+                     </p>
+                   </>
+                 )}
+               </div>
+             </>
+           )}
         </motion.div>
       </div>
     </AnimatePresence>

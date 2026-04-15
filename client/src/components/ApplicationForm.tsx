@@ -214,8 +214,8 @@ function CustomCalendar({ value, onChange, onClose }: { value: string, onChange:
         <button type="button" onClick={nextMonth} className="p-1 hover:bg-bg rounded-lg"><ChevronRight size={14} /></button>
       </div>
       <div className="grid grid-cols-7 gap-1 text-center mb-2">
-        {["S", "M", "T", "W", "T", "F", "S"].map(d => (
-          <span key={d} className="text-[8px] text-muted font-bold">{d}</span>
+        {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
+          <span key={i} className="text-[8px] text-muted font-bold">{d}</span>
         ))}
       </div>
       <div className="grid grid-cols-7 gap-1">

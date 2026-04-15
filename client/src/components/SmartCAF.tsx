@@ -41,6 +41,13 @@ export default function SmartCAF({ onExit }: { onExit: () => void }) {
     if (currentUser) {
       setUser(currentUser);
     }
+
+    // Check for invite token in URL
+    const params = new URLSearchParams(window.location.search);
+    const inviteToken = params.get('invite_token');
+    if (inviteToken && !currentUser) {
+      setIsAuthOpen(true);
+    }
   }, []);
 
   const handleStartApply = () => {

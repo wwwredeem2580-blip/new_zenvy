@@ -6,6 +6,24 @@
 
 import { Application, ApplicationStatus, mockApplications } from "../../data/applications";
 
+export interface AgentPermissions {
+  canViewWorkspaces: boolean;
+  canUploadFiles: boolean;
+  canDeleteFiles: boolean;
+  canViewApplications: boolean;
+  canManageApplications: boolean;
+  canIssueCredits: boolean;
+}
+
+export const DEFAULT_AGENT_PERMISSIONS: AgentPermissions = {
+  canViewWorkspaces: true,
+  canUploadFiles: true,
+  canDeleteFiles: false,
+  canViewApplications: true,
+  canManageApplications: true,
+  canIssueCredits: false,
+};
+
 export interface User {
   id: string;
   firstName: string;
@@ -16,6 +34,8 @@ export interface User {
   phoneVerified: boolean;
   balance: number;
   createdAt: string;
+  inviteToken?: string;
+  permissions?: Partial<AgentPermissions>; // Overrides for agents
 }
 
 export type WorkspacePermission = 'Public' | 'Read-only' | 'Restricted';
@@ -346,5 +366,122 @@ export const mockApi = {
     const filtered = files.filter(f => f.id !== fileId);
     saveToStorage(FILES_KEY, filtered);
     return true;
+  },
+
+  // Agent & User Lifecycle
+  inviteAgent: async (email: string, name: string): Promise<{ user: User; inviteLink: string }> => {
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    const users = getFromStorage<User[]>(USERS_KEY) || [];
+    
+    // Check if email already exists
+    if (users.find(u => u.email.toLowerCase() === email.toLowerCase())) {
+       throw new Error("User with this email already exists");
+    }
+
+    const nameParts = name.trim().split(' ');
+    const firstName = nameParts[0] || 'Invited';
+    const lastName = nameParts.slice(1).join(' ') || 'Agent';
+    const inviteToken = Math.random().toString(36).substr(2, 12);
+
+    const newUser: User = {
+       id: 'agent-' + Math.random().toString(36).substr(2, 5),
+       firstName,
+       lastName,
+       email: email.toLowerCase(),
+       role: 'subagent',
+       emailVerified: true, // We assume invite link verifies email
+       phoneVerified: false,
+       balance: 0,
+       createdAt: new Date().toISOString(),
+       inviteToken,
+    };
+
+    users.push(newUser);
+    saveToStorage(USERS_KEY, users);
+
+    // In a real app, this would be the URL to our frontend
+    const inviteLink = `${window.location.origin}${window.location.pathname}?invite_token=${inviteToken}`;
+    return { user: newUser, inviteLink };
+  },
+
+  acceptInvite: async (token: string, password?: string): Promise<{ user: User; token: string }> => {
+    await new Promise((resolve) => setTimeout(resolve, 1200));
+    const users = getFromStorage<User[]>(USERS_KEY) || [];
+    const user = users.find(u => u.inviteToken === token);
+
+    if (!user) throw new Error("Invalid or expired invitation token");
+
+    // Clear the token so it can't be reused
+    user.inviteToken = undefined;
+    saveToStorage(USERS_KEY, users);
+
+    const jwtToken = 'mock_jwt_token_' + user.id;
+    saveToStorage(SESSION_KEY, { user, token: jwtToken });
+
+    return { user, token: jwtToken };
+  },
+
+  assignUserRole: async (userId: string, role: 'user' | 'admin' | 'subagent'): Promise<boolean> => {
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    const users = getFromStorage<User[]>(USERS_KEY) || [];
+    const index = users.findIndex(u => u.id === userId);
+    
+    if (index !== -1) {
+       users[index].role = role;
+       saveToStorage(USERS_KEY, users);
+       
+       // Sync session if it's current user
+       const session = getFromStorage<{ user: User; token: string }>(SESSION_KEY);
+       if (session && session.user.id === userId) {
+          session.user.role = role;
+          saveToStorage(SESSION_KEY, session);
+       }
+       return true;
+    }
+    return false;
+  },
+
+  updateUserPermissions: async (userId: string, permissions: Partial<AgentPermissions>): Promise<boolean> => {
+     await new Promise((resolve) => setTimeout(resolve, 400));
+     const users = getFromStorage<User[]>(USERS_KEY) || [];
+     const index = users.findIndex(u => u.id === userId);
+
+     if (index !== -1) {
+        users[index].permissions = { ...users[index].permissions, ...permissions };
+        saveToStorage(USERS_KEY, users);
+
+        const session = getFromStorage<{ user: User; token: string }>(SESSION_KEY);
+        if (session && session.user.id === userId) {
+           session.user.permissions = users[index].permissions;
+           saveToStorage(SESSION_KEY, session);
+        }
+        return true;
+     }
+     return false;
+  },
+
+  getEffectivePermissions: (user: User): AgentPermissions => {
+     if (user.role === 'admin') {
+        return {
+           canViewWorkspaces: true,
+           canUploadFiles: true,
+           canDeleteFiles: true,
+           canViewApplications: true,
+           canManageApplications: true,
+           canIssueCredits: true
+        };
+     }
+     if (user.role === 'user') {
+        return {
+           canViewWorkspaces: false,
+           canUploadFiles: false,
+           canDeleteFiles: false,
+           canViewApplications: false,
+           canManageApplications: false,
+           canIssueCredits: false
+        };
+     }
+     // Agent merge
+     return { ...DEFAULT_AGENT_PERMISSIONS, ...(user.permissions || {}) };
   }
 };
