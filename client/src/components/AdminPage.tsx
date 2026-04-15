@@ -26,12 +26,16 @@ import {
   UserPlus,
   ArrowRight,
   MoreVertical,
-Home,
+  Home,
   Folder,
   Settings2,
   Trash2,
   Check,
-  CheckCircle2
+  CheckCircle2,
+  LayoutGrid,
+  Users,
+  BarChart3,
+  LogOut
 } from 'lucide-react';
 import { Application, ApplicationStatus } from '../data/applications';
 import { mockApi, User as UserType, Workspace, WorkspacePermission, FileRecord, AgentPermissions } from '../lib/api/mockApi';
@@ -133,9 +137,9 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
   };
 
   return (
-    <div className="flex min-h-screen bg-white text-black font-dm selection:bg-black selection:text-white -mt-24">
-      {/* Sidebar - Sesame Minimalist Style */}
-      <aside className="w-64 border-r border-black/5 flex flex-col pt-32 px-10 shrink-0">
+    <div className="flex flex-col lg:flex-row min-h-screen bg-white text-black font-dm selection:bg-black selection:text-white -mt-24">
+      {/* Sidebar - Desktop Only (lg+) */}
+      <aside className="hidden lg:flex w-64 border-r border-black/5 flex-col pt-32 px-10 shrink-0">
         <div className="mb-16">
            <h2 className="text-[10px] uppercase tracking-[0.3em] font-bold text-black/20">Dashboard</h2>
         </div>
@@ -174,9 +178,25 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
         </nav>
       </aside>
 
+      {/* Mobile/Tablet Header */}
+      <header className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-white/80 backdrop-blur-md border-b border-black/5 px-6 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-black text-white rounded-lg flex items-center justify-center">
+            <span className="text-xs font-bold">S</span>
+          </div>
+          <span className="font-bold text-sm tracking-tight">Admin</span>
+        </div>
+        <button 
+          onClick={onBack}
+          className="text-[10px] uppercase tracking-widest font-bold text-red-500 hover:text-red-600 transition-colors"
+        >
+          Exit
+        </button>
+      </header>
+
       {/* Main Workspace - Centered Content */}
-      <main className="flex-1 pt-32 pb-24 overflow-y-auto">
-        <div className="max-w-6xl mx-auto px-16">
+      <main className="flex-1 lg:pt-32 pt-24 pb-24 lg:pb-24 overflow-y-auto">
+        <div className="max-w-6xl mx-auto lg:px-16 px-6">
           <header className="mb-24">
              <motion.h1 
                initial={{ opacity: 0, x: -20 }}
@@ -283,6 +303,18 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
           )}
         </div>
       </main>
+
+      {/* Mobile Dock Navigation */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-md border-t border-black/5 px-2 py-2 safe-area-bottom">
+        <div className="flex items-center justify-around">
+          <DockItem icon={<LayoutGrid size={22} />} label="Overview" isActive={activeTab === 'Overview'} onClick={() => setActiveTab('Overview')} />
+          <DockItem icon={<FileText size={22} />} label="Applications" isActive={activeTab === 'Applications'} onClick={() => setActiveTab('Applications')} />
+          <DockItem icon={<Users size={22} />} label="Users" isActive={activeTab === 'Users'} onClick={() => setActiveTab('Users')} />
+          <DockItem icon={<Folder size={22} />} label="Workspaces" isActive={activeTab === 'Workspaces'} onClick={() => setActiveTab('Workspaces')} />
+          <DockItem icon={<BarChart3 size={22} />} label="Analytics" isActive={activeTab === 'Analytics'} onClick={() => setActiveTab('Analytics')} />
+          <DockItem icon={<LogOut size={22} />} label="Exit" onClick={onBack} isExit />
+        </div>
+      </nav>
 
       {/* Unified Application Detail View (Admin Version) */}
       <AnimatePresence>
@@ -773,6 +805,24 @@ function SidebarLink({ label, isActive, onClick }: any) {
       className={`text-left transition-all ${isActive ? 'text-black font-bold scale-105 origin-left' : 'text-black/30 hover:text-black'}`}
     >
       {label}
+    </button>
+  );
+}
+
+function DockItem({ icon, label, isActive, onClick, isExit }: { icon: React.ReactNode, label: string, isActive?: boolean, onClick: () => void, isExit?: boolean }) {
+  return (
+    <button 
+      onClick={onClick}
+      className={`flex flex-col items-center justify-center p-2 rounded-2xl transition-all min-w-[52px] ${
+        isActive 
+          ? 'text-black bg-black/5' 
+          : isExit 
+            ? 'text-red-500' 
+            : 'text-black/30 hover:text-black/60'
+      }`}
+    >
+      {icon}
+      <span className="text-[8px] mt-1 font-medium">{label}</span>
     </button>
   );
 }
