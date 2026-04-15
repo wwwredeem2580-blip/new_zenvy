@@ -18,9 +18,31 @@ export interface User {
   createdAt: string;
 }
 
+export type WorkspacePermission = 'Public' | 'Read-only' | 'Restricted';
+
+export interface Workspace {
+  id: string;
+  name: string;
+  permission: WorkspacePermission;
+  allowedAgents: string[]; // User IDs
+  createdAt: string;
+}
+
+export interface FileRecord {
+  id: string;
+  workspaceId: string;
+  name: string;
+  size: string;
+  type: string;
+  uploadedBy: string; // User Name
+  uploadedAt: string;
+}
+
 const USERS_KEY = 'smart_caf_mock_users';
 const SESSION_KEY = 'smart_caf_session';
 const APPLICATIONS_KEY = 'smart_caf_mock_applications';
+const WORKSPACES_KEY = 'smart_caf_mock_workspaces';
+const FILES_KEY = 'smart_caf_mock_files';
 
 // Helper to get from localStorage
 const getFromStorage = <T>(key: string): T | null => {
@@ -240,5 +262,89 @@ export const mockApi = {
       return true;
     }
     return false;
+  },
+
+  // Workspaces & Cloud Storage
+  getWorkspaces: async (): Promise<Workspace[]> => {
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    let workspaces = getFromStorage<Workspace[]>(WORKSPACES_KEY);
+    if (!workspaces) {
+      workspaces = [
+        { id: 'ws1', name: 'Application Documents', permission: 'Public', allowedAgents: [], createdAt: new Date().toISOString() },
+        { id: 'ws2', name: 'Templates', permission: 'Read-only', allowedAgents: [], createdAt: new Date().toISOString() },
+        { id: 'ws3', name: 'Internal Reports', permission: 'Restricted', allowedAgents: [], createdAt: new Date().toISOString() },
+      ];
+      saveToStorage(WORKSPACES_KEY, workspaces);
+    }
+    return workspaces;
+  },
+
+  createWorkspace: async (data: Partial<Workspace>): Promise<Workspace> => {
+    await new Promise((resolve) => setTimeout(resolve, 800));
+    const workspaces = await mockApi.getWorkspaces();
+    const newWs: Workspace = {
+      id: 'ws-' + Math.random().toString(36).substr(2, 5),
+      name: data.name || 'Untitled Workspace',
+      permission: data.permission || 'Public',
+      allowedAgents: data.allowedAgents || [],
+      createdAt: new Date().toISOString(),
+    };
+    workspaces.push(newWs);
+    saveToStorage(WORKSPACES_KEY, workspaces);
+    return newWs;
+  },
+
+  updateWorkspace: async (id: string, data: Partial<Workspace>): Promise<boolean> => {
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    const workspaces = await mockApi.getWorkspaces();
+    const index = workspaces.findIndex(ws => ws.id === id);
+    if (index !== -1) {
+      workspaces[index] = { ...workspaces[index], ...data };
+      saveToStorage(WORKSPACES_KEY, workspaces);
+      return true;
+    }
+    return false;
+  },
+
+  deleteWorkspace: async (id: string): Promise<boolean> => {
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    const workspaces = await mockApi.getWorkspaces();
+    const filtered = workspaces.filter(ws => ws.id !== id);
+    saveToStorage(WORKSPACES_KEY, filtered);
+    return true;
+  },
+
+  getFiles: async (workspaceId: string): Promise<FileRecord[]> => {
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    const files = getFromStorage<FileRecord[]>(FILES_KEY) || [];
+    return files.filter(f => f.workspaceId === workspaceId);
+  },
+
+  uploadFile: async (workspaceId: string, name: string): Promise<FileRecord> => {
+    await new Promise((resolve) => setTimeout(resolve, 1200));
+    const files = getFromStorage<FileRecord[]>(FILES_KEY) || [];
+    const currentUser = mockApi.getCurrentUser();
+    
+    const newFile: FileRecord = {
+      id: 'file-' + Math.random().toString(36).substr(2, 5),
+      workspaceId,
+      name,
+      size: (Math.random() * 5 + 1).toFixed(1) + ' MB',
+      type: name.split('.').pop()?.toUpperCase() || 'FILE',
+      uploadedBy: currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : 'Anonymous',
+      uploadedAt: new Date().toISOString(),
+    };
+    
+    files.unshift(newFile);
+    saveToStorage(FILES_KEY, files);
+    return newFile;
+  },
+
+  deleteFile: async (workspaceId: string, fileId: string): Promise<boolean> => {
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    const files = getFromStorage<FileRecord[]>(FILES_KEY) || [];
+    const filtered = files.filter(f => f.id !== fileId);
+    saveToStorage(FILES_KEY, filtered);
+    return true;
   }
 };

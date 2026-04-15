@@ -20,9 +20,10 @@ import ApplicationForm from "./ApplicationForm";
 import AdminPage from "./AdminPage";
 import ProfilePage from "./ProfilePage";
 import AuthOverlay from "./auth/AuthOverlay";
+import AgentPage from "./AgentPage";
 import { mockApi, User } from "../lib/api/mockApi";
 
-type CAFPage = 'home' | 'apply' | 'admin' | 'profile';
+type CAFPage = 'home' | 'apply' | 'admin' | 'profile' | 'agent';
 
 export default function SmartCAF({ onExit }: { onExit: () => void }) {
   const [currentPage, setCurrentPage] = useState<CAFPage>('home');
@@ -71,6 +72,8 @@ export default function SmartCAF({ onExit }: { onExit: () => void }) {
         return <AdminPage onBack={() => setCurrentPage('home')} />;
       case 'profile':
         return user ? <ProfilePage user={user} onBack={() => setCurrentPage('home')} /> : null;
+      case 'agent':
+        return user && (user.role === 'subagent' || user.role === 'admin') ? <AgentPage user={user} onBack={() => setCurrentPage('home')} /> : null;
       default:
         return <CAFHome onStart={handleStartApply} user={user} />;
     }
@@ -101,6 +104,14 @@ export default function SmartCAF({ onExit }: { onExit: () => void }) {
           >
             Admin
           </button>
+          {user && (user.role === 'subagent' || user.role === 'admin') && (
+            <button 
+              onClick={() => setCurrentPage('agent')}
+              className={`text-[10px] uppercase tracking-widest font-bold transition-colors ${currentPage === 'agent' ? 'text-black' : 'text-black/40 hover:text-black'}`}
+            >
+              Agent Hub
+            </button>
+          )}
           {user && (
             <button 
               onClick={() => setCurrentPage('profile')}
