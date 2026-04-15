@@ -36,9 +36,11 @@ export default function Navbar() {
           className="flex items-center gap-3 cursor-pointer group"
           onClick={() => setIsMenuOpen(false)}
         >
-          <div className="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center font-space font-bold text-xl group-hover:rotate-6 transition-transform">
-            C
-          </div>
+          <img 
+            src="/logo.png" 
+            alt="Smart CAF Logo"
+            className="w-12 h-12 object-contain group-hover:rotate-6 transition-transform" 
+          />
           <div className="flex flex-col leading-none">
             <span className="text-lg font-bold tracking-tighter font-space text-black">Smart CAF</span>
             <span className="text-[8px] uppercase tracking-[0.2em] text-black/40 font-bold">Official Portal</span>
@@ -47,6 +49,7 @@ export default function Navbar() {
 
         {/* Desktop Nav */}
         <div className="hidden md:flex items-center bg-black/5 rounded-full px-6 py-2 space-x-8 border border-black/5">
+          <NavLink href="/" label="Home" active={pathname === '/'} />
           <NavLink href="/admin" label="Admin" active={pathname === '/admin'} />
           {user && (user.role === 'subagent' || user.role === 'admin') && (
             <NavLink href="/agent" label="Agent Hub" active={pathname === '/agent'} />
@@ -64,8 +67,8 @@ export default function Navbar() {
                 className="flex items-center gap-2 p-1 pl-3 bg-black/5 rounded-full border border-black/5 hover:bg-black/10 transition-colors"
               >
                 <span className="text-[10px] font-bold uppercase tracking-widest hidden sm:block">{user.firstName}</span>
-                <div className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center text-xs font-bold">
-                  {user.firstName[0]}
+                <div className="w-8 h-8 rounded-full border border-black/10 flex items-center justify-center text-xs font-bold">
+                  <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.email+user.id}`} alt={user.email}/>
                 </div>
               </button>
               
