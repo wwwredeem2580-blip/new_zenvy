@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+"use client";
+
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -43,9 +45,16 @@ import { PermissionsModal } from './admin/PermissionsModal';
 import { Application, ApplicationStatus } from '../data/applications';
 import { mockApi, User as UserType, Workspace, WorkspacePermission, FileRecord, AgentPermissions } from '../lib/api/mockApi';
 
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
+
 type AdminTab = 'Overview' | 'Applications' | 'Users' | 'Workspaces' | 'Analytics' | 'Settings';
 
-export default function AdminPage({ onBack }: { onBack: () => void }) {
+export default function AdminPage() {
+  const router = useRouter();
+  const { user } = useAuth();
+  
+  const onBack = () => router.push('/');
   const [activeTab, setActiveTab] = useState<AdminTab>('Applications');
   const [applications, setApplications] = useState<Application[]>([]);
   const [users, setUsers] = useState<UserType[]>([]);

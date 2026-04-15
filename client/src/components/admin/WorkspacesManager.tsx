@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+"use client";
+
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Folder, Settings2, Trash2, X } from 'lucide-react';

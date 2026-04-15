@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+"use client";
+
 import React, { useState } from 'react';
 import { Search, TrendingUp, Shield, User } from 'lucide-react';
 import { User as UserType } from '../../lib/api/mockApi';

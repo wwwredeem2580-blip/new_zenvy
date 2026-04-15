@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+"use client";
+
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -25,7 +27,15 @@ import {
 import { Application, ApplicationStatus } from '../data/applications';
 import { mockApi, User as UserType, Workspace, FileRecord, AgentPermissions } from '../lib/api/mockApi';
 
-export default function AgentPage({ user, onBack }: { user: UserType, onBack: () => void }) {
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
+
+export default function AgentPage() {
+  const router = useRouter();
+  const { user } = useAuth();
+  const onBack = () => router.push('/');
+  
+  if (!user) return null;
   const [activeTab, setActiveTab] = useState<'workspaces' | 'applications'>('workspaces');
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [applications, setApplications] = useState<Application[]>([]);

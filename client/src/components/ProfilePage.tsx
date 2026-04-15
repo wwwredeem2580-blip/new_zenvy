@@ -29,7 +29,17 @@ import {
 import { mockApi, User } from "../lib/api/mockApi";
 import { Application, ApplicationStatus } from "../data/applications";
 
-export default function ProfilePage({ onBack, user }: { onBack: () => void; user: User }) {
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
+
+export default function ProfilePage() {
+  const router = useRouter();
+  const { user } = useAuth();
+  const onBack = () => router.push('/');
+  
+  // Guard for rendering if user is missing (page level should handle this but safety first)
+  if (!user) return null;
+
   const [localUser, setLocalUser] = useState<User>(user);
   const [applications, setApplications] = useState<Application[]>([]);
   const [isLoading, setIsLoading] = useState(true);

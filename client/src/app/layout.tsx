@@ -19,16 +19,23 @@ export const metadata: Metadata = {
   description: "The most efficient way to manage your administrative files in Italy.",
 };
 
+import { AuthProvider } from "@/context/AuthContext";
+import AppLayout from "@/components/layout/AppLayout";
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${spaceGrotesk.variable} ${dmSans.variable}`}>
-      <body className="antialiased font-dm">
-        {children}
-      </body>
+    <html lang="en" className={`${spaceGrotesk.variable} ${dmSans.variable} light`}>
+       <body className="antialiased font-dm">
+         <AuthProvider>
+           <AppLayout>
+             {children}
+           </AppLayout>
+         </AuthProvider>
+       </body>
     </html>
   );
 }

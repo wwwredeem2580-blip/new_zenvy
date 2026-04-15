@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+"use client";
+
 import { motion, AnimatePresence } from "motion/react";
 import { 
   User, 
@@ -245,7 +247,17 @@ function CustomCalendar({ value, onChange, onClose }: { value: string, onChange:
 
 
 
-export default function ApplicationForm({ onClose, onComplete }: { onClose: () => void; onComplete?: () => void }) {
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
+
+export default function ApplicationForm() {
+  const router = useRouter();
+  const { user, setUser } = useAuth();
+  const onClose = () => router.push('/');
+  const onComplete = () => {
+    const freshUser = mockApi.getCurrentUser();
+    if (freshUser) setUser(freshUser);
+  };
   const [step, setStep] = useState<Step>(1);
   const [formData, setFormData] = useState<FormData>(initialData);
   const [isSubmitted, setIsSubmitted] = useState(false);
