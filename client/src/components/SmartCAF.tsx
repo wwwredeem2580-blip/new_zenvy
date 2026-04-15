@@ -87,7 +87,7 @@ export default function SmartCAF({ onExit }: { onExit: () => void }) {
   };
 
   return (
-    <div className="min-h-screen bg-white text-black font-dm selection:bg-black selection:text-white light">
+    <div className="min-h-screen bg-white text-black font-dm selection:bg-black selection:text-white light overflow-x-hidden">
       {/* CAF Navbar */}
       <nav className="fixed top-0 left-0 w-full px-6 py-4 flex justify-between items-center z-[100] bg-white/70 backdrop-blur-2xl border-b border-black/5">
         <div 
@@ -124,7 +124,7 @@ export default function SmartCAF({ onExit }: { onExit: () => void }) {
               onClick={() => setCurrentPage('profile')}
               className={`text-[10px] uppercase tracking-widest font-bold transition-colors ${currentPage === 'profile' ? 'text-black' : 'text-black/40 hover:text-black'}`}
             >
-              My Dashboard
+              My Profile
             </button>
           )}
         </div>
@@ -298,7 +298,7 @@ function CAFHome({ onStart, user }: { onStart: () => void; user: User | null }) 
             Secure Government Services
           </div>
           
-          <h1 className="text-6xl md:text-8xl font-space font-bold tracking-tighter leading-[0.9] text-black">
+          <h1 className="text-5xl sm:text-6xl md:text-8xl font-space font-bold tracking-tighter leading-[0.9] text-black">
             Simplify Your <br />
             <span className="text-black/40">Smart CAF Journey.</span>
           </h1>
@@ -337,9 +337,9 @@ function CAFHome({ onStart, user }: { onStart: () => void; user: User | null }) 
           </div>
         </div>
 
-        <div className="relative">
+        <div className="relative mt-8 lg:mt-0">
           <div className="absolute -inset-20 bg-black/5 blur-[120px] rounded-full pointer-events-none" />
-          <div className="relative grid grid-cols-2 gap-4">
+          <div className="relative grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FeatureCard 
               icon={<FileText className="text-black" />} 
               title="Digital Filing" 
@@ -347,7 +347,7 @@ function CAFHome({ onStart, user }: { onStart: () => void; user: User | null }) 
             />
             <FeatureCard 
               icon={<Search className="text-black" />} 
-              title="Dashboard Tracking" 
+              title="Profile Tracking" 
               desc="Monitor your application journey from your personal profile."
             />
             <FeatureCard 

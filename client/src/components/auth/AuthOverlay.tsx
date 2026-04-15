@@ -111,7 +111,7 @@ export default function AuthOverlay({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[200] flex items-center justify-center p-6">
+      <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6">
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -124,7 +124,7 @@ export default function AuthOverlay({
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="relative bg-white w-full max-w-[450px] rounded-[32px] overflow-hidden shadow-2xl"
+          className="relative bg-white w-full max-w-[450px] max-h-[90vh] md:max-h-[95vh] rounded-[24px] sm:rounded-[32px] overflow-y-auto shadow-2xl flex flex-col"
         >
           {isVerifying ? (
             /* Verification View */

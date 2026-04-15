@@ -73,7 +73,7 @@ export default function ProfilePage({ onBack, user }: { onBack: () => void; user
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div className="space-y-1">
-          <h1 className="text-4xl font-space font-bold tracking-tighter">My Dashboard.</h1>
+          <h1 className="text-4xl font-space font-bold tracking-tighter">My Profile.</h1>
           <p className="text-sm text-black/40 font-medium">Manage your personal account and track applications.</p>
         </div>
         <button 
@@ -91,7 +91,7 @@ export default function ProfilePage({ onBack, user }: { onBack: () => void; user
           <motion.div 
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="relative h-64 w-full bg-[#111] rounded-[32px] p-8 overflow-hidden shadow-2xl flex flex-col justify-between group"
+            className="relative h-64 w-full bg-[#111] rounded-[32px] p-6 md:p-8 overflow-hidden shadow-2xl flex flex-col justify-between group isolate [transform:translateZ(0)]"
           >
             {/* Background Texture */}
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2" />
@@ -129,12 +129,12 @@ export default function ProfilePage({ onBack, user }: { onBack: () => void; user
                <div className="flex items-center gap-2 text-[10px] text-white/40 font-bold">
                  Show account balance in EUR <ChevronRight size={10} className="rotate-90" />
                </div>
-               <div className="flex justify-between items-end">
-                  <div className="space-y-1">
-                     <p className="text-[8px] text-white/20 uppercase tracking-widest font-bold">Account Holder</p>
-                     <p className="text-sm text-white font-medium tracking-tight uppercase">{localUser.firstName} {localUser.lastName}</p>
+               <div className="flex justify-between items-end gap-2">
+                  <div className="space-y-1 min-w-0 flex-1 pr-2">
+                     <p className="text-[8px] text-white/20 uppercase tracking-widest font-bold truncate">Account Holder</p>
+                     <p className="text-sm text-white font-medium tracking-tight uppercase truncate">{localUser.firstName} {localUser.lastName}</p>
                   </div>
-                  <div className="flex -space-x-2">
+                  <div className="flex -space-x-2 flex-shrink-0">
                      <div className="w-8 h-8 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm" />
                      <div className="w-8 h-8 rounded-full border border-white/10 bg-white/20 backdrop-blur-sm" />
                   </div>
@@ -143,7 +143,7 @@ export default function ProfilePage({ onBack, user }: { onBack: () => void; user
           </motion.div>
 
           {/* Quick Info Card */}
-          <div className="bg-black/5 border border-black/5 rounded-[32px] p-8 space-y-6">
+          <div className="bg-black/5 border border-black/5 rounded-[32px] p-6 md:p-8 space-y-6 overflow-hidden">
              <div className="space-y-1">
                 <p className="text-[10px] uppercase tracking-widest font-bold text-black/40">Profile Summary</p>
                 <h3 className="text-xl font-space font-bold">Account Details.</h3>
@@ -187,26 +187,25 @@ export default function ProfilePage({ onBack, user }: { onBack: () => void; user
               {applications.map((app) => (
                 <motion.div
                   key={app.id}
-                  layoutId={app.id}
                   onClick={() => setSelectedApp(app)}
-                  className="bg-white border border-black/5 p-5 rounded-[24px] flex items-center justify-between cursor-pointer hover:border-black/20 hover:shadow-xl hover:shadow-black/5 transition-all group"
+                  className="bg-white border border-black/5 p-4 sm:p-5 rounded-[24px] flex items-center justify-between cursor-pointer hover:border-black/20 hover:shadow-xl hover:shadow-black/5 transition-all group gap-2"
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-black text-white rounded-2xl flex items-center justify-center font-bold text-lg rotate-3 group-hover:rotate-0 transition-transform">
+                  <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+                    <div className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 bg-black text-white rounded-2xl flex items-center justify-center font-bold text-lg rotate-3 group-hover:rotate-0 transition-transform">
                       {app.selectedServices[0]?.name[0] || "A"}
                     </div>
-                    <div>
-                      <h4 className="font-bold text-sm truncate max-w-[200px]">{app.selectedServices.map(s => s.name).join(", ")}</h4>
-                      <div className="flex items-center gap-2 mt-0.5">
+                    <div className="min-w-0 pr-2">
+                      <h4 className="font-bold text-xs sm:text-sm truncate">{app.selectedServices.map(s => s.name).join(", ")}</h4>
+                      <div className="flex items-center gap-1 sm:gap-2 mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis">
                         <span className="text-[9px] uppercase tracking-widest font-bold text-black/40">ID: #{app.id}</span>
-                        <div className="w-1 h-1 rounded-full bg-black/10" />
-                        <span className="text-[9px] uppercase tracking-widest font-bold text-black/40">{new Date(app.submittedAt).toLocaleDateString()}</span>
+                        <div className="flex-shrink-0 w-1 h-1 rounded-full bg-black/10" />
+                        <span className="text-[9px] uppercase tracking-widest font-bold text-black/40 truncate">{new Date(app.submittedAt).toLocaleDateString()}</span>
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-6">
+                  <div className="flex items-center gap-2 sm:gap-6 flex-shrink-0">
                     <StatusBadge status={app.status} />
-                    <div className="w-8 h-8 rounded-full bg-black/5 flex items-center justify-center group-hover:bg-black group-hover:text-white transition-all">
+                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-black/5 hidden sm:flex items-center justify-center group-hover:bg-black group-hover:text-white transition-all">
                         <ChevronRight size={14} />
                     </div>
                   </div>
@@ -381,110 +380,88 @@ function InvoiceModal({ app, user, onClose }: { app: Application, user: User, on
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 40 }}
             transition={{ type: 'spring', damping: 30, stiffness: 200 }}
-            className="relative w-full max-w-[840px] min-h-[1188px] bg-white shadow-[0_40px_100px_rgba(0,0,0,0.12)] border border-black/5 font-dm print:shadow-none print:m-0 print:border-none"
+            className="relative w-full max-w-[640px] aspect-[1/1.414] overflow-y-auto hide-scrollbar bg-white shadow-[0_40px_100px_rgba(0,0,0,0.12)] border border-black/5 font-dm print:shadow-none print:m-0 print:border-none print:aspect-auto print:max-w-none"
           >
-             <div className="p-12 md:p-20">
+             <div className="p-6 sm:p-10 md:p-12">
                 {/* Invoice Header */}
-                <div className="flex flex-col md:flex-row justify-between items-baseline mb-20 gap-8">
-                   <div className="flex-1 h-[1px] bg-black/10 order-2 md:order-1 self-center" />
-                   <h1 className="text-6xl md:text-8xl font-space font-bold tracking-tighter uppercase order-1 md:order-2 ml-8">
-                      Invoice.
+                <div className="flex justify-between">
+                  <span className="text-[10px] font-normal uppercase tracking-wide">{new Date(app.submittedAt).toLocaleDateString('en-GB')}</span>
+                <div className="flex flex-col md:flex-row justify-between items-baseline mb-4 md:mb-6 gap-8">
+                   <div className="flex-1 h-[1px] bg-black/10 order-2 md:order-1 self-center hidden sm:block" />
+                   <h1 className="text-2xl sm:text-4xl md:text-6xl font-space font-normal tracking-tighter uppercase order-1 md:order-2 sm:ml-8">
+                      Invoice
+                      <p className="text-lg font-space font-normal tracking-tighter">#{app.id.replace('CAF-', '')}</p>
                    </h1>
+                </div>
                 </div>
 
                 {/* Meta Info */}
-                <div className="grid md:grid-cols-2 gap-16 mb-24">
-                   <div className="space-y-10">
-                      <div className="space-y-3">
-                         <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-black/20">Issued To:</p>
+                <div className="grid md:grid-cols-2 gap-6 mb-6">
+                   <div className="space-y-4">
+                      <div className="space-y-1">
+                         <p className="text-[8px] uppercase tracking-[0.2em] font-bold text-black/40">Issued To:</p>
                          <div className="space-y-1">
-                            <p className="font-bold text-xl tracking-tight">{user.firstName} {user.lastName}</p>
+                            <p className="font-bold text-sm tracking-tight">{user.firstName} {user.lastName}</p>
                             <p className="text-xs text-black/60">{user.email}</p>
-                            <p className="text-xs text-black/60 leading-relaxed font-medium">
-                               {app.address || "Via Roma 123, Milan, Italy"}
-                            </p>
                          </div>
                       </div>
 
-                      <div className="space-y-3">
-                         <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-black/20">Pay To:</p>
+                      <div className="space-y-1">
+                         <p className="text-[8px] uppercase tracking-[0.2em] font-bold text-black/40">Pay To:</p>
                          <div className="space-y-1">
-                            <p className="font-bold text-sm italic serif opacity-80">Smart CAF Solutions S.r.l.</p>
+                            <p className="font-bold text-sm serif opacity-80">Smart CAF Solutions S.r.l.</p>
                             <p className="text-[11px] text-black/60 font-mono tracking-tighter uppercase font-medium">IT 123 4567 8901 2345 6789</p>
                          </div>
-                      </div>
-                   </div>
-
-                   <div className="flex flex-col items-start md:items-end justify-between py-1">
-                      <div className="space-y-1 text-left md:text-right w-full">
-                         <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-black/20">Invoice No:</p>
-                         <p className="text-3xl font-space font-bold tracking-tighter">#{app.id.replace('CAF-', '')}</p>
-                      </div>
-                      <div className="grid grid-cols-2 gap-x-12 gap-y-1 w-full text-left md:text-right pt-12">
-                         <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-black/10">Date:</span>
-                         <span className="text-[10px] font-bold uppercase tracking-wide">{new Date(app.submittedAt).toLocaleDateString('en-GB')}</span>
-                         <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-black/10">Due Date:</span>
-                         <span className="text-[10px] font-bold uppercase tracking-wide">{new Date(new Date(app.submittedAt).getTime() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('en-GB')}</span>
                       </div>
                    </div>
                 </div>
 
                 {/* Service Table */}
-                <div className="mb-24">
-                   <div className="grid grid-cols-[1fr_100px_80px_100px] border-b-2 border-black pb-5 mb-10">
-                      <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-black/20">Description</span>
-                      <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-black/20 text-right">Unit Price</span>
-                      <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-black/20 text-center">Qty</span>
-                      <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-black/20 text-right">Total</span>
-                   </div>
+                <div className="mb-4 md:mb-4 overflow-x-auto">
+                   <p className="text-[8px] uppercase tracking-[0.2em] font-bold text-black/40">Services:</p>
 
-                   <div className="space-y-8">
-                      {app.selectedServices.map((s, i) => (
-                         <div key={i} className="grid grid-cols-[1fr_100px_80px_100px] items-start group">
-                            <div className="space-y-1 pr-12">
-                               <span className="font-bold text-base block tracking-tight">{s.name}</span>
-                               <span className="text-[10px] text-black/30 block font-medium uppercase tracking-tight">Reference: {app.id}-SVC-{i+1}</span>
-                            </div>
-                            <span className="text-sm font-bold text-right py-1">€{s.price.toFixed(2)}</span>
-                            <span className="text-sm font-bold text-center py-1 opacity-20">1</span>
-                            <span className="text-sm font-bold text-right py-1">€{s.price.toFixed(2)}</span>
-                         </div>
-                      ))}
-                   </div>
+                    <div className="space-y-4 min-w-[280px]">
+                       {app.selectedServices.map((s, i) => (
+                          <div key={i} className="grid grid-cols-[1fr_60px_30px_60px] sm:grid-cols-[1fr_80px_40px_80px] items-start group">
+                             <div className="space-y-0.5 pr-2 sm:pr-8">
+                                <span className="font-light text-xs sm:text-sm block tracking-tight italic truncate">{s.name}</span>
+                                <span className="text-[7px] sm:text-[8px] text-black/60 block font-medium uppercase tracking-tight">Ref: {app.id.slice(-4)}-{i+1}</span>
+                             </div>
+                             <span className="text-[10px] sm:text-xs font-bold text-right py-0.5">€{s.price.toFixed(0)}</span>
+                             <span className="text-[10px] sm:text-xs font-bold text-center py-0.5 opacity-20 text-[10px]">1</span>
+                             <span className="text-[10px] sm:text-xs font-bold text-right py-0.5">€{s.price.toFixed(0)}</span>
+                          </div>
+                       ))}
+                    </div>
                 </div>
 
                 {/* Totals */}
-                <div className="border-t border-black/5 pt-16 flex flex-col items-end gap-3">
-                   <div className="grid grid-cols-2 gap-x-16 gap-y-3 w-full max-w-[340px]">
-                      <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-black/20">Subtotal</span>
-                      <span className="text-xl font-space font-bold text-right">€{subtotal.toFixed(2)}</span>
+                <div className="border-t border-black/20 flex flex-col items-end gap-3">
+                   <div className="grid grid-cols-2 mt-2 gap-x-16 w-full max-w-[340px]">
+                      <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-black/80">Subtotal</span>
+                      <span className="text-md font-space font-bold text-right">€{subtotal.toFixed(2)}</span>
                       
-                      <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-black/20">Tax (22%)</span>
-                      <span className="text-xl font-space font-bold text-right">€{tax.toFixed(2)}</span>
+                      <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-black/80">Tax (22%)</span>
+                      <span className="text-md font-space font-bold text-right">€{tax.toFixed(2)}</span>
                       
-                      <div className="col-span-2 h-[2px] bg-black mt-6 mb-4" />
+                      <div className="col-span-2 h-[2px] bg-black mt-0 mb-2" />
                       
-                      <span className="text-xs font-bold uppercase tracking-[0.3em] self-center">Total Balance</span>
-                      <span className="text-5xl font-space font-bold text-right tracking-tighter">€{total.toFixed(2)}</span>
+                      <span className="text-[10px] font-bold uppercase tracking-[0.3em] self-center">Total Balance</span>
+                      <span className="text-xl font-space font-bold text-right tracking-tighter">€{total.toFixed(2)}</span>
                    </div>
                 </div>
 
                 {/* Footer Signature */}
-                <div className="mt-36 flex justify-between items-end">
+                <div className="mt-6 flex justify-between items-end">
                    <div className="space-y-6">
-                      <p className="text-[10px] text-black/40 leading-loose max-w-[280px] font-medium italic">
-                         Payments are secure and encrypted. Thank you for choosing Smart CAF for your official documentation journey.
+                      <p className="text-[10px] text-black/60 leading-loose max-w-[220px] font-medium italic">
+                         Thank you for choosing Smart CAF for your official documentation journey.
                       </p>
-                      <div className="flex items-center gap-4 text-[9px] font-bold uppercase tracking-widest text-black/20">
-                         <span>Certified Document</span>
-                         <div className="w-1.5 h-1.5 rounded-full bg-black/10" />
-                         <span>Secure ID: {app.id}-SEC-X9</span>
-                      </div>
                    </div>
-                   <div className="text-right space-y-3">
-                      <div className="text-5xl italic serif opacity-80 mb-4 tracking-tighter">Adeline Palmerston.</div>
-                      <div className="h-[1px] w-64 bg-black/60 ml-auto" />
-                      <div className="text-[10px] uppercase font-bold tracking-[0.2em] text-black/20 pr-1">Authorized Official Signature</div>
+                   <div className="text-right space-y-1">
+                      <div className="text-[12px] italic serif opacity-80 mb-1 tracking-tighter">Adeline Palmerston.</div>
+                      <div className="h-[1px] w-24 bg-black/60 ml-auto" />
+                      <div className="text-[8px] uppercase font-bold tracking-[0.2em] text-black/60 pr-1">Official's Signature</div>
                    </div>
                 </div>
              </div>
