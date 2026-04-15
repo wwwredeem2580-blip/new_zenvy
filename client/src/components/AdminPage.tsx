@@ -34,7 +34,7 @@ Home,
   CheckCircle2
 } from 'lucide-react';
 import { Application, ApplicationStatus } from '../data/applications';
-import { mockApi, User as UserType, Workspace, WorkspacePermission, FileRecord } from '../lib/api/mockApi';
+import { mockApi, User as UserType, Workspace, WorkspacePermission, FileRecord, AgentPermissions } from '../lib/api/mockApi';
 
 type AdminTab = 'Overview' | 'Applications' | 'Users' | 'Workspaces' | 'Analytics' | 'Settings';
 
@@ -246,11 +246,11 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
                        roleFilter={roleFilter}
                        setRoleFilter={setRoleFilter}
                        onRefresh={loadData}
-                       onIssueCredit={(u) => {
+                       onIssueCredit={(u: UserType) => {
                          setSelectedUser(u);
                          setIsCreditModalOpen(true);
                        }} 
-                       onManagePermissions={(u) => {
+                       onManagePermissions={(u: UserType) => {
                          setSelectedUser(u);
                          setIsPermissionsModalOpen(true);
                        }}
@@ -264,7 +264,7 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
                           const data = await mockApi.getWorkspaces();
                           setWorkspaces(data);
                        }}
-                       onDeleteWorkspace={async (id) => {
+                       onDeleteWorkspace={async (id: string) => {
                           await mockApi.deleteWorkspace(id);
                           setWorkspaces(prev => prev.filter(ws => ws.id !== id));
                        }}
@@ -779,7 +779,7 @@ function SidebarLink({ label, isActive, onClick }: any) {
 
 function ApplicationsView({ applications, onSelect }: any) {
   const [search, setSearch] = useState("");
-  const filtered = applications.filter(app => app.name.toLowerCase().includes(search.toLowerCase()) || app.id.includes(search));
+  const filtered = applications.filter((app: Application) => app.name.toLowerCase().includes(search.toLowerCase()) || app.id.includes(search));
 
   return (
     <div className="space-y-12">
@@ -797,7 +797,7 @@ function ApplicationsView({ applications, onSelect }: any) {
       </div>
 
       <div className="space-y-0.5">
-         {filtered.map(app => (
+         {filtered.map((app: Application) => (
             <motion.div 
                key={app.id} 
                onClick={() => onSelect(app)}
@@ -868,7 +868,7 @@ function UsersView({ users, roleFilter, setRoleFilter, onIssueCredit, onManagePe
        </div>
 
        <div className="space-y-0.5">
-          {filtered.map(user => (
+          {filtered.map((user: UserType) => (
              <div 
                 key={user.id} 
                 className="group flex items-center justify-between py-6 px-8 hover:bg-black/[0.02] rounded-[40px] transition-all"
@@ -1038,7 +1038,7 @@ function PermissionsModal({ user, onClose, onSaved }: any) {
   const effective = mockApi.getEffectivePermissions({ ...user, permissions: overrides });
 
   const toggle = (key: keyof AgentPermissions) => {
-    setOverrides(prev => ({
+    setOverrides((prev: any) => ({
        ...prev,
        [key]: !effective[key]
     }));
