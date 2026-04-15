@@ -22,7 +22,9 @@ import {
   Home,
   Loader2,
   TrendingUp,
-  ArrowUpRight
+  ArrowUpRight,
+  Download,
+  Printer
 } from "lucide-react";
 import { mockApi, User } from "../lib/api/mockApi";
 import { Application, ApplicationStatus } from "../data/applications";
@@ -32,6 +34,7 @@ export default function ProfilePage({ onBack, user }: { onBack: () => void; user
   const [applications, setApplications] = useState<Application[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedApp, setSelectedApp] = useState<Application | null>(null);
+  const [showInvoice, setShowInvoice] = useState(false);
 
   useEffect(() => {
     refreshUser();
@@ -216,7 +219,7 @@ export default function ProfilePage({ onBack, user }: { onBack: () => void; user
 
       {/* Detail Overlay */}
       <AnimatePresence>
-        {selectedApp && (
+        {selectedApp && !showInvoice && (
           <div className="fixed inset-0 z-[300] flex items-center justify-end">
             <motion.div 
               initial={{ opacity: 0 }}
@@ -234,12 +237,20 @@ export default function ProfilePage({ onBack, user }: { onBack: () => void; user
             >
               <div className="flex justify-between items-center mb-12">
                 <h2 className="text-2xl font-space font-bold tracking-tighter uppercase">Document Details.</h2>
-                <button 
-                    onClick={() => setSelectedApp(null)} 
-                    className="p-2 hover:bg-black/5 rounded-full transition-colors"
-                >
-                  <X size={20} />
-                </button>
+                <div className="flex items-center gap-2">
+                   <button 
+                     onClick={() => setShowInvoice(true)}
+                     className="flex items-center gap-2 px-4 py-2 bg-black/5 hover:bg-black hover:text-white transition-all rounded-full text-[10px] font-bold uppercase tracking-widest"
+                   >
+                      <Download size={14} /> Download Invoice
+                   </button>
+                   <button 
+                       onClick={() => setSelectedApp(null)} 
+                       className="p-2 hover:bg-black/5 rounded-full transition-colors"
+                   >
+                     <X size={20} />
+                   </button>
+                </div>
               </div>
 
               <div className="space-y-12">
@@ -312,6 +323,173 @@ export default function ProfilePage({ onBack, user }: { onBack: () => void; user
           </div>
         )}
       </AnimatePresence>
+
+      {/* Invoice Overlay - High Fidelity Editorial Workspace */}
+      <AnimatePresence>
+        {showInvoice && selectedApp && (
+          <InvoiceModal 
+            app={selectedApp} 
+            user={localUser} 
+            onClose={() => setShowInvoice(false)} 
+          />
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function InvoiceModal({ app, user, onClose }: { app: Application, user: User, onClose: () => void }) {
+  const subtotal = app.selectedServices.reduce((sum, s) => sum + s.price, 0);
+  const tax = subtotal * 0.22; // 22% VAT
+  const total = subtotal + tax;
+
+  return (
+    <div className="fixed inset-0 z-[500] bg-[#F5F5F7] overflow-y-auto selection:bg-black selection:text-white">
+       <motion.div 
+         initial={{ opacity: 0 }}
+         animate={{ opacity: 1 }}
+         exit={{ opacity: 0 }}
+         onClick={onClose}
+         className="fixed inset-0 bg-black/5"
+       />
+       
+       {/* Document Viewer Container */}
+       <div className="relative min-h-screen py-12 md:py-24 px-4 flex flex-col items-center">
+          {/* Viewer Toolbar */}
+          <motion.div 
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            className="fixed top-6 z-[510] flex items-center gap-2 bg-white/80 backdrop-blur-xl border border-black/5 px-4 py-2 rounded-full shadow-xl shadow-black/5"
+          >
+             <button 
+               onClick={() => window.print()}
+               className="flex items-center gap-2 px-3 py-1.5 hover:bg-black/5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all"
+             >
+                <Printer size={14} /> Print
+             </button>
+             <div className="w-[1px] h-4 bg-black/10" />
+             <button 
+               onClick={onClose}
+               className="p-1.5 hover:bg-black/5 rounded-full transition-all"
+             >
+                <X size={16} />
+             </button>
+          </motion.div>
+
+          <motion.div 
+            initial={{ scale: 0.95, opacity: 0, y: 40 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.95, opacity: 0, y: 40 }}
+            transition={{ type: 'spring', damping: 30, stiffness: 200 }}
+            className="relative w-full max-w-[840px] min-h-[1188px] bg-white shadow-[0_40px_100px_rgba(0,0,0,0.12)] border border-black/5 font-dm print:shadow-none print:m-0 print:border-none"
+          >
+             <div className="p-12 md:p-20">
+                {/* Invoice Header */}
+                <div className="flex flex-col md:flex-row justify-between items-baseline mb-20 gap-8">
+                   <div className="flex-1 h-[1px] bg-black/10 order-2 md:order-1 self-center" />
+                   <h1 className="text-6xl md:text-8xl font-space font-bold tracking-tighter uppercase order-1 md:order-2 ml-8">
+                      Invoice.
+                   </h1>
+                </div>
+
+                {/* Meta Info */}
+                <div className="grid md:grid-cols-2 gap-16 mb-24">
+                   <div className="space-y-10">
+                      <div className="space-y-3">
+                         <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-black/20">Issued To:</p>
+                         <div className="space-y-1">
+                            <p className="font-bold text-xl tracking-tight">{user.firstName} {user.lastName}</p>
+                            <p className="text-xs text-black/60">{user.email}</p>
+                            <p className="text-xs text-black/60 leading-relaxed font-medium">
+                               {app.address || "Via Roma 123, Milan, Italy"}
+                            </p>
+                         </div>
+                      </div>
+
+                      <div className="space-y-3">
+                         <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-black/20">Pay To:</p>
+                         <div className="space-y-1">
+                            <p className="font-bold text-sm italic serif opacity-80">Smart CAF Solutions S.r.l.</p>
+                            <p className="text-[11px] text-black/60 font-mono tracking-tighter uppercase font-medium">IT 123 4567 8901 2345 6789</p>
+                         </div>
+                      </div>
+                   </div>
+
+                   <div className="flex flex-col items-start md:items-end justify-between py-1">
+                      <div className="space-y-1 text-left md:text-right w-full">
+                         <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-black/20">Invoice No:</p>
+                         <p className="text-3xl font-space font-bold tracking-tighter">#{app.id.replace('CAF-', '')}</p>
+                      </div>
+                      <div className="grid grid-cols-2 gap-x-12 gap-y-1 w-full text-left md:text-right pt-12">
+                         <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-black/10">Date:</span>
+                         <span className="text-[10px] font-bold uppercase tracking-wide">{new Date(app.submittedAt).toLocaleDateString('en-GB')}</span>
+                         <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-black/10">Due Date:</span>
+                         <span className="text-[10px] font-bold uppercase tracking-wide">{new Date(new Date(app.submittedAt).getTime() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('en-GB')}</span>
+                      </div>
+                   </div>
+                </div>
+
+                {/* Service Table */}
+                <div className="mb-24">
+                   <div className="grid grid-cols-[1fr_100px_80px_100px] border-b-2 border-black pb-5 mb-10">
+                      <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-black/20">Description</span>
+                      <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-black/20 text-right">Unit Price</span>
+                      <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-black/20 text-center">Qty</span>
+                      <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-black/20 text-right">Total</span>
+                   </div>
+
+                   <div className="space-y-8">
+                      {app.selectedServices.map((s, i) => (
+                         <div key={i} className="grid grid-cols-[1fr_100px_80px_100px] items-start group">
+                            <div className="space-y-1 pr-12">
+                               <span className="font-bold text-base block tracking-tight">{s.name}</span>
+                               <span className="text-[10px] text-black/30 block font-medium uppercase tracking-tight">Reference: {app.id}-SVC-{i+1}</span>
+                            </div>
+                            <span className="text-sm font-bold text-right py-1">€{s.price.toFixed(2)}</span>
+                            <span className="text-sm font-bold text-center py-1 opacity-20">1</span>
+                            <span className="text-sm font-bold text-right py-1">€{s.price.toFixed(2)}</span>
+                         </div>
+                      ))}
+                   </div>
+                </div>
+
+                {/* Totals */}
+                <div className="border-t border-black/5 pt-16 flex flex-col items-end gap-3">
+                   <div className="grid grid-cols-2 gap-x-16 gap-y-3 w-full max-w-[340px]">
+                      <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-black/20">Subtotal</span>
+                      <span className="text-xl font-space font-bold text-right">€{subtotal.toFixed(2)}</span>
+                      
+                      <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-black/20">Tax (22%)</span>
+                      <span className="text-xl font-space font-bold text-right">€{tax.toFixed(2)}</span>
+                      
+                      <div className="col-span-2 h-[2px] bg-black mt-6 mb-4" />
+                      
+                      <span className="text-xs font-bold uppercase tracking-[0.3em] self-center">Total Balance</span>
+                      <span className="text-5xl font-space font-bold text-right tracking-tighter">€{total.toFixed(2)}</span>
+                   </div>
+                </div>
+
+                {/* Footer Signature */}
+                <div className="mt-36 flex justify-between items-end">
+                   <div className="space-y-6">
+                      <p className="text-[10px] text-black/40 leading-loose max-w-[280px] font-medium italic">
+                         Payments are secure and encrypted. Thank you for choosing Smart CAF for your official documentation journey.
+                      </p>
+                      <div className="flex items-center gap-4 text-[9px] font-bold uppercase tracking-widest text-black/20">
+                         <span>Certified Document</span>
+                         <div className="w-1.5 h-1.5 rounded-full bg-black/10" />
+                         <span>Secure ID: {app.id}-SEC-X9</span>
+                      </div>
+                   </div>
+                   <div className="text-right space-y-3">
+                      <div className="text-5xl italic serif opacity-80 mb-4 tracking-tighter">Adeline Palmerston.</div>
+                      <div className="h-[1px] w-64 bg-black/60 ml-auto" />
+                      <div className="text-[10px] uppercase font-bold tracking-[0.2em] text-black/20 pr-1">Authorized Official Signature</div>
+                   </div>
+                </div>
+             </div>
+          </motion.div>
+       </div>
     </div>
   );
 }
