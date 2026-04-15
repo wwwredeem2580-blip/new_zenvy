@@ -235,7 +235,7 @@ export default function ProfilePage({ onBack, user }: { onBack: () => void; user
               className="relative w-full max-w-2xl h-full bg-white border-l border-black/5 shadow-2xl p-8 overflow-y-auto"
             >
               <div className="flex justify-between items-center mb-12">
-                <h2 className="text-2xl font-space font-bold tracking-tighter uppercase">Document Details.</h2>
+                <h2 className="text-md sm:text-xl md:text-2xl font-space font-bold tracking-tighter uppercase">Document Details.</h2>
                 <div className="flex items-center gap-2">
                    <button 
                      onClick={() => setShowInvoice(true)}
@@ -254,10 +254,10 @@ export default function ProfilePage({ onBack, user }: { onBack: () => void; user
 
               <div className="space-y-12">
                 {/* Status Hero */}
-                <div className="bg-black/5 p-8 rounded-[40px] flex items-center justify-between">
+                <div className="bg-black/5 px-8 py-4 md:px-8 sm:py-8 rounded-[40px] flex items-center justify-between">
                    <div>
                        <p className="text-[8px] uppercase tracking-[0.3em] font-bold text-black/40 mb-2">Application Status</p>
-                       <p className="text-3xl font-space font-bold tracking-tighter uppercase">{selectedApp.status}</p>
+                       <p className="text-2xl sm:text-3xl font-space font-bold tracking-tighter uppercase">{selectedApp.status}</p>
                    </div>
                    <div className="w-16 h-16 bg-white rounded-[24px] flex items-center justify-center shadow-lg border border-black/5">
                         {selectedApp.status === "Approved" ? <CheckCircle2 size={32} className="text-green-500" /> : <Clock size={32} className="text-black/20" />}
