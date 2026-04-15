@@ -6,11 +6,20 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
-  Search, 
   X, 
   ArrowUpRight,
   TrendingUp,
   Loader2,
+  LayoutGrid,
+  Folder,
+  Settings2,
+  Trash2,
+  CheckCircle2,
+  Users,
+  BarChart3,
+  LogOut,
+  FileText,
+  Clock,
   ChevronRight,
   User,
   Mail,
@@ -19,24 +28,18 @@ import {
   Globe,
   MapPin,
   Hash,
-  FileText,
-  Clock,
   Download,
   Shield,
-  UserPlus,
-  ArrowRight,
-  MoreVertical,
-  Home,
-  Folder,
-  Settings2,
-  Trash2,
-  Check,
-  CheckCircle2,
-  LayoutGrid,
-  Users,
-  BarChart3,
-  LogOut
+  Search,
+  Home
 } from 'lucide-react';
+
+import { OverviewView } from './admin/OverviewView';
+import { ApplicationsView } from './admin/ApplicationsView';
+import { UsersView } from './admin/UsersView';
+import { WorkspacesManager } from './admin/WorkspacesManager';
+import { InviteAgentModal } from './admin/InviteAgentModal';
+import { PermissionsModal } from './admin/PermissionsModal';
 import { Application, ApplicationStatus } from '../data/applications';
 import { mockApi, User as UserType, Workspace, WorkspacePermission, FileRecord, AgentPermissions } from '../lib/api/mockApi';
 
@@ -290,9 +293,9 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
                        }}
                      />
                   )}
-                  {activeTab === 'Overview' && (
-                     <OverviewPlaceholder />
-                  )}
+{activeTab === 'Overview' && (
+                      <OverviewView />
+                   )}
                   {(activeTab === 'Analytics' || activeTab === 'Settings') && (
                      <div className="py-24 border-2 border-dashed border-black/5 rounded-[40px] flex flex-col items-center justify-center text-black/20 font-bold uppercase tracking-widest text-[10px]">
                         Module Under Construction
@@ -308,7 +311,7 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-md border-t border-black/5 px-2 py-2 safe-area-bottom">
         <div className="flex items-center justify-around">
           <DockItem icon={<LayoutGrid size={22} />} label="Overview" isActive={activeTab === 'Overview'} onClick={() => setActiveTab('Overview')} />
-          <DockItem icon={<FileText size={22} />} label="Applications" isActive={activeTab === 'Applications'} onClick={() => setActiveTab('Applications')} />
+          <DockItem icon={<FileText size={22} />} label="Apps" isActive={activeTab === 'Applications'} onClick={() => setActiveTab('Applications')} />
           <DockItem icon={<Users size={22} />} label="Users" isActive={activeTab === 'Users'} onClick={() => setActiveTab('Users')} />
           <DockItem icon={<Folder size={22} />} label="Workspaces" isActive={activeTab === 'Workspaces'} onClick={() => setActiveTab('Workspaces')} />
           <DockItem icon={<BarChart3 size={22} />} label="Analytics" isActive={activeTab === 'Analytics'} onClick={() => setActiveTab('Analytics')} />
@@ -508,88 +511,7 @@ export default function AdminPage({ onBack }: { onBack: () => void }) {
   );
 }
 
-function WorkspacesManager({ workspaces, users, onUpdateFolders, onDeleteWorkspace }: any) {
-  const [viewedWorkspace, setViewedWorkspace] = useState<Workspace | null>(null);
-  const [editingWorkspace, setEditingWorkspace] = useState<Workspace | null>(null);
-
-  if (viewedWorkspace) {
-    return (
-      <WorkspaceBrowser 
-        workspace={viewedWorkspace} 
-        onBack={() => setViewedWorkspace(null)}
-        onEdit={() => setEditingWorkspace(viewedWorkspace)}
-      />
-    );
-  }
-
-  return (
-    <div className="space-y-12">
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {workspaces.map((ws: Workspace) => (
-          <motion.div
-            key={ws.id}
-            whileHover={{ y: -5 }}
-            className="group relative bg-black/[0.02] border border-black/5 rounded-[32px] p-8 flex flex-col justify-between h-[240px] hover:bg-white hover:shadow-2xl hover:shadow-black/5 transition-all cursor-pointer overflow-hidden"
-            onClick={() => setViewedWorkspace(ws)}
-          >
-            <div className="relative z-10 flex justify-between items-start">
-               <div className="w-12 h-12 bg-black text-white rounded-2xl flex items-center justify-center rotate-3 group-hover:rotate-0 transition-transform">
-                  <Folder size={24} />
-               </div>
-               <div className="flex items-center gap-2">
-                  <button 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setEditingWorkspace(ws);
-                    }}
-                    className="p-2 bg-white/50 rounded-full opacity-0 group-hover:opacity-100 hover:bg-black hover:text-white transition-all shadow-sm"
-                  >
-                    <Settings2 size={14} />
-                  </button>
-                  <PermissionBadge type={ws.permission} />
-               </div>
-            </div>
-
-            <div className="relative z-10">
-               <h3 className="text-xl font-bold tracking-tight mb-2 group-hover:text-black transition-colors">{ws.name}</h3>
-               <div className="flex items-center gap-3">
-                  <span className="text-[10px] uppercase tracking-widest font-bold text-black/20">
-                    Created {new Date(ws.createdAt).toLocaleDateString()}
-                  </span>
-               </div>
-            </div>
-
-            <button 
-              onClick={(e) => {
-                 e.stopPropagation();
-                 if(confirm("Are you sure? This will delete all files inside.")) {
-                   onDeleteWorkspace(ws.id);
-                 }
-              }}
-              className="absolute bottom-8 right-8 p-3 opacity-0 group-hover:opacity-100 hover:bg-red-50 text-red-500 rounded-full transition-all"
-            >
-               <Trash2 size={16} />
-            </button>
-          </motion.div>
-        ))}
-      </div>
-
-      <AnimatePresence>
-        {editingWorkspace && (
-          <WorkspaceModal 
-            users={users}
-            workspace={editingWorkspace}
-            onClose={() => setEditingWorkspace(null)}
-            onSaved={() => {
-              onUpdateFolders();
-              setEditingWorkspace(null);
-            }}
-          />
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
+// Old functions removed - using imports from ./admin/
 
 function WorkspaceBrowser({ workspace, onBack, onEdit }: { workspace: Workspace, onBack: () => void, onEdit: () => void }) {
   const [files, setFiles] = useState<FileRecord[]>([]);
@@ -827,319 +749,10 @@ function DockItem({ icon, label, isActive, onClick, isExit }: { icon: React.Reac
   );
 }
 
-function ApplicationsView({ applications, onSelect }: any) {
-  const [search, setSearch] = useState("");
-  const filtered = applications.filter((app: Application) => app.name.toLowerCase().includes(search.toLowerCase()) || app.id.includes(search));
-
-  return (
-    <div className="space-y-12">
-      <div className="flex justify-between items-center border-b border-black/5 pb-12">
-         <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-0 top-1/2 -translate-y-1/2 text-black/20" size={20} />
-            <input 
-              type="text" 
-              placeholder="Filter by name or ID..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-8 pr-4 py-2 bg-transparent text-sm focus:outline-none placeholder:text-black/10"
-            />
-         </div>
-      </div>
-
-      <div className="space-y-0.5">
-         {filtered.map((app: Application) => (
-            <motion.div 
-               key={app.id} 
-               onClick={() => onSelect(app)}
-               className="group flex items-center justify-between py-5 px-6 hover:bg-black/[0.02] rounded-2xl transition-all cursor-pointer"
-            >
-               <div className="flex items-center gap-12">
-                  <span className="text-[10px] font-mono font-bold text-black/10">#{app.id}</span>
-                  <div className="flex flex-col">
-                     <span className="text-lg font-bold">{app.name}</span>
-                     <span className="text-[9px] uppercase tracking-widest font-bold text-black/30">{new Date(app.submittedAt).toLocaleDateString()}</span>
-                  </div>
-               </div>
-
-               <div className="flex items-center gap-12">
-                  <StatusPill status={app.status} />
-                  <ChevronRight size={16} className="text-black/10 group-hover:text-black transition-all" />
-               </div>
-            </motion.div>
-         ))}
-      </div>
-    </div>
-  );
-}
-
-function UsersView({ users, roleFilter, setRoleFilter, onIssueCredit, onManagePermissions, onRefresh }: any) {
-  const [search, setSearch] = useState("");
-  
-  const filtered = users.filter((u: UserType) => {
-    const matchesSearch = u.firstName.toLowerCase().includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase());
-    const matchesRole = roleFilter === 'all' || u.role === roleFilter;
-    return matchesSearch && matchesRole;
-  });
-
-  const handleRoleChange = async (userId: string, newRole: 'user' | 'subagent' | 'admin') => {
-    try {
-      await mockApi.assignUserRole(userId, newRole);
-      onRefresh();
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  return (
-    <div className="space-y-12">
-       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 border-b border-black/5 pb-12">
-          <div className="relative flex-1 max-w-md">
-             <Search className="absolute left-0 top-1/2 -translate-y-1/2 text-black/20" size={20} />
-             <input 
-               type="text" 
-               placeholder="Search registry..."
-               value={search}
-               onChange={(e) => setSearch(e.target.value)}
-               className="w-full pl-8 pr-4 py-2 bg-transparent text-sm focus:outline-none placeholder:text-black/10"
-             />
-          </div>
-
-          <div className="flex items-center gap-2 p-1 bg-black/5 rounded-2xl">
-             {(['all', 'user', 'subagent', 'admin'] as const).map(role => (
-                <button
-                  key={role}
-                  onClick={() => setRoleFilter(role)}
-                  className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${roleFilter === role ? 'bg-white text-black shadow-sm' : 'text-black/30 hover:text-black'}`}
-                >
-                   {role === 'subagent' ? 'Agents' : role + 's'}
-                </button>
-             ))}
-          </div>
-       </div>
-
-       <div className="space-y-0.5">
-          {filtered.map((user: UserType) => (
-             <div 
-                key={user.id} 
-                className="group flex items-center justify-between py-6 px-8 hover:bg-black/[0.02] rounded-[40px] transition-all"
-             >
-                <div className="flex items-center gap-10">
-                   <div className="relative">
-                      <div className="w-12 h-12 bg-black text-white rounded-2xl flex items-center justify-center font-bold text-lg uppercase">
-                        {user.firstName[0]}
-                      </div>
-                      {user.role === 'admin' && (
-                         <div className="absolute -top-1 -right-1 w-5 h-5 bg-yellow-400 border-2 border-white rounded-full flex items-center justify-center">
-                            <Shield size={10} className="text-white" />
-                         </div>
-                      )}
-                      {user.role === 'subagent' && (
-                         <div className="absolute -top-1 -right-1 w-5 h-5 bg-blue-500 border-2 border-white rounded-full flex items-center justify-center">
-                            <User size={10} className="text-white" />
-                         </div>
-                      )}
-                   </div>
-                   <div className="flex flex-col">
-                      <span className="text-xl font-bold tracking-tight">{user.firstName} {user.lastName}</span>
-                      <span className="text-[10px] text-black/40 font-bold uppercase tracking-widest">{user.email}</span>
-                   </div>
-                </div>
-
-                <div className="flex items-center gap-16">
-                   <div className="flex flex-col items-end">
-                      <span className="text-xl font-space font-bold">€{(user.balance || 0).toFixed(2)}</span>
-                      <span className="text-[8px] uppercase tracking-widest font-bold text-black/20">Liquidity</span>
-                   </div>
-
-                   <div className="h-10 w-px bg-black/5" />
-
-                   <div className="flex items-center gap-6">
-                      <div className="flex flex-col gap-1">
-                         <span className="text-[8px] uppercase tracking-widest font-bold text-black/20">Assign Role</span>
-                         <select 
-                           value={user.role}
-                           onChange={(e) => handleRoleChange(user.id, e.target.value as any)}
-                           className="bg-transparent text-[10px] font-bold uppercase tracking-widest focus:outline-none appearance-none cursor-pointer hover:text-blue-600 transition-colors"
-                         >
-                            <option value="user">User</option>
-                            <option value="subagent">Agent</option>
-                            <option value="admin">Admin</option>
-                         </select>
-                      </div>
-
-                      {user.role === 'subagent' && (
-                         <button 
-                           onClick={() => onManagePermissions(user)}
-                           className="p-3 bg-black/5 rounded-xl hover:bg-black text-white transition-all text-[10px] font-bold uppercase"
-                         >
-                            Permissions
-                         </button>
-                      )}
-
-                      <button 
-                        onClick={() => onIssueCredit(user)}
-                        className="p-3 hover:bg-black/5 rounded-xl transition-all"
-                        title="Issue Credit"
-                      >
-                        <TrendingUp size={16} />
-                      </button>
-                   </div>
-                </div>
-             </div>
-          ))}
-       </div>
-    </div>
-  );
-}
-
-function InviteAgentModal({ onClose, onInvited }: any) {
-  const [email, setEmail] = useState("");
-  const [name, setName] = useState("");
-  const [isSending, setIsSending] = useState(false);
-  const [inviteLink, setInviteLink] = useState("");
-
-  const handleInvite = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSending(true);
-    try {
-      const result = await mockApi.inviteAgent(email, name);
-      setInviteLink(result.inviteLink);
-    } catch (e: any) {
-      alert(e.message);
-    } finally {
-      setIsSending(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 z-[600] flex items-center justify-center p-6 bg-black/40 backdrop-blur-sm">
-       <motion.div 
-         initial={{ scale: 0.9, opacity: 0 }} animate={{ opacity: 1, scale: 1 }} exit={{ scale: 0.9, opacity: 0 }}
-         className="bg-white rounded-[40px] w-full max-w-xl p-12 space-y-10 shadow-2xl relative"
-       >
-          <button onClick={onClose} className="absolute right-8 top-8 p-2 hover:bg-black/5 rounded-full transition-colors"><X size={20} /></button>
-          
-          <div className="space-y-2">
-             <p className="text-[10px] uppercase tracking-[0.4em] font-bold text-black/40 text-center">Team Expansion</p>
-             <h3 className="text-4xl font-space font-bold tracking-tighter uppercase text-center">Invite Agent.</h3>
-          </div>
-
-          {!inviteLink ? (
-             <form onSubmit={handleInvite} className="space-y-8">
-                <div className="space-y-4">
-                   <label className="text-[10px] uppercase tracking-widest font-bold text-black/20 px-1">Agent Full Name</label>
-                   <input 
-                     type="text" 
-                     required
-                     value={name}
-                     onChange={e => setName(e.target.value)}
-                     placeholder="John Smith"
-                     className="w-full bg-black/5 border border-black/5 rounded-[24px] px-8 py-5 text-lg font-bold focus:outline-none"
-                   />
-                </div>
-                <div className="space-y-4">
-                   <label className="text-[10px] uppercase tracking-widest font-bold text-black/20 px-1">Email Address</label>
-                   <input 
-                     type="email" 
-                     required
-                     value={email}
-                     onChange={e => setEmail(e.target.value)}
-                     placeholder="agent@smartcaf.it"
-                     className="w-full bg-black/5 border border-black/5 rounded-[24px] px-8 py-5 text-lg font-bold focus:outline-none"
-                   />
-                </div>
-                <button 
-                  type="submit"
-                  disabled={isSending}
-                  className="w-full bg-black text-white py-6 rounded-[24px] font-bold text-sm tracking-[0.2em] uppercase hover:scale-[1.02] shadow-2xl shadow-black/20"
-                >
-                   {isSending ? "Generating Invite..." : "Send Invitation Link ↗"}
-                </button>
-             </form>
-          ) : (
-             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="bg-green-50 p-8 rounded-[32px] border border-green-100 space-y-4">
-                   <div className="flex items-center gap-3 text-green-600">
-                      <CheckCircle2 size={24} />
-                      <span className="font-bold text-sm uppercase tracking-widest">Invitation Ready</span>
-                   </div>
-                   <p className="text-sm text-green-800/60 leading-relaxed">
-                      Copy the link below and send it to your new agent. They can use it to set their password and join the hub.
-                   </p>
-                </div>
-                <div className="p-6 bg-black/5 rounded-2xl break-all font-mono text-[10px] border border-black/5 select-all cursor-pointer hover:bg-black/10 transition-colors" title="Click to select all">
-                   {inviteLink}
-                </div>
-                <button onClick={onClose} className="w-full py-4 rounded-xl border-2 border-black font-bold text-[10px] uppercase tracking-widest hover:bg-black hover:text-white transition-all">
-                   Done
-                </button>
-             </div>
-          )}
-       </motion.div>
-    </div>
-  );
-}
-
-function PermissionsModal({ user, onClose, onSaved }: any) {
-  const [overrides, setOverrides] = useState<Partial<AgentPermissions>>(user.permissions || {});
-  const [isSaving, setIsSaving] = useState(false);
-
-  // Helper to get actual effective state
-  const effective = mockApi.getEffectivePermissions({ ...user, permissions: overrides });
-
-  const toggle = (key: keyof AgentPermissions) => {
-    setOverrides((prev: any) => ({
-       ...prev,
-       [key]: !effective[key]
-    }));
-  };
-
-  const handleSave = async () => {
-    setIsSaving(true);
-    await mockApi.updateUserPermissions(user.id, overrides);
-    onSaved();
-    setIsSaving(false);
-  };
-
-  return (
-    <div className="fixed inset-0 z-[600] flex items-center justify-center p-6 bg-black/40 backdrop-blur-sm">
-       <motion.div 
-         initial={{ scale: 0.9, opacity: 0 }} animate={{ opacity: 1, scale: 1 }} exit={{ scale: 0.9, opacity: 0 }}
-         className="bg-white rounded-[40px] w-full max-w-xl p-12 space-y-10 shadow-2xl relative"
-       >
-          <button onClick={onClose} className="absolute right-8 top-8 p-2 hover:bg-black/5 rounded-full transition-colors"><X size={20} /></button>
-          
-          <div className="space-y-2">
-             <p className="text-[10px] uppercase tracking-[0.4em] font-bold text-black/40 text-center">Override Management</p>
-             <h3 className="text-4xl font-space font-bold tracking-tighter uppercase text-center">Permissions.</h3>
-             <p className="text-sm text-black/40 font-light text-center">Configuring agent: <span className="text-black font-bold">{user.firstName} {user.lastName}</span></p>
-          </div>
-
-          <div className="space-y-3">
-             {Object.entries(effective).map(([key, val]) => (
-                <div key={key} className="flex items-center justify-between p-5 bg-black/[0.02] border border-black/5 rounded-[24px]">
-                   <span className="text-[10px] font-bold uppercase tracking-widest text-black/60">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
-                   <button 
-                     onClick={() => toggle(key as any)}
-                     className={`w-12 h-6 rounded-full relative transition-colors ${val ? 'bg-black' : 'bg-black/10'}`}
-                   >
-                      <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${val ? 'right-1' : 'left-1'}`} />
-                   </button>
-                </div>
-             ))}
-          </div>
-
-          <button 
-            onClick={handleSave}
-            disabled={isSaving}
-            className="w-full bg-black text-white py-6 rounded-[24px] font-bold text-sm tracking-[0.2em] uppercase shadow-2xl"
-          >
-             {isSaving ? "Saving..." : "Apply Changes ↗"}
-          </button>
-       </motion.div>
-    </div>
-  );
-}
+//ApplicationsView now imported from admin/
+//UsersView now imported from admin/
+//InviteAgentModal now imported from admin/
+//PermissionsModal now imported from admin/
 
 function StatusPill({ status }: { status: ApplicationStatus }) {
   const colors: Record<ApplicationStatus, string> = {
@@ -1167,30 +780,4 @@ function DetailItem({ icon, label, value }: any) {
     );
 }
 
-function OverviewPlaceholder() {
-    return (
-        <div className="space-y-12">
-            <div className="grid md:grid-cols-3 gap-12">
-                <EditorialStat label="Applications" value="12,840" trend="+4%" />
-                <EditorialStat label="Liquidity" value="€84k" trend="+1%" />
-                <EditorialStat label="SLA" value="14.2h" trend="-1%" />
-            </div>
-            
-            <div className="h-[300px] border border-black/5 rounded-[40px] flex items-center justify-center text-black/10 font-bold uppercase tracking-widest text-[10px]">
-               Activity Visualization
-            </div>
-        </div>
-    );
-}
 
-function EditorialStat({ label, value, trend }: any) {
-    return (
-        <div className="space-y-2">
-            <p className="text-[10px] uppercase tracking-widest font-bold text-black/40">{label}</p>
-            <div className="flex items-baseline gap-2">
-                <h3 className="text-5xl font-space font-bold tracking-tighter">{value}</h3>
-                <span className="text-[10px] font-bold text-green-600 uppercase font-space">{trend}</span>
-            </div>
-        </div>
-    );
-}
