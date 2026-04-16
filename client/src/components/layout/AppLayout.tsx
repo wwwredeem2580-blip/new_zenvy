@@ -9,7 +9,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { isAuthOpen, setIsAuthOpen, setUser } = useAuth();
 
   return (
-    <div className="min-h-screen bg-white text-black font-dm selection:bg-black selection:text-white light overflow-x-hidden">
+    <div className="min-h-screen bg-white text-black font-dm selection:bg-black selection:text-white light">
       <Navbar />
       
       <main className="pt-24 min-h-screen">

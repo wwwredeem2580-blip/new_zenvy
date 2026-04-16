@@ -70,8 +70,8 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="relative mt-8 lg:mt-0">
-          <div className="absolute -inset-20 bg-black/5 blur-[120px] rounded-full pointer-events-none" />
+        <div className="relative mt-8 lg:mt-0 overflow-hidden rounded-[40px]">
+          <div className="absolute inset-0 bg-black/5 blur-[80px] pointer-events-none" />
           <div className="relative grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FeatureCard 
               icon={<FileText className="text-black" />} 

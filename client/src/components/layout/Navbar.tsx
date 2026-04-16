@@ -31,7 +31,7 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="fixed top-0 left-0 w-full px-6 py-4 flex justify-between items-center z-[100] bg-white/70 backdrop-blur-2xl border-b border-black/5">
+      <nav className="fixed top-0 left-0 w-full px-2 sm:px-6 py-4 flex justify-between items-center z-[100] bg-white/70 backdrop-blur-2xl border-b border-black/5 transform-gpu will-change-transform">
         <Link 
           href="/"
           className="flex items-center gap-3 cursor-pointer group"
@@ -105,7 +105,7 @@ export default function Navbar() {
           ) : (
             <button 
               onClick={() => setIsAuthOpen(true)}
-              className="px-6 py-2 bg-black text-white rounded-full text-[10px] font-bold uppercase tracking-widest hover:scale-105 transition-transform"
+              className="px-4 sm:px-6 py-2 bg-black text-white rounded-full text-[9px] sm:text-[10px] font-bold uppercase tracking-widest hover:scale-105 transition-transform"
             >
               Login
             </button>
