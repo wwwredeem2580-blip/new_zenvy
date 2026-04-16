@@ -403,22 +403,22 @@ export default function AdminPage() {
                         <p className="text-3xl font-space font-bold tracking-tighter uppercase">{selectedApp.status}</p>
                     </div>
                     {selectedApp.status === 'Reviewing' && selectedApp.reviewerId && (
-                       <div className="flex flex-col items-center gap-2 pr-6 border-r border-black/5">
-                          <p className="text-[8px] uppercase tracking-widest font-bold text-black/30">Active Reviewer</p>
-                          <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-2xl shadow-sm border border-black/5">
-                             <div className="w-8 h-8 rounded-xl overflow-hidden shadow-inner flex items-center justify-center">
+                       <div className="flex flex-col items-center gap-1 ml-2 sm:gap-2 pr-4 sm:pr-6 border-r border-black/5">
+                          <p className="text-[7px] sm:text-[8px] uppercase tracking-widest font-bold text-black/30">Reviewer</p>
+                          <div className="flex items-center gap-2 sm:gap-3 bg-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl sm:rounded-2xl shadow-sm border border-black/5">
+                             <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl overflow-hidden shadow-inner flex items-center justify-center">
                                 <img 
                                    src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${selectedApp.reviewerName}${selectedApp.reviewerId}`} 
                                    alt={selectedApp.reviewerName}
                                    className="w-full h-full object-cover"
                                 />
                              </div>
-                             <span className="text-sm font-bold">{selectedApp.reviewerName}</span>
+                             <span className="text-xs sm:text-sm font-bold">{selectedApp.reviewerName}</span>
                           </div>
                        </div>
                     )}
-                    <div className="w-16 h-16 bg-white rounded-[24px] flex items-center justify-center shadow-lg border border-black/5">
-                         {selectedApp.status === "Approved" ? <CheckCircle2 size={32} className="text-green-500" /> : <Clock size={32} className="text-black/20" />}
+                    <div className="min-w-12 min-h-12 bg-white rounded-[16px] flex items-center justify-center shadow-lg border border-black/5">
+                         {selectedApp.status === "Approved" ? <CheckCircle2 size={24} className="text-green-500" /> : <Clock size={24} className="text-black/20" />}
                     </div>
                  </div>
 
