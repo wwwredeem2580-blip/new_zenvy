@@ -312,13 +312,18 @@ export const mockApi = {
     return newApp;
   },
 
-  updateApplicationStatus: async (id: string, status: ApplicationStatus, forceRelease: boolean = false): Promise<boolean> => {
+  updateApplicationStatus: async (id: string, status: ApplicationStatus, forceRelease: boolean = false, refundData?: { amount: number, type: 'Full' | 'Partial' }): Promise<boolean> => {
     await new Promise((resolve) => setTimeout(resolve, 800));
     const apps = await mockApi.getApplications();
     const index = apps.findIndex(a => a.id === id);
     if (index !== -1) {
       const currentUser = mockApi.getCurrentUser();
       
+      if (refundData) {
+        apps[index].refundAmount = refundData.amount;
+        apps[index].refundType = refundData.type;
+      }
+
       if (status === 'Reviewing') {
          apps[index].status = status;
          apps[index].reviewerId = currentUser?.id;

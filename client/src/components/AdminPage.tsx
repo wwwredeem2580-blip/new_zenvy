@@ -44,6 +44,7 @@ import { UsersView } from './admin/UsersView';
 import { WorkspacesManager } from './admin/WorkspacesManager';
 import { InviteAgentModal } from './admin/InviteAgentModal';
 import { PermissionsModal } from './admin/PermissionsModal';
+import { RefundModal } from './admin/RefundModal';
 import { Application, ApplicationStatus } from '../data/applications';
 import { mockApi, User as UserType, Workspace, WorkspacePermission, FileRecord, AgentPermissions } from '../lib/api/mockApi';
 
@@ -66,6 +67,7 @@ export default function AdminPage() {
   const [isCreditModalOpen, setIsCreditModalOpen] = useState(false);
   const [creditAmount, setCreditAmount] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [pendingRefundApp, setPendingRefundApp] = useState<Application | null>(null);
   
   // Workspace specific state
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
@@ -439,6 +441,10 @@ export default function AdminPage() {
                           <button 
                             key={s} 
                             onClick={async () => {
+                               if (s === 'Rejected') {
+                                  setPendingRefundApp(selectedApp);
+                                  return;
+                               }
                                await mockApi.updateApplicationStatus(selectedApp.id, s);
                                const updatedApps = await mockApi.getApplications();
                                setApplications(updatedApps);
@@ -595,6 +601,21 @@ export default function AdminPage() {
              />
           )}
        </AnimatePresence>
+
+       <RefundModal 
+          isOpen={!!pendingRefundApp}
+          onClose={() => setPendingRefundApp(null)}
+          application={pendingRefundApp || selectedApp || {} as Application}
+          onConfirm={async (refundData) => {
+             if (pendingRefundApp) {
+                await mockApi.updateApplicationStatus(pendingRefundApp.id, 'Rejected', false, refundData);
+                setPendingRefundApp(null);
+                const data = await mockApi.getApplications();
+                setApplications(data);
+                setSelectedApp(null);
+             }
+          }}
+       />
     </div>
   );
 }

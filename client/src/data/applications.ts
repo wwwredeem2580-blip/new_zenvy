@@ -22,6 +22,8 @@ export interface Application {
   reviewerId?: string;
   reviewerName?: string;
   lastActivityAt?: string;
+  refundAmount?: number;
+  refundType?: 'Full' | 'Partial';
 }
 
 export const mockApplications: Application[] = [

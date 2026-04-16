@@ -36,6 +36,7 @@ import {
 } from 'lucide-react';
 import { Application, ApplicationStatus } from '../data/applications';
 import { mockApi, User as UserType, Workspace, FileRecord, AgentPermissions } from '../lib/api/mockApi';
+import { RefundModal } from './admin/RefundModal';
 
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
@@ -68,6 +69,7 @@ export default function AgentPage() {
   const [selectedWorkspace, setSelectedWorkspace] = useState<Workspace | null>(null);
   const [selectedApp, setSelectedApp] = useState<Application | null>(null);
   const [workspaceFiles, setWorkspaceFiles] = useState<FileRecord[]>([]);
+  const [pendingRefundApp, setPendingRefundApp] = useState<Application | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
   const [search, setSearch] = useState("");
@@ -450,6 +452,12 @@ export default function AgentPage() {
                                          if (selectedApp.status === 'Reviewing' && selectedApp.reviewerId && selectedApp.reviewerId !== user.id) {
                                             if (!confirm(`Warning: This application is owned by ${selectedApp.reviewerName}. Overwrite ownership?`)) return;
                                          }
+                                         
+                                         if (s === 'Rejected') {
+                                           setPendingRefundApp(selectedApp);
+                                           return;
+                                         }
+                                         
                                          updateAppStatus(selectedApp.id, s as any);
                                       }}
                                       className={`px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${selectedApp.status === s ? 'bg-black text-white scale-105 shadow-xl' : 'bg-white border border-black/5 text-black/40 hover:border-black/20'}`}
@@ -516,6 +524,20 @@ export default function AgentPage() {
                </div>
             )}
          </AnimatePresence>
+
+         <RefundModal 
+            isOpen={!!pendingRefundApp}
+            onClose={() => setPendingRefundApp(null)}
+            application={pendingRefundApp || selectedApp || {} as Application}
+            onConfirm={async (refundData) => {
+               if (pendingRefundApp) {
+                  await mockApi.updateApplicationStatus(pendingRefundApp.id, 'Rejected', false, refundData);
+                  setPendingRefundApp(null);
+                  loadData();
+                  setSelectedApp(null);
+               }
+            }}
+         />
       </div>
     </div>
   );
