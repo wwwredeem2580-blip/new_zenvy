@@ -28,9 +28,8 @@ export function InternalNotes({ application, onUpdate }: InternalNotesProps) {
     loadAgents();
   }, [application.id, application.notes]);
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [notes]);
+  // Scroll to bottom is now manually triggered after adding a note
+  // to prevent annoying auto-scroll on mount/other updates.
 
   const loadAgents = async () => {
     const allUsers = await mockApi.getUsers();
@@ -49,6 +48,11 @@ export function InternalNotes({ application, onUpdate }: InternalNotesProps) {
       if (note) {
         setNewNote('');
         onUpdate();
+        
+        // Only scroll to bottom when the user explicitly sends a message
+        setTimeout(() => {
+          scrollToBottom();
+        }, 100);
         
         // Handle mentions in console for demo
         const mentions = newNote.match(/@(\w+)/g);
