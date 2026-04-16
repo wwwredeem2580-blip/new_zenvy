@@ -45,6 +45,7 @@ import { WorkspacesManager } from './admin/WorkspacesManager';
 import { InviteAgentModal } from './admin/InviteAgentModal';
 import { PermissionsModal } from './admin/PermissionsModal';
 import { RefundModal } from './admin/RefundModal';
+import { InternalNotes } from './admin/InternalNotes';
 import { Application, ApplicationStatus } from '../data/applications';
 import { mockApi, User as UserType, Workspace, WorkspacePermission, FileRecord, AgentPermissions } from '../lib/api/mockApi';
 
@@ -504,11 +505,19 @@ export default function AdminPage() {
                     </div>
                  </div>
 
-                 <div className="pt-8">
-                    <button onClick={() => setSelectedApp(null)} className="w-full bg-black text-white py-4 rounded-full font-bold text-sm tracking-widest uppercase hover:scale-105 transition-all shadow-2xl shadow-black/20">
-                       Close Detail View
-                    </button>
-                 </div>
+                  {/* Internal Notes Section */}
+                  <div className='pt-8 bg-black/5 -mx-8 px-8 border-t border-black/5'>
+                     <InternalNotes 
+                        application={selectedApp} 
+                        onUpdate={loadData} 
+                     />
+                  </div>
+
+                  <div className='pt-8'>
+                     <button onClick={() => setSelectedApp(null)} className='w-full bg-black text-white py-4 rounded-full font-bold text-sm tracking-widest uppercase hover:scale-105 transition-all shadow-2xl shadow-black/20'>
+                        Close Detail View
+                     </button>
+                  </div>
               </div>
             </motion.div>
           </div>

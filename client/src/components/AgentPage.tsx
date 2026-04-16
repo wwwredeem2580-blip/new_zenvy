@@ -37,6 +37,7 @@ import {
 import { Application, ApplicationStatus } from '../data/applications';
 import { mockApi, User as UserType, Workspace, FileRecord, AgentPermissions } from '../lib/api/mockApi';
 import { RefundModal } from './admin/RefundModal';
+import { InternalNotes } from './admin/InternalNotes';
 
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
@@ -512,6 +513,14 @@ export default function AgentPage() {
                                  </div>
                               ))}
                            </div>
+                        </div>
+
+                        {/* Internal Notes Section */}
+                        <div className="pt-4">
+                           <InternalNotes 
+                              application={selectedApp} 
+                              onUpdate={loadData} 
+                           />
                         </div>
 
                         <div className="pt-8">

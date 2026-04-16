@@ -4,7 +4,7 @@
  * Uses localStorage to persist state across refreshes.
  */
 
-import { Application, ApplicationStatus, mockApplications } from "../../data/applications";
+import { Application, ApplicationStatus, mockApplications, Note } from "../../data/applications";
 
 export interface AgentPermissions {
   canViewWorkspaces: boolean;
@@ -253,13 +253,24 @@ export const mockApi = {
     // Data Migration: Ensure all apps have the new fields (prevent layout breaks for legacy data)
     let migrated = false;
     apps = apps.map(app => {
-      // If any of the new fields are missing, initialize them to undefined (though they are already optional in TS)
-      // The key is to ensure the shape doesn't cause issues if we were strictly checking keys
+      let updated = false;
+      const updates: any = {};
+      
       if (!('reviewerId' in app)) {
         migrated = true;
-        return { ...app, reviewerId: undefined, reviewerName: undefined, lastActivityAt: undefined };
+        updated = true;
+        updates.reviewerId = undefined;
+        updates.reviewerName = undefined;
+        updates.lastActivityAt = undefined;
       }
-      return app;
+      
+      if (!('notes' in app)) {
+        migrated = true;
+        updated = true;
+        updates.notes = [];
+      }
+      
+      return updated ? { ...app, ...updates } : app;
     });
 
     if (migrated) {
@@ -340,6 +351,72 @@ export const mockApi = {
          apps[index].lastActivityAt = new Date().toISOString();
       }
       
+      saveToStorage(APPLICATIONS_KEY, apps);
+      return true;
+    }
+    return false;
+  },
+
+  addNote: async (appId: string, text: string): Promise<Note | null> => {
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    const apps = await mockApi.getApplications();
+    const appIndex = apps.findIndex(a => a.id === appId);
+    const currentUser = mockApi.getCurrentUser();
+    
+    if (appIndex !== -1 && currentUser) {
+      const newNote: Note = {
+        id: 'note-' + Math.random().toString(36).substr(2, 5),
+        authorId: currentUser.id,
+        authorName: `${currentUser.firstName} ${currentUser.lastName}`,
+        text,
+        createdAt: new Date().toISOString(),
+      };
+      
+      if (!apps[appIndex].notes) apps[appIndex].notes = [];
+      apps[appIndex].notes!.push(newNote);
+      saveToStorage(APPLICATIONS_KEY, apps);
+      return newNote;
+    }
+    return null;
+  },
+
+  deleteNote: async (appId: string, noteId: string): Promise<boolean> => {
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    const apps = await mockApi.getApplications();
+    const appIndex = apps.findIndex(a => a.id === appId);
+    const currentUser = mockApi.getCurrentUser();
+    
+    if (appIndex !== -1 && currentUser) {
+      const noteIndex = apps[appIndex].notes?.findIndex(n => n.id === noteId);
+      if (noteIndex === -1 || noteIndex === undefined) return false;
+      
+      const note = apps[appIndex].notes![noteIndex];
+      // Only author or admin can delete
+      if (note.authorId !== currentUser.id && currentUser.role !== 'admin') return false;
+      
+      apps[appIndex].notes!.splice(noteIndex, 1);
+      saveToStorage(APPLICATIONS_KEY, apps);
+      return true;
+    }
+    return false;
+  },
+
+  updateNote: async (appId: string, noteId: string, text: string): Promise<boolean> => {
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    const apps = await mockApi.getApplications();
+    const appIndex = apps.findIndex(a => a.id === appId);
+    const currentUser = mockApi.getCurrentUser();
+    
+    if (appIndex !== -1 && currentUser) {
+      const noteIndex = apps[appIndex].notes?.findIndex(n => n.id === noteId);
+      if (noteIndex === -1 || noteIndex === undefined) return false;
+      
+      const note = apps[appIndex].notes![noteIndex];
+      // Only author can edit
+      if (note.authorId !== currentUser.id) return false;
+      
+      apps[appIndex].notes![noteIndex].text = text;
+      apps[appIndex].notes![noteIndex].updatedAt = new Date().toISOString();
       saveToStorage(APPLICATIONS_KEY, apps);
       return true;
     }

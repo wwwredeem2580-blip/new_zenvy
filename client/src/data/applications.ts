@@ -6,6 +6,15 @@ export interface SubService {
   duration: string;
 }
 
+export interface Note {
+  id: string;
+  authorId: string;
+  authorName: string;
+  text: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
 export interface Application {
   id: string;
   name: string;
@@ -24,6 +33,7 @@ export interface Application {
   lastActivityAt?: string;
   refundAmount?: number;
   refundType?: 'Full' | 'Partial';
+  notes?: Note[];
 }
 
 export const mockApplications: Application[] = [
