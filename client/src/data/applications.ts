@@ -6,6 +6,17 @@ export interface SubService {
   duration: string;
 }
 
+export type ActivityType = 'status' | 'financial' | 'document' | 'note' | 'system' | 'reassignment';
+
+export interface ActivityLogEntry {
+  id: string;
+  type: ActivityType;
+  description: string;
+  actorName: string;
+  actorId: string;
+  timestamp: string;
+}
+
 export interface Note {
   id: string;
   authorId: string;
@@ -34,6 +45,7 @@ export interface Application {
   refundAmount?: number;
   refundType?: 'Full' | 'Partial';
   notes?: Note[];
+  activityLog?: ActivityLogEntry[];
 }
 
 export const mockApplications: Application[] = [

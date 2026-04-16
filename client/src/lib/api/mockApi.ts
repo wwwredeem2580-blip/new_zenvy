@@ -269,6 +269,12 @@ export const mockApi = {
         updated = true;
         updates.notes = [];
       }
+
+      if (!('activityLog' in app)) {
+        migrated = true;
+        updated = true;
+        updates.activityLog = [];
+      }
       
       return updated ? { ...app, ...updates } : app;
     });
@@ -317,6 +323,14 @@ export const mockApi = {
       id: 'CAF-' + Math.floor(100000 + Math.random() * 900000).toString(),
       status: 'Pending',
       submittedAt: new Date().toISOString(),
+      activityLog: [{
+         id: 'act-' + Math.random().toString(36).substr(2, 5),
+         type: 'system',
+         description: 'Application submitted by user',
+         actorName: 'System',
+         actorId: 'system',
+         timestamp: new Date().toISOString()
+      }]
     };
     apps.unshift(newApp);
     saveToStorage(APPLICATIONS_KEY, apps);
@@ -329,26 +343,64 @@ export const mockApi = {
     const index = apps.findIndex(a => a.id === id);
     if (index !== -1) {
       const currentUser = mockApi.getCurrentUser();
+      const oldApp = { ...apps[index] };
+      const actorName = currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : 'System';
+      const actorId = currentUser?.id || 'system';
       
+      if (!apps[index].activityLog) apps[index].activityLog = [];
+
       if (refundData) {
         apps[index].refundAmount = refundData.amount;
         apps[index].refundType = refundData.type;
+        
+        apps[index].activityLog!.push({
+           id: 'act-' + Math.random().toString(36).substr(2, 5),
+           type: 'financial',
+           description: `Refund of €${refundData.amount} issued (${refundData.type} Refund) – Stripe Ref: ${Math.random().toString(36).substr(2, 12).toUpperCase()}`,
+           actorName,
+           actorId,
+           timestamp: new Date().toISOString()
+        });
       }
+
+      const logStatusChange = (newStatus: string) => {
+         if (oldApp.status === newStatus) return;
+         apps[index].activityLog!.push({
+            id: 'act-' + Math.random().toString(36).substr(2, 5),
+            type: newStatus === 'Rejected' ? 'system' : 'status', // Rejection is high-visibility
+            description: `Status changed: ${oldApp.status} → ${newStatus} by ${actorName}`,
+            actorName,
+            actorId,
+            timestamp: new Date().toISOString()
+         });
+      };
 
       if (status === 'Reviewing') {
          apps[index].status = status;
          apps[index].reviewerId = currentUser?.id;
          apps[index].reviewerName = currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : 'System';
          apps[index].lastActivityAt = new Date().toISOString();
+         logStatusChange('Reviewing');
       } else if (forceRelease || status === 'Pending') {
+         if (forceRelease && oldApp.reviewerId) {
+            apps[index].activityLog!.push({
+               id: 'act-' + Math.random().toString(36).substr(2, 5),
+               type: 'reassignment',
+               description: `Admin Override: Review held by ${oldApp.reviewerName} was released.`,
+               actorName,
+               actorId,
+               timestamp: new Date().toISOString()
+            });
+         }
          apps[index].status = 'Pending';
          apps[index].reviewerId = undefined;
          apps[index].reviewerName = undefined;
          apps[index].lastActivityAt = undefined;
+         logStatusChange('Pending');
       } else {
          apps[index].status = status;
-         // Keep reviewer info for Approved/Rejected as record of who finished it
          apps[index].lastActivityAt = new Date().toISOString();
+         logStatusChange(status);
       }
       
       saveToStorage(APPLICATIONS_KEY, apps);
@@ -374,6 +426,18 @@ export const mockApi = {
       
       if (!apps[appIndex].notes) apps[appIndex].notes = [];
       apps[appIndex].notes!.push(newNote);
+      
+      // Log activity
+      if (!apps[appIndex].activityLog) apps[appIndex].activityLog = [];
+      apps[appIndex].activityLog!.push({
+         id: 'act-' + Math.random().toString(36).substr(2, 5),
+         type: 'note',
+         description: `Internal note added by ${currentUser.firstName} ${currentUser.lastName}`,
+         actorName: `${currentUser.firstName} ${currentUser.lastName}`,
+         actorId: currentUser.id,
+         timestamp: new Date().toISOString()
+      });
+
       saveToStorage(APPLICATIONS_KEY, apps);
       return newNote;
     }

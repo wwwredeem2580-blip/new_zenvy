@@ -46,6 +46,7 @@ import { InviteAgentModal } from './admin/InviteAgentModal';
 import { PermissionsModal } from './admin/PermissionsModal';
 import { RefundModal } from './admin/RefundModal';
 import { InternalNotes } from './admin/InternalNotes';
+import { ActivityTimeline } from './admin/ActivityTimeline';
 import { Application, ApplicationStatus } from '../data/applications';
 import { mockApi, User as UserType, Workspace, WorkspacePermission, FileRecord, AgentPermissions } from '../lib/api/mockApi';
 
@@ -510,11 +511,15 @@ export default function AdminPage() {
                  </div>
 
                   {/* Internal Notes Section */}
-                  <div className='pt-8 bg-black/5 -mx-8 px-8 border-t border-black/5'>
+                  <div className='pt-8 bg-black/5 -mx-8 px-8 border-t border-black/5 space-y-12 pb-12'>
                      <InternalNotes 
                         application={selectedApp} 
                         onUpdate={loadData} 
                      />
+                     
+                     <div className="pt-8 border-t border-black/5">
+                        <ActivityTimeline application={selectedApp} />
+                     </div>
                   </div>
 
                   <div className='pt-8'>
