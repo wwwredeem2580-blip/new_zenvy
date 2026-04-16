@@ -96,6 +96,11 @@ export default function AgentPage() {
       } else if (activeTab === 'applications' && permissions.canViewApplications) {
         const data = await mockApi.getApplications();
         setApplications(data);
+        // Refresh selected application if it's currently open
+        if (selectedApp) {
+           const updated = data.find(a => a.id === selectedApp.id);
+           if (updated) setSelectedApp(updated);
+        }
       }
     } catch (e) {
       console.error(e);

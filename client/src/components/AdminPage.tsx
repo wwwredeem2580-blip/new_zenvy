@@ -124,6 +124,10 @@ export default function AdminPage() {
       if (activeTab === 'Applications') {
         const data = await mockApi.getApplications();
         setApplications(data);
+        if (selectedApp) {
+           const updated = data.find(a => a.id === selectedApp.id);
+           if (updated) setSelectedApp(updated);
+        }
       } else if (activeTab === 'Users') {
         const data = await mockApi.getUsers();
         setUsers(data);
