@@ -19,6 +19,9 @@ export interface Application {
   status: ApplicationStatus;
   submittedAt: string;
   selectedServices: SubService[];
+  reviewerId?: string;
+  reviewerName?: string;
+  lastActivityAt?: string;
 }
 
 export const mockApplications: Application[] = [

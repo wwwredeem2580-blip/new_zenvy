@@ -62,7 +62,23 @@ export function ApplicationsView({ applications, onSelect }: { applications: App
                </div>
 
                <div className="flex items-center gap-12">
-                  <StatusPill status={app.status} />
+                  <div className="flex items-center gap-4">
+                     {app.status === 'Reviewing' && app.reviewerId && (
+                        <div className="flex items-center gap-2 pr-4 border-r border-black/5">
+                           <div className="w-6 h-6 rounded-full border border-black/10 overflow-hidden shrink-0">
+                              <img 
+                                 src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${app.reviewerName}${app.reviewerId}`} 
+                                 alt={app.reviewerName}
+                                 className="w-full h-full object-cover"
+                              />
+                           </div>
+                           <span className="text-[9px] font-bold text-black/40 hidden sm:block">
+                              {app.reviewerName?.split(' ')[0]}
+                           </span>
+                        </div>
+                     )}
+                     <StatusPill status={app.status} />
+                  </div>
                   <ChevronRight size={12} className="text-black/40 group-hover:text-black transition-all" />
                </div>
             </motion.div>

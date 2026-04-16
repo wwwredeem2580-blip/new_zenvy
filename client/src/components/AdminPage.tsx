@@ -307,7 +307,50 @@ export default function AdminPage() {
 {activeTab === 'Overview' && (
                       <OverviewView />
                    )}
-                  {(activeTab === 'Analytics' || activeTab === 'Settings') && (
+                  {activeTab === 'Settings' && (
+                     <div className="space-y-12 py-12">
+                        <section className="space-y-6">
+                           <div className="flex items-center gap-4">
+                              <div className="w-12 h-12 bg-black/5 rounded-2xl flex items-center justify-center text-black">
+                                 <Clock size={20} />
+                              </div>
+                              <div>
+                                 <h3 className="text-xl font-bold tracking-tight">Workflow Configuration</h3>
+                                 <p className="text-[10px] uppercase tracking-widest font-bold text-black/30">Auto-release stale reviews</p>
+                              </div>
+                           </div>
+                           
+                           <div className="bg-black/5 p-8 rounded-[32px] border border-black/5 space-y-6">
+                              <div className="space-y-2">
+                                 <p className="text-sm font-bold">Review Expiration Threshold</p>
+                                 <p className="text-[10px] text-black/40 leading-relaxed max-w-md uppercase font-bold tracking-widest">
+                                    Applications in "Reviewing" status will automatically revert to "Pending" if inactive for longer than this duration.
+                                 </p>
+                              </div>
+                              
+                              <div className="flex flex-wrap gap-3">
+                                 {[24, 48, 72, 168].map(h => (
+                                    <button
+                                      key={h}
+                                      onClick={() => {
+                                         mockApi.setAutoReleaseHours(h);
+                                         loadData(); // Just to trigger a re-render of current config if visible
+                                      }}
+                                      className={`px-6 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${mockApi.getAutoReleaseHours() === h ? 'bg-black text-white shadow-xl scale-105' : 'bg-white border border-black/5 text-black/40 hover:border-black/20'}`}
+                                    >
+                                       {h} Hours {h === 48 && "(Default)"}
+                                    </button>
+                                 ))}
+                              </div>
+                           </div>
+                        </section>
+
+                        <div className="py-24 border-2 border-dashed border-black/5 rounded-[40px] flex flex-col items-center justify-center text-black/20 font-bold uppercase tracking-widest text-[10px]">
+                            Advanced Settings Module Under Construction
+                        </div>
+                     </div>
+                  )}
+                  {activeTab === 'Analytics' && (
                      <div className="py-24 border-2 border-dashed border-black/5 rounded-[40px] flex flex-col items-center justify-center text-black/20 font-bold uppercase tracking-widest text-[10px]">
                         Module Under Construction
                      </div>
@@ -351,6 +394,21 @@ export default function AdminPage() {
                         <p className="text-[8px] uppercase tracking-[0.3em] font-bold text-black/40 mb-2">Application Status</p>
                         <p className="text-3xl font-space font-bold tracking-tighter uppercase">{selectedApp.status}</p>
                     </div>
+                    {selectedApp.status === 'Reviewing' && selectedApp.reviewerId && (
+                       <div className="flex flex-col items-center gap-2 pr-6 border-r border-black/5">
+                          <p className="text-[8px] uppercase tracking-widest font-bold text-black/30">Active Reviewer</p>
+                          <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-2xl shadow-sm border border-black/5">
+                             <div className="w-8 h-8 rounded-xl overflow-hidden shadow-inner flex items-center justify-center">
+                                <img 
+                                   src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${selectedApp.reviewerName}${selectedApp.reviewerId}`} 
+                                   alt={selectedApp.reviewerName}
+                                   className="w-full h-full object-cover"
+                                />
+                             </div>
+                             <span className="text-sm font-bold">{selectedApp.reviewerName}</span>
+                          </div>
+                       </div>
+                    )}
                     <div className="w-16 h-16 bg-white rounded-[24px] flex items-center justify-center shadow-lg border border-black/5">
                          {selectedApp.status === "Approved" ? <CheckCircle2 size={32} className="text-green-500" /> : <Clock size={32} className="text-black/20" />}
                     </div>
@@ -358,15 +416,34 @@ export default function AdminPage() {
 
                  {/* Admin Action Section */}
                  <section className="space-y-4">
-                    <p className="text-[10px] uppercase tracking-widest font-bold text-black/40">Admin Actions</p>
+                    <div className="flex items-center justify-between">
+                       <p className="text-[10px] uppercase tracking-widest font-bold text-black/40">Admin Actions</p>
+                       {selectedApp.status === 'Reviewing' && (
+                          <button 
+                             onClick={async () => {
+                                if (!confirm(`Admin Override: You are about to release the review held by ${selectedApp.reviewerName}. Proceed?`)) return;
+                                await mockApi.updateApplicationStatus(selectedApp.id, 'Pending', true);
+                                const updatedApps = await mockApi.getApplications();
+                                setApplications(updatedApps);
+                                const current = updatedApps.find(a => a.id === selectedApp.id);
+                                if (current) setSelectedApp(current);
+                             }}
+                             className="text-[9px] uppercase tracking-widest font-bold text-red-500 hover:text-red-600 transition-colors flex items-center gap-2"
+                          >
+                             <X size={12} /> Release Review
+                          </button>
+                       )}
+                    </div>
                     <div className="flex flex-wrap gap-2">
                        {(['Pending', 'Reviewing', 'Approved', 'Rejected'] as ApplicationStatus[]).map(s => (
                           <button 
                             key={s} 
-                            onClick={() => {
-                               mockApi.updateApplicationStatus(selectedApp.id, s);
-                               setApplications(prev => prev.map(a => a.id === selectedApp.id ? { ...a, status: s } : a));
-                               setSelectedApp(prev => prev ? { ...prev, status: s } : null);
+                            onClick={async () => {
+                               await mockApi.updateApplicationStatus(selectedApp.id, s);
+                               const updatedApps = await mockApi.getApplications();
+                               setApplications(updatedApps);
+                               const current = updatedApps.find(a => a.id === selectedApp.id);
+                               if (current) setSelectedApp(current);
                             }}
                             className={`px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${selectedApp.status === s ? 'bg-black text-white scale-105' : 'bg-white border border-black/5 text-black/40 hover:border-black/20'}`}
                           >

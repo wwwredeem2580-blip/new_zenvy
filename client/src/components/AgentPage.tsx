@@ -24,7 +24,8 @@ import {
   CheckCircle2,
   Clock,
   UploadCloudIcon,
-  DownloadCloudIcon
+  DownloadCloudIcon,
+  AlertTriangle
 } from 'lucide-react';
 import { Application, ApplicationStatus } from '../data/applications';
 import { mockApi, User as UserType, Workspace, FileRecord, AgentPermissions } from '../lib/api/mockApi';
@@ -35,6 +36,22 @@ import { useAuth } from '@/context/AuthContext';
 export default function AgentPage() {
   const router = useRouter();
   const { user } = useAuth();
+  
+  const timeAgo = (date?: string) => {
+    if (!date) return "";
+    const seconds = Math.floor((new Date().getTime() - new Date(date).getTime()) / 1000);
+    const intervals = {
+      day: 86400,
+      hour: 3600,
+      minute: 60
+    };
+
+    if (seconds < 60) return "just now";
+    if (seconds < intervals.hour) return `since ${Math.floor(seconds / 60)}m ago`;
+    if (seconds < intervals.day) return `since ${Math.floor(seconds / intervals.hour)}h ago`;
+    return `since ${Math.floor(seconds / intervals.day)}d ago`;
+  };
+
   const onBack = () => router.push('/');
   
   if (!user) return null;
@@ -108,12 +125,15 @@ export default function AgentPage() {
     }
   };
 
-  const updateAppStatus = async (id: string, status: ApplicationStatus) => {
+   const updateAppStatus = async (id: string, status: ApplicationStatus, forceRelease: boolean = false) => {
     if (!permissions.canManageApplications) return;
-    await mockApi.updateApplicationStatus(id, status);
-    setApplications(prev => prev.map(a => a.id === id ? { ...a, status } : a));
+    await mockApi.updateApplicationStatus(id, status, forceRelease);
+    const updatedApps = await mockApi.getApplications();
+    setApplications(updatedApps);
+    
     if (selectedApp?.id === id) {
-       setSelectedApp(prev => prev ? { ...prev, status } : null);
+       const current = updatedApps.find(a => a.id === id);
+       if (current) setSelectedApp(current);
     }
   };
 
@@ -321,10 +341,31 @@ export default function AgentPage() {
                                     </span>
                                  </div>
                               </div>
-                              <div className="flex items-center gap-6">
-                                 <StatusPill status={app.status} />
-                                 <ChevronRight size={12} className="text-black/40 group-hover:text-black transition-all" />
-                              </div>
+                               <div className="flex items-center gap-6">
+                                  <div className="flex items-center gap-4">
+                                     {app.status === 'Reviewing' && app.reviewerId && (
+                                        <div className="flex items-center gap-2 pr-4 border-r border-black/5">
+                                           <div className="flex items-center -space-x-1">
+                                              <div className="w-6 h-6 rounded-full border-2 border-white overflow-hidden shrink-0 shadow-sm relative z-10">
+                                                 <img 
+                                                    src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${app.reviewerName}${app.reviewerId}`} 
+                                                    alt={app.reviewerName}
+                                                    className="w-full h-full object-cover"
+                                                 />
+                                              </div>
+                                              <div className="bg-blue-500/10 text-blue-600 px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-tight pl-3 border border-blue-500/10">
+                                                 {app.reviewerName?.split(' ')[0]}
+                                              </div>
+                                           </div>
+                                           <span className="text-[8px] font-bold text-black/20 hidden lg:block italic">
+                                              {timeAgo(app.lastActivityAt)}
+                                           </span>
+                                        </div>
+                                     )}
+                                     <StatusPill status={app.status} />
+                                  </div>
+                                  <ChevronRight size={12} className="text-black/40 group-hover:text-black transition-all" />
+                               </div>
                            </div>
                         ))}
                      </div>
@@ -359,13 +400,51 @@ export default function AgentPage() {
                         </div>
 
                         {permissions.canManageApplications && (
-                           <section className="space-y-4">
-                              <p className="text-[10px] uppercase tracking-widest font-bold text-black/40 font-bold">Operational Actions</p>
+                           <section className="space-y-6">
+                              <div className="flex items-center justify-between">
+                                 <p className="text-[10px] uppercase tracking-widest font-bold text-black/40">Operational Actions</p>
+                                 {selectedApp.status === 'Reviewing' && (
+                                    <button 
+                                       onClick={() => {
+                                          if (selectedApp.reviewerId !== user.id) {
+                                             if (!confirm(`This is being reviewed by ${selectedApp.reviewerName}. Are you sure you want to release it?`)) return;
+                                          }
+                                          updateAppStatus(selectedApp.id, 'Pending', true);
+                                       }}
+                                       className="text-[9px] uppercase tracking-widest font-bold text-red-500 hover:text-red-600 transition-colors flex items-center gap-2"
+                                    >
+                                       <X size={12} /> Release Review
+                                    </button>
+                                 )}
+                              </div>
+
+                              {selectedApp.status === 'Reviewing' && selectedApp.reviewerId !== user.id && (
+                                 <motion.div 
+                                    initial={{ opacity: 0, y: -10 }} 
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-2xl flex items-start gap-4"
+                                 >
+                                    <AlertTriangle className="text-yellow-600 shrink-0" size={20} />
+                                    <div>
+                                       <p className="text-[11px] font-bold text-yellow-800 uppercase tracking-tight">Active Conflict Warning</p>
+                                       <p className="text-[10px] text-yellow-700/80 leading-relaxed mt-1 font-medium">
+                                          This application is currently being reviewed by <span className="font-bold text-black">{selectedApp.reviewerName}</span>. 
+                                          Modifying the status will reassign it to you.
+                                       </p>
+                                    </div>
+                                 </motion.div>
+                              )}
+
                               <div className="flex flex-wrap gap-2">
                                  {['Pending', 'Reviewing', 'Approved', 'Rejected'].map(s => (
                                     <button 
                                       key={s} 
-                                      onClick={() => updateAppStatus(selectedApp.id, s as any)}
+                                      onClick={() => {
+                                         if (selectedApp.status === 'Reviewing' && selectedApp.reviewerId && selectedApp.reviewerId !== user.id) {
+                                            if (!confirm(`Warning: This application is owned by ${selectedApp.reviewerName}. Overwrite ownership?`)) return;
+                                         }
+                                         updateAppStatus(selectedApp.id, s as any);
+                                      }}
                                       className={`px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${selectedApp.status === s ? 'bg-black text-white scale-105 shadow-xl' : 'bg-white border border-black/5 text-black/40 hover:border-black/20'}`}
                                     >
                                       {s}

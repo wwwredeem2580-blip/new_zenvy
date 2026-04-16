@@ -63,6 +63,7 @@ const SESSION_KEY = 'smart_caf_session';
 const APPLICATIONS_KEY = 'smart_caf_mock_applications';
 const WORKSPACES_KEY = 'smart_caf_mock_workspaces';
 const FILES_KEY = 'smart_caf_mock_files';
+const AUTO_RELEASE_DURATION_KEY = 'smart_caf_auto_release_duration';
 
 // Helper to get from localStorage
 const getFromStorage = <T>(key: string): T | null => {
@@ -248,6 +249,45 @@ export const mockApi = {
       apps = mockApplications;
       saveToStorage(APPLICATIONS_KEY, apps);
     }
+
+    // Data Migration: Ensure all apps have the new fields (prevent layout breaks for legacy data)
+    let migrated = false;
+    apps = apps.map(app => {
+      // If any of the new fields are missing, initialize them to undefined (though they are already optional in TS)
+      // The key is to ensure the shape doesn't cause issues if we were strictly checking keys
+      if (!('reviewerId' in app)) {
+        migrated = true;
+        return { ...app, reviewerId: undefined, reviewerName: undefined, lastActivityAt: undefined };
+      }
+      return app;
+    });
+
+    if (migrated) {
+      saveToStorage(APPLICATIONS_KEY, apps);
+    }
+
+    // Auto-release logic: Revert stale "Reviewing" apps to "Pending"
+    const releaseHours = mockApi.getAutoReleaseHours();
+    const threshold = releaseHours * 60 * 60 * 1000;
+    const now = Date.now();
+    let changed = false;
+
+    const cleanedApps = apps.map(app => {
+      if (app.status === 'Reviewing' && app.lastActivityAt) {
+        const lastActive = new Date(app.lastActivityAt).getTime();
+        if (now - lastActive > threshold) {
+          changed = true;
+          return { ...app, status: 'Pending' as ApplicationStatus, reviewerId: undefined, reviewerName: undefined, lastActivityAt: undefined };
+        }
+      }
+      return app;
+    });
+
+    if (changed) {
+      saveToStorage(APPLICATIONS_KEY, cleanedApps);
+      return cleanedApps;
+    }
+
     return apps;
   },
 
@@ -272,16 +312,42 @@ export const mockApi = {
     return newApp;
   },
 
-  updateApplicationStatus: async (id: string, status: ApplicationStatus): Promise<boolean> => {
+  updateApplicationStatus: async (id: string, status: ApplicationStatus, forceRelease: boolean = false): Promise<boolean> => {
     await new Promise((resolve) => setTimeout(resolve, 800));
     const apps = await mockApi.getApplications();
     const index = apps.findIndex(a => a.id === id);
     if (index !== -1) {
-      apps[index].status = status;
+      const currentUser = mockApi.getCurrentUser();
+      
+      if (status === 'Reviewing') {
+         apps[index].status = status;
+         apps[index].reviewerId = currentUser?.id;
+         apps[index].reviewerName = currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : 'System';
+         apps[index].lastActivityAt = new Date().toISOString();
+      } else if (forceRelease || status === 'Pending') {
+         apps[index].status = 'Pending';
+         apps[index].reviewerId = undefined;
+         apps[index].reviewerName = undefined;
+         apps[index].lastActivityAt = undefined;
+      } else {
+         apps[index].status = status;
+         // Keep reviewer info for Approved/Rejected as record of who finished it
+         apps[index].lastActivityAt = new Date().toISOString();
+      }
+      
       saveToStorage(APPLICATIONS_KEY, apps);
       return true;
     }
     return false;
+  },
+
+  getAutoReleaseHours: (): number => {
+    const stored = getFromStorage<number>(AUTO_RELEASE_DURATION_KEY);
+    return stored !== null ? stored : 48;
+  },
+
+  setAutoReleaseHours: (hours: number): void => {
+    saveToStorage(AUTO_RELEASE_DURATION_KEY, hours);
   },
 
   // Workspaces & Cloud Storage
