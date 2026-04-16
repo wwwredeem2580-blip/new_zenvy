@@ -25,7 +25,14 @@ import {
   Clock,
   UploadCloudIcon,
   DownloadCloudIcon,
-  AlertTriangle
+  AlertTriangle,
+  MapPin, 
+  Globe, 
+  Hash, 
+  User, 
+  Calendar, 
+  Mail, 
+  Phone
 } from 'lucide-react';
 import { Application, ApplicationStatus } from '../data/applications';
 import { mockApi, User as UserType, Workspace, FileRecord, AgentPermissions } from '../lib/api/mockApi';
@@ -456,10 +463,47 @@ export default function AgentPage() {
 
                         {/* App Metadata Displays */}
                         <div className="grid grid-cols-2 gap-8">
-                           <DetailItem label="Full Name" value={selectedApp.name} />
-                           <DetailItem label="Legal DOB" value={selectedApp.dob} />
-                           <DetailItem label="Ph. Number" value={selectedApp.phone} />
-                           <DetailItem label="Public Email" value={selectedApp.email} />
+                           <DetailItem icon={<User size={14}/>} label="Full Name" value={selectedApp.name} />
+                           <DetailItem icon={<Calendar size={14}/>} label="DOB" value={selectedApp.dob} />
+                           <DetailItem icon={<MapPin size={14}/>} label="Place of Birth" value={selectedApp.pob} />
+                           <DetailItem icon={<Globe size={14}/>} label="Nationality" value={selectedApp.nationality} />
+                           <DetailItem icon={<Hash size={14}/>} label="Codice Fiscale" value={selectedApp.codiceFiscale} />
+                           <DetailItem icon={<Phone size={14}/>} label="Phone" value={selectedApp.phone} />
+                           <DetailItem icon={<Mail size={14}/>} label="Email" value={selectedApp.email} />
+                           <DetailItem icon={<Home size={14}/>} label="Address" value={selectedApp.address} />
+                        </div>
+
+                        {/* Services Section */}
+                        <div className="space-y-4">
+                           <h3 className="text-[10px] uppercase tracking-widest font-bold text-black/40">Included Services</h3>
+                           <div className="space-y-2">
+                              {selectedApp.selectedServices.map((s, i) => (
+                                 <div key={i} className="flex justify-between items-center p-5 bg-black/[0.02] border border-black/5 rounded-[24px] hover:bg-white hover:shadow-xl hover:shadow-black/5 transition-all">
+                                    <div className="space-y-1">
+                                        <span className="block font-bold text-sm">{s.name}</span>
+                                        <span className="flex items-center gap-1 text-[8px] uppercase tracking-widest font-bold text-black/40">
+                                            <Clock size={10} /> {s.duration}
+                                        </span>
+                                    </div>
+                                    <span className="text-xl font-space font-bold">€{s.price}</span>
+                                 </div>
+                              ))}
+                           </div>
+                        </div>
+
+                        {/* Documents Section */}
+                        <div className="space-y-4">
+                           <h3 className="text-[10px] uppercase tracking-widest font-bold text-black/40">Attached Documents</h3>
+                           <div className="grid grid-cols-2 gap-4">
+                              {["Passport Scan", "Codice Fiscale"].map(doc => (
+                                 <div key={doc} className="group p-4 bg-black/5 border border-black/5 rounded-2xl flex items-center gap-4 hover:bg-black hover:text-white transition-all cursor-pointer">
+                                    <div className="w-10 h-10 bg-white/50 rounded-lg flex items-center justify-center">
+                                        <FileText size={18} />
+                                    </div>
+                                    <span className="text-[10px] font-bold uppercase tracking-widest">{doc}</span>
+                                 </div>
+                              ))}
+                           </div>
                         </div>
 
                         <div className="pt-8">
@@ -492,12 +536,13 @@ function StatusPill({ status }: { status: ApplicationStatus }) {
   );
 }
 
-function DetailItem({ label, value }: { label: string; value: string }) {
+function DetailItem({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
     <div className="space-y-1">
-      <p className="text-[10px] uppercase tracking-widest font-bold text-black/40">
+      <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest font-bold text-black/40">
+        {icon}
         {label}
-      </p>
+      </div>
       <p className="text-sm font-bold text-black/80">{value || "N/A"}</p>
     </div>
   );
