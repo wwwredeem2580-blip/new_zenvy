@@ -11,7 +11,8 @@ import {
   LogOut,
   Menu,
   X,
-  ArrowLeft
+  ArrowLeft,
+  Shield
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
@@ -149,6 +150,14 @@ export default function Navbar() {
                 href="/admin"
                 onClick={() => setIsMenuOpen(false)} 
               />
+              {user && (user.role === 'subagent' || user.role === 'admin') && (
+                <MobileNavLink 
+                  icon={<Shield size={20} />} 
+                  label="Agent Hub" 
+                  href="/agent"
+                  onClick={() => setIsMenuOpen(false)} 
+                />
+              )}
               {user && (
                 <MobileNavLink 
                   icon={<UserIcon size={20} />} 

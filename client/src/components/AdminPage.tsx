@@ -23,6 +23,7 @@ import {
   FileText,
   Clock,
   ChevronRight,
+  UserPlus,
   User,
   Mail,
   Phone,
@@ -375,9 +376,10 @@ export default function AdminPage() {
           <DockItem icon={<LayoutGrid size={22} />} label="Overview" isActive={activeTab === 'Overview'} onClick={() => setActiveTab('Overview')} />
           <DockItem icon={<FileText size={22} />} label="Apps" isActive={activeTab === 'Applications'} onClick={() => setActiveTab('Applications')} />
           <DockItem icon={<Users size={22} />} label="Users" isActive={activeTab === 'Users'} onClick={() => setActiveTab('Users')} />
+          <DockItem icon={<UserPlus size={22} />} label="Invite" isActive={isInviteModalOpen} onClick={() => setIsInviteModalOpen(true)} />
           <DockItem icon={<Folder size={22} />} label="Workspaces" isActive={activeTab === 'Workspaces'} onClick={() => setActiveTab('Workspaces')} />
-          <DockItem icon={<BarChart3 size={22} />} label="Analytics" isActive={activeTab === 'Analytics'} onClick={() => setActiveTab('Analytics')} />
-          <DockItem icon={<LogOut size={22} />} label="Exit" onClick={onBack} isExit />
+          <DockItem icon={<BarChart3 size={22} />} label="Stats" isActive={activeTab === 'Analytics'} onClick={() => setActiveTab('Analytics')} />
+          <DockItem icon={<Settings2 size={22} />} label="Settings" isActive={activeTab === 'Settings'} onClick={() => setActiveTab('Settings')} />
         </div>
       </nav>
 
