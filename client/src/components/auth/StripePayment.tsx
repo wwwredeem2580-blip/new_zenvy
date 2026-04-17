@@ -70,12 +70,12 @@ export default function StripePayment({ amount, onSuccess, onCancel }: StripePay
         initial={{ y: 20, opacity: 0, scale: 0.98 }}
         animate={{ y: 0, opacity: 1, scale: 1 }}
         exit={{ y: -20, opacity: 0, scale: 0.98 }}
-        className="relative w-full max-w-[900px] h-[600px] bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row"
+        className="relative w-full max-w-[900px] h-auto md:h-[600px] max-h-[95vh] md:max-h-none bg-white rounded-2xl shadow-2xl overflow-y-auto md:overflow-hidden flex flex-col md:flex-row my-auto"
       >
         {/* Left Side: Order Summary */}
-        <div className="md:w-5/12 bg-[#F6F9FC] p-8 border-r border-[#E6EBF1] flex flex-col">
-          <div className="flex items-center gap-2 mb-12">
-            <div className="w-8 h-8 bg-black text-white rounded-lg flex items-center justify-center font-bold text-lg">C</div>
+        <div className="w-full md:w-5/12 bg-[#F6F9FC] p-6 md:p-8 border-b md:border-b-0 md:border-r border-[#E6EBF1] flex flex-col">
+          <div className="flex items-center gap-2 mb-8 md:mb-12">
+            <img src="/logo.png" alt="Smart CAF" className="w-8 h-8 object-contain" />
             <span className="font-bold text-sm tracking-tight">Smart CAF Business</span>
           </div>
 
@@ -112,7 +112,7 @@ export default function StripePayment({ amount, onSuccess, onCancel }: StripePay
         </div>
 
         {/* Right Side: Payment Form */}
-        <div className="md:w-7/12 p-12 bg-white relative">
+        <div className="w-full md:w-7/12 p-6 md:p-12 bg-white relative">
           <AnimatePresence mode="wait">
             {!isSuccess ? (
               <motion.div 
@@ -232,8 +232,8 @@ export default function StripePayment({ amount, onSuccess, onCancel }: StripePay
             )}
           </AnimatePresence>
 
-          {/* Footer Branding */}
-          <div className="absolute bottom-8 left-0 w-full px-12 flex justify-between items-center text-[10px] text-[#697386] font-medium opacity-40">
+          {/* Footer Branding - Hidden on mobile if needed or adjusted */}
+          <div className="hidden md:flex absolute bottom-8 left-0 w-full px-12 justify-between items-center text-[10px] text-[#697386] font-medium opacity-40">
              <div className="flex gap-4">
                 <span>Terms</span>
                 <span>Privacy</span>
