@@ -74,6 +74,7 @@ export default function AgentPage() {
   const [pendingRefundApp, setPendingRefundApp] = useState<Application | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
+  const [isDocUploading, setIsDocUploading] = useState(false);
   const [search, setSearch] = useState("");
 
   const permissions = mockApi.getEffectivePermissions(user);
@@ -506,22 +507,77 @@ export default function AgentPage() {
                            </div>
                         </div>
 
-                        {/* Documents Section */}
-                        <div className="space-y-4">
-                           <h3 className="text-[10px] uppercase tracking-widest font-bold text-black/40">Attached Documents</h3>
-                           <div className="grid grid-cols-2 gap-4">
-                              {["Passport Scan", "Codice Fiscale"].map(doc => (
-                                 <div key={doc} className="group p-4 bg-black/5 border border-black/5 rounded-2xl flex items-center gap-4 hover:bg-black hover:text-white transition-all cursor-pointer">
-                                    <div className="w-10 h-10 bg-white/50 rounded-lg flex items-center justify-center">
-                                        <FileText size={18} />
-                                    </div>
-                                    <span className="text-[10px] font-bold uppercase tracking-widest">{doc}</span>
-                                 </div>
-                              ))}
-                           </div>
-                        </div>
+                         {/* Documents Section */}
+                         <div className="space-y-4">
+                            <h3 className="text-[10px] uppercase tracking-widest font-bold text-black/40">Attached Documents</h3>
+                            <div className="grid grid-cols-2 gap-4">
+                               {["Passport Scan", "Codice Fiscale"].map(doc => (
+                                  <div key={doc} className="group p-4 bg-black/5 border border-black/5 rounded-2xl flex items-center gap-4 hover:bg-black hover:text-white transition-all cursor-pointer">
+                                     <div className="w-10 h-10 bg-white/50 rounded-lg flex items-center justify-center">
+                                         <FileText size={18} />
+                                     </div>
+                                     <span className="text-[10px] font-bold uppercase tracking-widest">{doc}</span>
+                                  </div>
+                               ))}
+                            </div>
+                         </div>
 
-                        {/* Internal Notes Section */}
+                         {/* Secure Application Documents Workspace */}
+                         <div className="pt-8 bg-black/5 -mx-8 px-8 border-t border-black/5 space-y-8 pb-8">
+                            <section className="space-y-6">
+                               <div className="flex items-center justify-between">
+                                  <div className="space-y-1">
+                                     <h3 className="text-[10px] uppercase tracking-widest font-bold text-black/40">Secure Application Documents</h3>
+                                     <p className="text-[8px] font-bold text-blue-500 uppercase tracking-tighter">Visible only to Admin & Assigned Agent</p>
+                                  </div>
+                                  {(user?.role === 'admin' || user?.id === selectedApp.reviewerId) && (
+                                     <button 
+                                       disabled={isDocUploading}
+                                       onClick={async () => {
+                                          setIsDocUploading(true);
+                                          await mockApi.uploadApplicationDocument(selectedApp.id, `Signed_Final_${Math.floor(Math.random()*1000)}.pdf`);
+                                          await loadData();
+                                          setIsDocUploading(false);
+                                       }}
+                                       className="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-xl font-bold text-[9px] uppercase tracking-widest hover:scale-105 transition-all shadow-lg"
+                                     >
+                                        {isDocUploading ? <Loader2 size={12} className="animate-spin" /> : <UploadCloudIcon size={12} />}
+                                        Upload Final Document
+                                     </button>
+                                  )}
+                               </div>
+
+                               {(selectedApp as any).attachments && (selectedApp as any).attachments.length > 0 ? (
+                                 <div className="grid gap-2">
+                                    {(selectedApp as any).attachments.map((doc: any) => (
+                                       <div key={doc.id} className="group p-5 bg-white border border-black/5 rounded-[24px] flex items-center justify-between hover:shadow-xl hover:shadow-black/5 transition-all">
+                                          <div className="flex items-center gap-4">
+                                             <div className="w-12 h-12 bg-black/5 rounded-2xl flex items-center justify-center text-black/20">
+                                                <FileText size={20} />
+                                             </div>
+                                             <div className="flex flex-col">
+                                                <span className="text-sm font-bold">{doc.name}</span>
+                                                <span className="text-[8px] uppercase tracking-widest font-bold text-black/30">
+                                                   Uploaded by {doc.uploadedBy} • {new Date(doc.uploadedAt).toLocaleDateString()}
+                                                </span>
+                                             </div>
+                                          </div>
+                                          <button className="p-3 bg-black/5 rounded-full hover:bg-black hover:text-white transition-all">
+                                             <Download size={14} />
+                                          </button>
+                                       </div>
+                                    ))}
+                                 </div>
+                               ) : (
+                                 <div className="py-12 border-2 border-dashed border-black/10 rounded-[32px] flex flex-col items-center justify-center text-black/10 font-bold uppercase tracking-widest text-[8px] gap-2">
+                                    <ShieldAlert size={24} className="opacity-50" />
+                                    Secure document locker is empty
+                                 </div>
+                               )}
+                            </section>
+                         </div>
+
+                         {/* Internal Notes Section */}
                         <div className="pt-4 space-y-12">
                            <InternalNotes 
                               application={selectedApp} 
