@@ -36,6 +36,13 @@ export interface Application {
   phone: string;
   email: string;
   address: string;
+  streetAddress?: string;
+  postCode?: string;
+  province?: string;
+  permessoType?: string;
+  permessoExpiry?: string;
+  paymentMethod?: 'Cash' | 'Revolut' | 'PostPay' | 'Card' | 'Credits';
+  paymentStatus?: 'Pending' | 'Received';
   status: ApplicationStatus;
   submittedAt: string;
   selectedServices: SubService[];
@@ -113,6 +120,8 @@ export const mockApplications: Application[] = [
     submittedAt: "2024-03-07T16:45:00Z",
     selectedServices: [
       { name: "Tourist Visa", price: 150, duration: "14 Days" }
-    ]
+    ],
+    paymentMethod: 'PostPay',
+    paymentStatus: 'Pending'
   }
 ];

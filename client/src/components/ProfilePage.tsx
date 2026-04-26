@@ -213,11 +213,16 @@ export default function ProfilePage() {
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 sm:gap-6 flex-shrink-0">
+                  <div className="flex flex-col items-end gap-2 sm:gap-3 flex-shrink-0">
                     <StatusBadge status={app.status} />
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-black/5 hidden sm:flex items-center justify-center group-hover:bg-black group-hover:text-white transition-all">
-                        <ChevronRight size={14} />
-                    </div>
+                    {app.paymentMethod && (
+                       <div className={`px-2 py-0.5 rounded-lg border text-[8px] font-bold uppercase tracking-widest ${app.paymentStatus === 'Received' ? 'bg-green-500/10 text-green-600 border-green-500/20' : 'bg-orange-500/10 text-orange-600 border-orange-500/20'}`}>
+                          {app.paymentMethod} • {app.paymentStatus}
+                       </div>
+                    )}
+                  </div>
+                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-black/5 hidden sm:flex items-center justify-center group-hover:bg-black group-hover:text-white transition-all">
+                      <ChevronRight size={14} />
                   </div>
                 </motion.div>
               ))}
@@ -284,6 +289,8 @@ export default function ProfilePage() {
                   <DetailItem icon={<Phone size={14}/>} label="Phone" value={selectedApp.phone} />
                   <DetailItem icon={<Mail size={14}/>} label="Email" value={selectedApp.email} />
                   <DetailItem icon={<Home size={14}/>} label="Address" value={selectedApp.address} />
+                  <DetailItem icon={<CreditCard size={14}/>} label="Payment Method" value={selectedApp.paymentMethod} />
+                  <DetailItem icon={<CheckCircle2 size={14}/>} label="Payment Status" value={selectedApp.paymentStatus} />
                 </div>
 
                 {/* Services Section */}
@@ -349,8 +356,7 @@ export default function ProfilePage() {
 
 function InvoiceModal({ app, user, onClose }: { app: Application, user: User, onClose: () => void }) {
   const subtotal = app.selectedServices.reduce((sum, s) => sum + s.price, 0);
-  const tax = subtotal * 0.22; // 22% VAT
-  const total = subtotal + tax;
+  const total = subtotal;
 
   return (
     <div className="fixed inset-0 z-[500] bg-[#F5F5F7] overflow-y-auto selection:bg-black selection:text-white">
@@ -417,6 +423,16 @@ function InvoiceModal({ app, user, onClose }: { app: Application, user: User, on
                       </div>
 
                       <div className="space-y-1">
+                         <p className="text-[8px] uppercase tracking-[0.2em] font-bold text-black/40">Payment Status:</p>
+                         <div className="space-y-1">
+                            <p className="font-bold text-sm serif opacity-80">{app.paymentMethod} - {app.paymentStatus}</p>
+                            <p className="text-[10px] text-black/60">Processed via Smart CAF Payment Terminal</p>
+                         </div>
+                      </div>
+                   </div>
+
+                   <div className="space-y-4">
+                      <div className="space-y-1">
                          <p className="text-[8px] uppercase tracking-[0.2em] font-bold text-black/40">Pay To:</p>
                          <div className="space-y-1">
                             <p className="font-bold text-sm serif opacity-80">Smart CAF Solutions S.r.l.</p>
@@ -428,7 +444,7 @@ function InvoiceModal({ app, user, onClose }: { app: Application, user: User, on
 
                 {/* Service Table */}
                 <div className="mb-4 md:mb-4 overflow-x-auto">
-                   <p className="text-[8px] uppercase tracking-[0.2em] font-bold text-black/40">Services:</p>
+                   <p className="text-[8px] uppercase tracking-[0.2em] font-bold text-black/40">Services Breakdown:</p>
 
                     <div className="space-y-4 min-w-[280px]">
                        {app.selectedServices.map((s, i) => (
@@ -451,12 +467,12 @@ function InvoiceModal({ app, user, onClose }: { app: Application, user: User, on
                       <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-black/80">Subtotal</span>
                       <span className="text-md font-space font-bold text-right">€{subtotal.toFixed(2)}</span>
                       
-                      <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-black/80">Tax (22%)</span>
-                      <span className="text-md font-space font-bold text-right">€{tax.toFixed(2)}</span>
+                      <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-black/80">Tax (0%)</span>
+                      <span className="text-md font-space font-bold text-right">€0.00</span>
                       
                       <div className="col-span-2 h-[2px] bg-black mt-0 mb-2" />
                       
-                      <span className="text-[10px] font-bold uppercase tracking-[0.3em] self-center">Total Balance</span>
+                      <span className="text-[10px] font-bold uppercase tracking-[0.3em] self-center">Total Balance Due</span>
                       <span className="text-xl font-space font-bold text-right tracking-tighter">€{total.toFixed(2)}</span>
                    </div>
                 </div>

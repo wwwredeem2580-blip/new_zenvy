@@ -77,8 +77,15 @@ export function ApplicationsView({ applications, onSelect }: { applications: App
                            </span>
                         </div>
                      )}
-                     <StatusPill status={app.status} />
-                  </div>
+                      <div className="flex flex-col items-end gap-0.5">
+                         <StatusPill status={app.status} />
+                         {app.paymentMethod && (
+                            <span className="text-[8px] font-bold text-black/20 uppercase tracking-tighter">
+                               {app.paymentMethod} • {app.paymentStatus}
+                            </span>
+                         )}
+                      </div>
+                   </div>
                   <ChevronRight size={12} className="text-black/40 group-hover:text-black transition-all" />
                </div>
             </motion.div>

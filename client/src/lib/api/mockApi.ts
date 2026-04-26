@@ -325,8 +325,8 @@ export const mockApi = {
       submittedAt: new Date().toISOString(),
       activityLog: [{
          id: 'act-' + Math.random().toString(36).substr(2, 5),
-         type: 'system',
-         description: 'Application submitted by user',
+         type: 'financial',
+         description: `Application submitted via ${app.paymentMethod}${app.paymentMethod === 'Credits' ? ' (Full/Partial)' : ''}. Payment Status: ${app.paymentStatus}`,
          actorName: 'System',
          actorId: 'system',
          timestamp: new Date().toISOString()

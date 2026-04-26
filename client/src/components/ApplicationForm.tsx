@@ -1,8 +1,3 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
 "use client";
 
 import { motion, AnimatePresence } from "motion/react";
@@ -24,22 +19,20 @@ import {
   X, 
   Download, 
   Send,
-  ChefHat,
-  HardHat,
-  Briefcase,
   ChevronDown,
-  CreditCard,
   Timer,
   BookOpen,
   IdCard,
   FileCheck,
   Building2,
-  Plus
+  Plus,
+  ArrowDownCircle
 } from "lucide-react";
 import { useState, useRef, useMemo, useEffect } from "react";
 import React from "react";
 import { mockApi } from "../lib/api/mockApi";
-import StripePayment from "./auth/StripePayment";
+import PaymentSelection, { PaymentMethod } from "./ui/PaymentSelection";
+import DateDropdownField from "./ui/DateDropdownField";
 
 type Step = 1 | 2 | 3 | 4;
 
@@ -65,6 +58,9 @@ interface FormData {
   phone: string;
   email: string;
   address: string;
+  streetAddress: string;
+  postCode: string;
+  province: string;
   permessoType: string;
   permessoExpiry: string;
   selectedServices: SubService[];
@@ -80,6 +76,9 @@ const initialData: FormData = {
   phone: "",
   email: "",
   address: "",
+  streetAddress: "",
+  postCode: "",
+  province: "",
   permessoType: "",
   permessoExpiry: "",
   selectedServices: [],
@@ -194,65 +193,15 @@ const permessoTypes = [
   "Altro",
 ];
 
-function CustomCalendar({ value, onChange, onClose }: { value: string, onChange: (val: string) => void, onClose: () => void }) {
-  const [currentDate, setCurrentDate] = useState(new Date(value || new Date()));
-  const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
-  const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
-  
-  const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-  
-  const prevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1));
-  const nextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1));
-
-  return (
-    <motion.div 
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="absolute top-full left-0 mt-2 bg-surface border border-border rounded-2xl p-4 shadow-2xl z-[200] w-64"
-    >
-      <div className="flex justify-between items-center mb-4">
-        <button type="button" onClick={prevMonth} className="p-1 hover:bg-bg rounded-lg"><ChevronLeft size={14} /></button>
-        <span className="text-[10px] font-bold uppercase tracking-widest">{months[currentDate.getMonth()]} {currentDate.getFullYear()}</span>
-        <button type="button" onClick={nextMonth} className="p-1 hover:bg-bg rounded-lg"><ChevronRight size={14} /></button>
-      </div>
-      <div className="grid grid-cols-7 gap-1 text-center mb-2">
-        {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
-          <span key={i} className="text-[8px] text-muted font-bold">{d}</span>
-        ))}
-      </div>
-      <div className="grid grid-cols-7 gap-1">
-        {Array.from({ length: firstDayOfMonth }).map((_, i) => <div key={i} />)}
-        {Array.from({ length: daysInMonth }).map((_, i) => {
-          const day = i + 1;
-          const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-          const isSelected = value === dateStr;
-          return (
-            <button
-              key={day}
-              type="button"
-              onClick={() => {
-                onChange(dateStr);
-                onClose();
-              }}
-              className={`text-[10px] py-1 rounded-lg transition-colors ${isSelected ? 'bg-text text-bg font-bold' : 'hover:bg-bg'}`}
-            >
-              {day}
-            </button>
-          );
-        })}
-      </div>
-    </motion.div>
-  );
-}
-
-
-
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 
 export default function ApplicationForm() {
   const router = useRouter();
   const { user, setUser } = useAuth();
+  const checkoutRef = useRef<HTMLDivElement>(null);
+  const [showBouncingArrow, setShowBouncingArrow] = useState(false);
+
   const onClose = () => router.push('/');
   const onComplete = () => {
     const freshUser = mockApi.getCurrentUser();
@@ -292,12 +241,23 @@ export default function ApplicationForm() {
   const toggleService = (subservice: SubService) => {
     setFormData((prev) => {
       const isSelected = prev.selectedServices.some(s => s.name === subservice.name);
-      if (isSelected) {
-        return { ...prev, selectedServices: prev.selectedServices.filter((s) => s.name !== subservice.name) };
-      } else {
-        return { ...prev, selectedServices: [...prev.selectedServices, subservice] };
+      const newSelection = isSelected 
+        ? prev.selectedServices.filter((s) => s.name !== subservice.name) 
+        : [...prev.selectedServices, subservice];
+      
+      if (!isSelected && newSelection.length === 1) {
+        setShowBouncingArrow(true);
+      } else if (newSelection.length === 0) {
+        setShowBouncingArrow(false);
       }
+
+      return { ...prev, selectedServices: newSelection };
     });
+  };
+
+  const scrollToCheckout = () => {
+    checkoutRef.current?.scrollIntoView({ behavior: 'smooth' });
+    setShowBouncingArrow(false);
   };
 
   const totalCost = useMemo(() => {
@@ -327,13 +287,13 @@ export default function ApplicationForm() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (finalAmount === 0) {
-      handlePaymentSuccess();
+      handlePaymentSuccess('Credits');
     } else {
       setIsShowPayment(true);
     }
   };
 
-  const handlePaymentSuccess = async () => {
+  const handlePaymentSuccess = async (method: PaymentMethod | 'Credits') => {
     setIsShowPayment(false);
     setIsLoading(true);
     
@@ -351,8 +311,15 @@ export default function ApplicationForm() {
         codiceFiscale: formData.codiceFiscale,
         phone: formData.phone,
         email: formData.email,
-        address: formData.address,
-        selectedServices: formData.selectedServices
+        address: `${formData.streetAddress}, ${formData.postCode}, ${formData.province}`,
+        streetAddress: formData.streetAddress,
+        postCode: formData.postCode,
+        province: formData.province,
+        permessoType: formData.permessoType,
+        permessoExpiry: formData.permessoExpiry,
+        selectedServices: formData.selectedServices,
+        paymentMethod: method as any,
+        paymentStatus: method === 'Credits' ? 'Received' : 'Pending'
       });
       
       setSubmittedAppId(application.id);
@@ -364,8 +331,6 @@ export default function ApplicationForm() {
       setIsLoading(false);
     }
   };
-
-  const isStep1Valid = formData.name && formData.dob && formData.codiceFiscale && formData.phone;
 
   return (
     <div className="text-text font-dm selection:bg-text selection:text-bg pb-20">
@@ -405,12 +370,13 @@ export default function ApplicationForm() {
                       icon={<User size={14} />}
                       placeholder="John Doe"
                     />
-                    <DateInputField
-                      label="Date of Birth *"
-                      name="dob"
-                      value={formData.dob}
-                      onChange={(val: any) => setFormData(prev => ({ ...prev, dob: val }))}
+                    <DateDropdownField
+                      label="Date of Birth"
                       icon={<Calendar size={14} />}
+                      value={formData.dob}
+                      onChange={(val) => setFormData(p => ({ ...p, dob: val }))}
+                      required
+                      disableFuture
                     />
                     <InputField
                       label="Place of Birth"
@@ -432,16 +398,16 @@ export default function ApplicationForm() {
                 )}
 
                 {step === 2 && (
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <InputField
-                      label="Codice Fiscale *"
-                      name="codiceFiscale"
-                      value={formData.codiceFiscale}
-                      onChange={handleInputChange}
-                      icon={<Hash size={14} />}
-                      placeholder="RSSMRA80A01H501W"
-                    />
-                    <div className="relative">
+                  <div className="space-y-8">
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <InputField
+                        label="Codice Fiscale *"
+                        name="codiceFiscale"
+                        value={formData.codiceFiscale}
+                        onChange={handleInputChange}
+                        icon={<Hash size={14} />}
+                        placeholder="RSSMRA80A01H501W"
+                      />
                       <InputField
                         label="Phone Number *"
                         name="phone"
@@ -450,8 +416,6 @@ export default function ApplicationForm() {
                         icon={<Phone size={14} />}
                         placeholder="+39 123 456 7890"
                       />
-                    </div>
-                    <div className="relative">
                       <InputField
                         label="Email Address"
                         name="email"
@@ -462,42 +426,62 @@ export default function ApplicationForm() {
                         placeholder="john@example.com"
                         readOnly={!!mockApi.getCurrentUser()}
                       />
-                    </div>
-                    <InputField
-                      label="Residential Address"
-                      name="address"
-                      value={formData.address}
-                      onChange={handleInputChange}
-                      icon={<Home size={14} />}
-                      placeholder="Via Roma 123, Milan"
-                    />
-                    
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-bold uppercase tracking-widest text-muted flex items-center gap-2">
-                        <FileText size={12} /> Permesso Type
-                      </label>
-                      <div className="relative">
-                        <select
-                          name="permessoType"
-                          value={formData.permessoType}
-                          onChange={handleInputChange}
-                          className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-text/30 appearance-none transition-colors"
-                        >
-                          <option value="">Select Type</option>
-                          {permessoTypes.map((t) => (
-                            <option key={t} value={t}>{t}</option>
-                          ))}
-                        </select>
-                        <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-muted" />
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-muted flex items-center gap-2">
+                          <FileText size={12} /> Permesso Type
+                        </label>
+                        <div className="relative">
+                          <select
+                            name="permessoType"
+                            value={formData.permessoType}
+                            onChange={handleInputChange}
+                            className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-text/30 appearance-none transition-colors"
+                          >
+                            <option value="">Select Type</option>
+                            {permessoTypes.map((t) => (
+                              <option key={t} value={t}>{t}</option>
+                            ))}
+                          </select>
+                          <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-muted" />
+                        </div>
                       </div>
                     </div>
 
-                    <DateInputField
+                    <div className="grid md:grid-cols-3 gap-6 pt-4 border-t border-border">
+                      <div className="md:col-span-1">
+                         <InputField
+                            label="Street Address *"
+                            name="streetAddress"
+                            value={formData.streetAddress}
+                            onChange={handleInputChange}
+                            icon={<MapPin size={14} />}
+                            placeholder="Via Roma 123"
+                          />
+                      </div>
+                      <InputField
+                        label="Post Code *"
+                        name="postCode"
+                        value={formData.postCode}
+                        onChange={handleInputChange}
+                        icon={<Hash size={14} />}
+                        placeholder="00100"
+                      />
+                      <InputField
+                        label="Province *"
+                        name="province"
+                        value={formData.province}
+                        onChange={handleInputChange}
+                        icon={<Globe size={14} />}
+                        placeholder="Rome"
+                      />
+                    </div>
+
+                    <DateDropdownField
                       label="Permesso Expiry"
-                      name="permessoExpiry"
-                      value={formData.permessoExpiry}
-                      onChange={(val: any) => setFormData(prev => ({ ...prev, permessoExpiry: val }))}
                       icon={<Clock size={14} />}
+                      value={formData.permessoExpiry}
+                      onChange={(val) => setFormData(p => ({ ...p, permessoExpiry: val }))}
+                      disablePast
                     />
                   </div>
                 )}
@@ -581,6 +565,7 @@ export default function ApplicationForm() {
                     {/* Cost Summary Sticky Bar */}
                     {formData.selectedServices.length > 0 && (
                       <motion.div
+                        ref={checkoutRef}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         className="mt-8 p-6 bg-text text-bg rounded-[24px] flex flex-col md:flex-row justify-between items-center gap-4 shadow-2xl relative overflow-hidden"
@@ -676,7 +661,7 @@ export default function ApplicationForm() {
                       onClick={nextStep}
                       disabled={
                         (step === 1 && (!formData.name || !formData.dob)) ||
-                        (step === 2 && (!formData.codiceFiscale || !formData.phone))
+                        (step === 2 && (!formData.streetAddress || !formData.postCode || !formData.province))
                       }
                       className="w-full sm:w-auto flex items-center justify-center gap-2 bg-text text-bg px-10 py-3 rounded-full text-xs font-bold hover:scale-105 active:scale-95 transition-all disabled:opacity-30 disabled:scale-100 shadow-xl shadow-text/10"
                     >
@@ -688,7 +673,7 @@ export default function ApplicationForm() {
                       type="button"
                       onClick={() => {
                          if (finalAmount === 0) {
-                            handlePaymentSuccess();
+                            handlePaymentSuccess('Credits');
                          } else {
                             setIsShowPayment(true);
                          }
@@ -706,13 +691,31 @@ export default function ApplicationForm() {
             <SuccessState onClose={onClose} appId={submittedAppId} />
           )}
         </AnimatePresence>
+
+        {/* Smart Bouncing Arrow */}
+        <AnimatePresence>
+          {showBouncingArrow && step === 3 && (
+            <motion.button
+              initial={{ opacity: 0, y: 100 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 100 }}
+              onClick={scrollToCheckout}
+              className="fixed bottom-10 right-10 z-[300] bg-text text-bg w-16 h-16 rounded-full flex items-center justify-center shadow-2xl hover:scale-110 active:scale-90 transition-all border-4 border-bg"
+            >
+              <motion.div
+                animate={{ y: [0, 5, 0] }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <ArrowDownCircle size={32} />
+              </motion.div>
+            </motion.button>
+          )}
+        </AnimatePresence>
       </div>
-
-
 
       <AnimatePresence>
         {isShowPayment && (
-          <StripePayment 
+          <PaymentSelection
             amount={finalAmount}
             onSuccess={handlePaymentSuccess}
             onCancel={() => setIsShowPayment(false)}
@@ -733,32 +736,6 @@ function InputField({ label, icon, ...props }: any) {
         {...props}
         className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-text/30 transition-all placeholder:text-muted/20 hover:border-text/10 text-text"
       />
-    </div>
-  );
-}
-
-function DateInputField({ label, icon, value, onChange }: any) {
-  const [showCalendar, setShowCalendar] = useState(false);
-  return (
-    <div className="space-y-2 relative">
-      <label className="text-[10px] font-bold uppercase tracking-widest text-muted flex items-center gap-2">
-        {icon} {label}
-      </label>
-      <button
-        type="button"
-        onClick={() => setShowCalendar(!showCalendar)}
-        className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-xs text-left focus:outline-none focus:border-text/30 transition-all hover:border-text/10 flex items-center justify-between"
-      >
-        <span className={value ? 'text-text' : 'text-muted/40'}>{value || "Select Date"}</span>
-        <Calendar size={14} className="text-muted" />
-      </button>
-      {showCalendar && (
-        <CustomCalendar 
-          value={value} 
-          onChange={onChange} 
-          onClose={() => setShowCalendar(false)} 
-        />
-      )}
     </div>
   );
 }
@@ -798,39 +775,27 @@ function FileUploadSlot({ label, icon, description, onFileSelect, file }: {
               animate={{ scale: 1, opacity: 1 }}
               className="flex flex-col items-center gap-2 p-4 text-center"
             >
-              <div className="w-10 h-10 bg-text text-bg rounded-full flex items-center justify-center shadow-lg">
-                <Check size={20} />
+              <div className="w-12 h-12 rounded-full bg-text text-bg flex items-center justify-center">
+                <Check size={24} />
               </div>
-              <div>
-                <span className="block text-xs font-bold truncate max-w-[150px] text-text">{file.name}</span>
-                <span className="text-[8px] uppercase tracking-widest font-bold text-muted mt-0.5 block">File Uploaded</span>
+              <div className="space-y-0.5">
+                <p className="text-xs font-bold truncate max-w-[200px]">{file.name}</p>
+                <p className="text-[10px] text-muted uppercase font-bold tracking-widest">Document Uploaded</p>
               </div>
-              <button 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onFileSelect(null);
-                }}
-                className="mt-1 px-3 py-1.5 rounded-lg bg-surface border border-border text-[8px] uppercase tracking-widest font-bold text-muted hover:text-text hover:border-text/30 transition-all"
-              >
-                Replace File
-              </button>
             </motion.div>
           ) : (
             <motion.div 
               key="empty"
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="flex flex-col items-center gap-2 text-center px-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex flex-col items-center gap-3 p-4 text-center"
             >
-              <div className="w-10 h-10 rounded-xl bg-surface border border-border flex items-center justify-center text-muted group-hover:text-text group-hover:border-text/30 transition-all duration-500 shadow-sm">
+              <div className="text-muted group-hover:text-text transition-colors">
                 {icon}
               </div>
-              <div>
-                <span className="block text-xs font-bold text-text">Click to upload</span>
-                <span className="text-[10px] text-muted mt-0.5 block">{description}</span>
-              </div>
-              <div className="mt-1 w-6 h-6 rounded-full bg-surface border border-border flex items-center justify-center text-muted group-hover:scale-110 transition-transform">
-                <Plus size={12} />
+              <div className="space-y-1">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-text">Click to Upload</p>
+                <p className="text-[10px] text-muted leading-relaxed max-w-[150px]">{description}</p>
               </div>
             </motion.div>
           )}
@@ -840,53 +805,41 @@ function FileUploadSlot({ label, icon, description, onFileSelect, file }: {
   );
 }
 
-function SuccessState({ onClose, appId }: { onClose: () => void; appId: string | null }) {
+function SuccessState({ onClose, appId }: { onClose: () => void, appId: string | null }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="flex flex-col items-center justify-center py-12 text-center space-y-8"
+      className="text-center py-20 px-8 bg-surface/30 backdrop-blur-xl border border-border rounded-[48px] shadow-2xl relative overflow-hidden"
     >
-      <div className="relative">
-        <motion.div 
-          animate={{ scale: [1, 1.1, 1], opacity: [0.5, 0.8, 0.5] }}
-          transition={{ duration: 3, repeat: Infinity }}
-          className="absolute -inset-8 bg-text/10 blur-2xl rounded-full"
-        />
-        <div className="w-24 h-24 bg-text text-bg rounded-[32px] flex items-center justify-center shadow-2xl relative z-10 rotate-12">
+      <div className="absolute -top-24 -left-24 w-64 h-64 bg-text/5 rounded-full blur-3xl" />
+      <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-text/5 rounded-full blur-3xl" />
+
+      <div className="relative z-10 flex flex-col items-center max-w-sm mx-auto">
+        <div className="w-24 h-24 bg-text text-bg rounded-full flex items-center justify-center mb-10 shadow-2xl">
           <Check size={48} strokeWidth={3} />
         </div>
-      </div>
-
-      <div className="space-y-3">
-        <h2 className="text-4xl md:text-6xl font-space font-bold tracking-tighter text-text">Application Sent!</h2>
-        <p className="text-sm text-muted max-w-md mx-auto font-light">
-          Your application has been successfully submitted. Our team will review your details shortly.
+        <h2 className="text-4xl md:text-5xl font-space font-bold tracking-tighter mb-4">Application Sent.</h2>
+        <p className="text-muted text-sm font-light leading-relaxed mb-10">
+          Your case <span className="font-bold text-text">#{appId}</span> has been received successfully.
+          Our team is now processing your documents.
         </p>
+        
+        <div className="grid grid-cols-2 gap-4 w-full">
+           <button 
+            onClick={() => window.location.href = '/profile'}
+            className="w-full flex items-center justify-center bg-bg text-text border border-border px-8 py-4 rounded-3xl font-bold text-xs hover:bg-bg/50 transition-all shadow-xl"
+          >
+            My Applications
+          </button>
+          <button 
+            onClick={onClose}
+            className="w-full flex items-center justify-center bg-text text-bg px-8 py-4 rounded-3xl font-bold text-xs hover:scale-105 transition-all shadow-2xl shadow-text/10"
+          >
+            Return Home
+          </button>
+        </div>
       </div>
-
-      <div className="bg-surface border border-border rounded-[24px] p-8 w-full max-w-xs shadow-inner">
-        <p className="text-[8px] uppercase tracking-[0.3em] font-bold text-muted mb-2">Application ID</p>
-        <p className="text-4xl font-mono font-bold text-text tracking-tighter">#{appId}</p>
-      </div>
-
-      <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md">
-        <button className="flex-1 flex items-center justify-center gap-2 bg-surface border border-border px-6 py-4 rounded-full text-xs font-bold hover:border-text/30 transition-all shadow-lg text-text">
-          <Download size={16} />
-          Receipt
-        </button>
-        <button className="flex-1 flex items-center justify-center gap-2 bg-text text-bg px-6 py-4 rounded-full text-xs font-bold hover:scale-105 transition-all shadow-xl shadow-text/10">
-          <Send size={16} />
-          Email Me
-        </button>
-      </div>
-
-      <button
-        onClick={onClose}
-        className="text-[10px] uppercase tracking-widest font-bold text-muted hover:text-text transition-colors pt-4"
-      >
-        Return to Homepage
-      </button>
     </motion.div>
   );
 }
