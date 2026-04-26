@@ -19,7 +19,7 @@ export const DEFAULT_AGENT_PERMISSIONS: AgentPermissions = {
   canViewWorkspaces: true,
   canUploadFiles: true,
   canDeleteFiles: false,
-  canViewApplications: true,
+  canViewApplications: false,
   canManageApplications: true,
   canIssueCredits: false,
 };
@@ -279,30 +279,13 @@ export const mockApi = {
       return updated ? { ...app, ...updates } : app;
     });
 
-    if (migrated) {
-      saveToStorage(APPLICATIONS_KEY, apps);
-    }
-
-    // Auto-release logic: Revert stale "Reviewing" apps to "Pending"
-    const releaseHours = mockApi.getAutoReleaseHours();
-    const threshold = releaseHours * 60 * 60 * 1000;
-    const now = Date.now();
-    let changed = false;
-
-    const cleanedApps = apps.map(app => {
-      if (app.status === 'Reviewing' && app.lastActivityAt) {
-        const lastActive = new Date(app.lastActivityAt).getTime();
-        if (now - lastActive > threshold) {
-          changed = true;
-          return { ...app, status: 'Pending' as ApplicationStatus, reviewerId: undefined, reviewerName: undefined, lastActivityAt: undefined };
-        }
+    const currentUser = mockApi.getCurrentUser();
+    if (currentUser?.role === 'subagent') {
+      const perms = mockApi.getEffectivePermissions(currentUser);
+      // If they can't view all, only show assigned
+      if (!perms.canViewApplications) {
+        return apps.filter(app => app.reviewerId === currentUser.id);
       }
-      return app;
-    });
-
-    if (changed) {
-      saveToStorage(APPLICATIONS_KEY, cleanedApps);
-      return cleanedApps;
     }
 
     return apps;
@@ -335,6 +318,86 @@ export const mockApi = {
     apps.unshift(newApp);
     saveToStorage(APPLICATIONS_KEY, apps);
     return newApp;
+  },
+
+  assignApplication: async (id: string, agentId: string): Promise<boolean> => {
+    await new Promise((resolve) => setTimeout(resolve, 800));
+    const apps = getFromStorage<Application[]>(APPLICATIONS_KEY) || [];
+    const users = getFromStorage<User[]>(USERS_KEY) || [];
+    const index = apps.findIndex(a => a.id === id);
+    const agent = users.find(u => u.id === agentId);
+    const currentUser = mockApi.getCurrentUser();
+
+    if (index !== -1 && agent) {
+      const actorName = currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : 'System';
+      const actorId = currentUser?.id || 'system';
+
+      apps[index].reviewerId = agent.id;
+      apps[index].reviewerName = `${agent.firstName} ${agent.lastName}`;
+      apps[index].status = 'Reviewing';
+      apps[index].lastActivityAt = new Date().toISOString();
+
+      if (!apps[index].activityLog) apps[index].activityLog = [];
+      apps[index].activityLog!.push({
+         id: 'act-' + Math.random().toString(36).substr(2, 5),
+         type: 'reassignment',
+         description: `Application assigned to agent ${agent.firstName} ${agent.lastName} by ${actorName}`,
+         actorName,
+         actorId,
+         timestamp: new Date().toISOString()
+      });
+
+      saveToStorage(APPLICATIONS_KEY, apps);
+      return true;
+    }
+    return false;
+  },
+
+  getAgentsWithWorkload: async (): Promise<(User & { activeWorkload: number })[]> => {
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    const users = getFromStorage<User[]>(USERS_KEY) || [];
+    const apps = getFromStorage<Application[]>(APPLICATIONS_KEY) || [];
+    const agents = users.filter(u => u.role === 'subagent');
+
+    return agents.map(agent => ({
+      ...agent,
+      activeWorkload: apps.filter(app => app.reviewerId === agent.id && (app.status === 'Reviewing' || app.status === 'Pending')).length
+    }));
+  },
+
+  uploadApplicationDocument: async (appId: string, name: string): Promise<boolean> => {
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    const apps = getFromStorage<Application[]>(APPLICATIONS_KEY) || [];
+    const index = apps.findIndex(a => a.id === appId);
+    const currentUser = mockApi.getCurrentUser();
+
+    if (index !== -1 && currentUser) {
+      const newDoc = {
+        id: 'doc-' + Math.random().toString(36).substr(2, 5),
+        name,
+        url: '#',
+        uploadedBy: `${currentUser.firstName} ${currentUser.lastName}`,
+        uploadedById: currentUser.id,
+        uploadedAt: new Date().toISOString(),
+      };
+
+      if (!apps[index].attachments) (apps[index] as any).attachments = [];
+      (apps[index] as any).attachments.push(newDoc);
+
+      if (!apps[index].activityLog) apps[index].activityLog = [];
+      apps[index].activityLog!.push({
+         id: 'act-' + Math.random().toString(36).substr(2, 5),
+         type: 'document',
+         description: `Document "${name}" uploaded by ${currentUser.firstName} ${currentUser.lastName}`,
+         actorName: `${currentUser.firstName} ${currentUser.lastName}`,
+         actorId: currentUser.id,
+         timestamp: new Date().toISOString()
+      });
+
+      saveToStorage(APPLICATIONS_KEY, apps);
+      return true;
+    }
+    return false;
   },
 
   updateApplicationStatus: async (id: string, status: ApplicationStatus, forceRelease: boolean = false, refundData?: { amount: number, type: 'Full' | 'Partial' }): Promise<boolean> => {
