@@ -291,6 +291,7 @@ export default function ProfilePage() {
                   <DetailItem icon={<Home size={14}/>} label="Address" value={selectedApp.address} />
                   <DetailItem icon={<CreditCard size={14}/>} label="Payment Method" value={selectedApp.paymentMethod} />
                   <DetailItem icon={<CheckCircle2 size={14}/>} label="Payment Status" value={selectedApp.paymentStatus} />
+                  {selectedApp.transactionId && <DetailItem icon={<Receipt size={14}/>} label="Transaction ID" value={selectedApp.transactionId} />}
                 </div>
 
                 {/* Services Section */}

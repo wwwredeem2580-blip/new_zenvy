@@ -43,6 +43,7 @@ export interface Application {
   permessoExpiry?: string;
   paymentMethod?: 'Cash' | 'Revolut' | 'PostPay' | 'Card' | 'Credits';
   paymentStatus?: 'Pending' | 'Received';
+  transactionId?: string;
   status: ApplicationStatus;
   submittedAt: string;
   selectedServices: SubService[];
