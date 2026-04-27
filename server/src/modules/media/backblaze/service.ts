@@ -1,5 +1,5 @@
 import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
-import { Media } from '../../../database/media/media';
+import { Media } from '../../../models/Media.model';
 import { Request, Response } from 'express';
 import { handleError } from '../../../utils/handleError';
 import CustomError from '../../../utils/CustomError';
@@ -21,7 +21,7 @@ export const uploadToBackblaze = async (req: Request, res: Response) => {
       throw new CustomError('No files uploaded', 400);
     }
     const documentType = req.body.documentType || '';
-    const userId = req.user?.sub;
+    const userId = req.user?.userId;
 
     const uploadedFiles = await Promise.all(files.map(async file => {
       // Generate unique object key with filename and type embedded
@@ -65,7 +65,7 @@ export const uploadToBackblaze = async (req: Request, res: Response) => {
 export const deleteFromBackblaze = async (req: Request, res: Response) => {
   try {
     const { objectKey } = req.body;
-    const userId = req.user?.sub;
+    const userId = req.user?.userId;
 
     if (!objectKey) {
       throw new CustomError('Object key is required', 400);

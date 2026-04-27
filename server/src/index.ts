@@ -1,5 +1,4 @@
 import { createServer } from 'http';
-import { Server as SocketIOServer } from 'socket.io';
 import app from './app';
 import mongoose from 'mongoose';
 import { initEmailWorker } from './workers/email.worker';
@@ -16,14 +15,6 @@ app.get('/health', (req, res) => {
     mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
   };
   res.json(health);
-});
-
-const io = new SocketIOServer(server, {
-  cors: {
-    origin: process.env.CLIENT_URL || 'http://localhost:3000',
-    methods: ['GET', 'POST'],
-    credentials: true
-  }
 });
 
 initEmailWorker();
