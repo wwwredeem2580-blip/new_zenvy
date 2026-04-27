@@ -40,9 +40,7 @@ export function createServer() {
 
   app.use(cors({
     origin: [
-      process.env.CLIENT_URL || 'http://localhost:3000', 
-      'https://scanner.zenvy.com.bd',
-      'https://www.zenvy.com.bd'
+      process.env.CLIENT_URL || 'http://localhost:3000'
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE"],

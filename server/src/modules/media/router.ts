@@ -1,8 +1,7 @@
 import { Router } from 'express';
-import { getImageKitAuth, trackImageKitUpload, getUserUploads } from './imagekit/service';
-import { requireAuth } from '../../middlewares/auth';
 import multer from 'multer';
 import { uploadToBackblaze, deleteFromBackblaze } from './backblaze/service';
+import { requireAuth } from '../../middlewares/auth';
 // Configure multer to store files in memory
 const storage = multer.memoryStorage();
 const upload = multer({
@@ -23,10 +22,6 @@ const upload = multer({
 });
 
 const router = Router();
-
-router.get('/imagekit/auth', requireAuth, getImageKitAuth);
-router.post('/imagekit/track', requireAuth, trackImageKitUpload);
-router.get('/imagekit/uploads', requireAuth, getUserUploads);
 
 router.post('/backblaze/upload', requireAuth, upload.array('documents', 5), uploadToBackblaze);
 router.delete('/backblaze/delete', requireAuth, deleteFromBackblaze);
