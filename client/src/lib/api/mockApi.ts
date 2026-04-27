@@ -275,6 +275,12 @@ export const mockApi = {
         updated = true;
         updates.activityLog = [];
       }
+
+      if (!('attachments' in app)) {
+        migrated = true;
+        updated = true;
+        updates.attachments = [];
+      }
       
       return updated ? { ...app, ...updates } : app;
     });
@@ -381,8 +387,8 @@ export const mockApi = {
         uploadedAt: new Date().toISOString(),
       };
 
-      if (!apps[index].attachments) (apps[index] as any).attachments = [];
-      (apps[index] as any).attachments.push(newDoc);
+      if (!apps[index].attachments) apps[index].attachments = [];
+      apps[index].attachments!.push(newDoc);
 
       if (!apps[index].activityLog) apps[index].activityLog = [];
       apps[index].activityLog!.push({

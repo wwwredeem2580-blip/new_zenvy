@@ -26,6 +26,15 @@ export interface Note {
   updatedAt?: string;
 }
 
+export interface Attachment {
+  id: string;
+  name: string;
+  url: string;
+  uploadedBy: string;
+  uploadedById: string;
+  uploadedAt: string;
+}
+
 export interface Application {
   id: string;
   name: string;
@@ -54,6 +63,7 @@ export interface Application {
   refundType?: 'Full' | 'Partial';
   notes?: Note[];
   activityLog?: ActivityLogEntry[];
+  attachments?: Attachment[];
 }
 
 export const mockApplications: Application[] = [

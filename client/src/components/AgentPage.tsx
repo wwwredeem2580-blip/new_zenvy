@@ -550,9 +550,9 @@ export default function AgentPage() {
                                      )}
                                   </div>
 
-                                  {(selectedApp as any).attachments && (selectedApp as any).attachments.length > 0 ? (
+                                  {selectedApp.attachments && selectedApp.attachments.length > 0 ? (
                                     <div className="grid gap-2">
-                                       {(selectedApp as any).attachments.map((doc: any) => (
+                                       {selectedApp.attachments.map((doc) => (
                                           <div key={doc.id} className="group p-5 bg-white border border-black/5 rounded-[24px] flex items-center justify-between hover:shadow-xl hover:shadow-black/5 transition-all">
                                              <div className="flex items-center gap-4">
                                                 <div className="w-12 h-12 bg-black/5 rounded-2xl flex items-center justify-center text-black/20">
