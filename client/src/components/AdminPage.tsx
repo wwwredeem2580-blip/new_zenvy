@@ -51,6 +51,7 @@ import { AssignAgentModal } from './admin/AssignAgentModal';
 import { ActivityTimeline } from './admin/ActivityTimeline';
 import { Application, ApplicationStatus } from '../data/applications';
 import { mockApi, User as UserType, Workspace, WorkspacePermission, FileRecord, AgentPermissions } from '../lib/api/mockApi';
+import { CollapsibleSection } from './ui/CollapsibleSection';
 
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
@@ -479,104 +480,107 @@ export default function AdminPage() {
                  </section>
 
                  {/* Info Grid - Mirrored from ProfilePage */}
-                 <div className="grid grid-cols-2 gap-8">
-                    <DetailItem icon={<User size={14}/>} label="Full Name" value={selectedApp.name} />
-                    <DetailItem icon={<Calendar size={14}/>} label="DOB" value={selectedApp.dob} />
-                    <DetailItem icon={<MapPin size={14}/>} label="Place of Birth" value={selectedApp.pob} />
-                    <DetailItem icon={<Globe size={14}/>} label="Nationality" value={selectedApp.nationality} />
-                    <DetailItem icon={<Hash size={14}/>} label="Codice Fiscale" value={selectedApp.codiceFiscale} />
-                    <DetailItem icon={<Phone size={14}/>} label="Phone" value={selectedApp.phone} />
-                    <DetailItem icon={<Mail size={14}/>} label="Email" value={selectedApp.email} />
-                    <DetailItem icon={<Home size={14}/>} label="Address" value={selectedApp.address} />
-                 </div>
-
-                 {/* Services Section - Mirrored from ProfilePage */}
-                 <div className="space-y-4">
-                    <h3 className="text-[10px] uppercase tracking-widest font-bold text-black/40">Included Services</h3>
-                    <div className="space-y-2">
-                       {selectedApp.selectedServices.map((s, i) => (
-                          <div key={i} className="flex justify-between items-center p-5 bg-black/[0.02] border border-black/5 rounded-[24px] hover:bg-white hover:shadow-xl hover:shadow-black/5 transition-all">
-                             <div className="space-y-1">
-                                 <span className="block font-bold text-sm">{s.name}</span>
-                                 <span className="flex items-center gap-1 text-[8px] uppercase tracking-widest font-bold text-black/40">
-                                     <Clock size={10} /> {s.duration}
-                                 </span>
-                             </div>
-                             <span className="text-xl font-space font-bold">€{s.price}</span>
-                          </div>
-                       ))}
+                 <CollapsibleSection title="Application Details">
+                    <div className="grid grid-cols-2 gap-8 mb-8">
+                       <DetailItem icon={<User size={14}/>} label="Full Name" value={selectedApp.name} />
+                       <DetailItem icon={<Calendar size={14}/>} label="DOB" value={selectedApp.dob} />
+                       <DetailItem icon={<MapPin size={14}/>} label="Place of Birth" value={selectedApp.pob} />
+                       <DetailItem icon={<Globe size={14}/>} label="Nationality" value={selectedApp.nationality} />
+                       <DetailItem icon={<Hash size={14}/>} label="Codice Fiscale" value={selectedApp.codiceFiscale} />
+                       <DetailItem icon={<Phone size={14}/>} label="Phone" value={selectedApp.phone} />
+                       <DetailItem icon={<Mail size={14}/>} label="Email" value={selectedApp.email} />
+                       <DetailItem icon={<Home size={14}/>} label="Address" value={selectedApp.address} />
                     </div>
-                 </div>
 
-                 {/* Documents Section - Mirrored from ProfilePage */}
-                 <div className="space-y-4">
-                    <h3 className="text-[10px] uppercase tracking-widest font-bold text-black/40">Attached Documents</h3>
-                    <div className="grid grid-cols-2 gap-4">
-                       {["Passport Scan", "Codice Fiscale"].map(doc => (
-                          <div key={doc} className="group p-4 bg-black/5 border border-black/5 rounded-2xl flex items-center gap-4 hover:bg-black hover:text-white transition-all cursor-pointer">
-                             <div className="w-10 h-10 bg-white/50 rounded-lg flex items-center justify-center">
-                                 <FileText size={18} />
+                    {/* Services Section - Mirrored from ProfilePage */}
+                    <div className="space-y-4 mb-10">
+                       <h3 className="text-[10px] uppercase tracking-widest font-bold text-black/40">Included Services</h3>
+                       <div className="space-y-2">
+                          {selectedApp.selectedServices.map((s, i) => (
+                             <div key={i} className="flex justify-between items-center p-5 bg-black/[0.02] border border-black/5 rounded-[24px] hover:bg-white hover:shadow-xl hover:shadow-black/5 transition-all">
+                                <div className="space-y-1">
+                                    <span className="block font-bold text-sm">{s.name}</span>
+                                    <span className="flex items-center gap-1 text-[8px] uppercase tracking-widest font-bold text-black/40">
+                                        <Clock size={10} /> {s.duration}
+                                    </span>
+                                </div>
+                                <span className="text-xl font-space font-bold">€{s.price}</span>
                              </div>
-                             <span className="text-[10px] font-bold uppercase tracking-widest">{doc}</span>
-                          </div>
-                       ))}
+                          ))}
+                       </div>
                     </div>
-                 </div>
+
+                    {/* Documents Section - Mirrored from ProfilePage */}
+                    <div className="space-y-4">
+                       <h3 className="text-[10px] uppercase tracking-widest font-bold text-black/40">Attached Documents</h3>
+                       <div className="grid grid-cols-2 gap-4">
+                          {["Passport Scan", "Codice Fiscale"].map(doc => (
+                             <div key={doc} className="group p-4 bg-black/5 border border-black/5 rounded-2xl flex items-center gap-4 hover:bg-black hover:text-white transition-all cursor-pointer">
+                                <div className="w-10 h-10 bg-white/50 rounded-lg flex items-center justify-center">
+                                    <FileText size={18} />
+                                </div>
+                                <span className="text-[10px] font-bold uppercase tracking-widest">{doc}</span>
+                             </div>
+                          ))}
+                       </div>
+                    </div>
+                 </CollapsibleSection>
 
                   {/* Internal Notes Section */}
                   <div className='pt-8 bg-black/5 -mx-8 px-8 border-t border-black/5 space-y-12 pb-12'>
                      {/* Secure Application Documents Workspace */}
-                     <section className="space-y-6">
-                        <div className="flex items-center justify-between">
-                           <div className="space-y-1">
-                              <h3 className="text-[10px] uppercase tracking-widest font-bold text-black/40">Secure Application Documents</h3>
-                              <p className="text-[8px] font-bold text-blue-500 uppercase tracking-tighter">Visible only to Admin & Assigned Agent</p>
-                           </div>
-                           {(user?.role === 'admin' || user?.id === selectedApp.reviewerId) && (
-                              <button 
-                                disabled={isDocUploading}
-                                onClick={async () => {
-                                   setIsDocUploading(true);
-                                   await mockApi.uploadApplicationDocument(selectedApp.id, `Signed_Final_${Math.floor(Math.random()*1000)}.pdf`);
-                                   await loadData();
-                                   setIsDocUploading(false);
-                                }}
-                                className="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-xl font-bold text-[9px] uppercase tracking-widest hover:scale-105 transition-all shadow-lg"
-                              >
-                                 {isDocUploading ? <Loader2 size={12} className="animate-spin" /> : <PlusIcon size={12} />}
-                                 Upload Final Document
-                              </button>
-                           )}
-                        </div>
+                     <CollapsibleSection 
+                        title="Secure Application Documents" 
+                        subtitle="Visible only to Admin & Assigned Agent"
+                      >
+                         <div className="space-y-6">
+                            <div className="flex justify-end">
+                               {(user?.role === 'admin' || user?.id === selectedApp.reviewerId) && (
+                                  <button 
+                                    disabled={isDocUploading}
+                                    onClick={async () => {
+                                       setIsDocUploading(true);
+                                       await mockApi.uploadApplicationDocument(selectedApp.id, `Signed_Final_${Math.floor(Math.random()*1000)}.pdf`);
+                                       await loadData();
+                                       setIsDocUploading(false);
+                                    }}
+                                    className="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-xl font-bold text-[9px] uppercase tracking-widest hover:scale-105 transition-all shadow-lg"
+                                  >
+                                     {isDocUploading ? <Loader2 size={12} className="animate-spin" /> : <PlusIcon size={12} />}
+                                     Upload Final Document
+                                  </button>
+                               )}
+                            </div>
 
-                        {(selectedApp as any).attachments && (selectedApp as any).attachments.length > 0 ? (
-                          <div className="grid gap-2">
-                             {(selectedApp as any).attachments.map((doc: any) => (
-                                <div key={doc.id} className="group p-5 bg-white border border-black/5 rounded-[24px] flex items-center justify-between hover:shadow-xl hover:shadow-black/5 transition-all">
-                                   <div className="flex items-center gap-4">
-                                      <div className="w-12 h-12 bg-black/5 rounded-2xl flex items-center justify-center text-black/20">
-                                         <FileText size={20} />
-                                      </div>
-                                      <div className="flex flex-col">
-                                         <span className="text-sm font-bold">{doc.name}</span>
-                                         <span className="text-[8px] uppercase tracking-widest font-bold text-black/30">
-                                            Uploaded by {doc.uploadedBy} • {new Date(doc.uploadedAt).toLocaleDateString()}
-                                         </span>
-                                      </div>
-                                   </div>
-                                   <button className="p-3 bg-black/5 rounded-full hover:bg-black hover:text-white transition-all">
-                                      <Download size={14} />
-                                   </button>
-                                </div>
-                             ))}
-                          </div>
-                        ) : (
-                          <div className="py-12 border-2 border-dashed border-black/10 rounded-[32px] flex flex-col items-center justify-center text-black/10 font-bold uppercase tracking-widest text-[8px] gap-2">
-                             <Shield size={24} className="opacity-50" />
-                             Secure document locker is empty
-                          </div>
-                        )}
-                     </section>
+                            {(selectedApp as any).attachments && (selectedApp as any).attachments.length > 0 ? (
+                              <div className="grid gap-2">
+                                 {(selectedApp as any).attachments.map((doc: any) => (
+                                    <div key={doc.id} className="group p-5 bg-white border border-black/5 rounded-[24px] flex items-center justify-between hover:shadow-xl hover:shadow-black/5 transition-all">
+                                       <div className="flex items-center gap-4">
+                                          <div className="w-12 h-12 bg-black/5 rounded-2xl flex items-center justify-center text-black/20">
+                                             <FileText size={20} />
+                                          </div>
+                                          <div className="flex flex-col">
+                                             <span className="text-sm font-bold">{doc.name}</span>
+                                             <span className="text-[8px] uppercase tracking-widest font-bold text-black/30">
+                                                Uploaded by {doc.uploadedBy} • {new Date(doc.uploadedAt).toLocaleDateString()}
+                                             </span>
+                                          </div>
+                                       </div>
+                                       <button className="p-3 bg-black/5 rounded-full hover:bg-black hover:text-white transition-all">
+                                          <Download size={14} />
+                                       </button>
+                                    </div>
+                                 ))}
+                              </div>
+                            ) : (
+                              <div className="py-12 border-2 border-dashed border-black/10 rounded-[32px] flex flex-col items-center justify-center text-black/10 font-bold uppercase tracking-widest text-[8px] gap-2">
+                                 <Shield size={24} className="opacity-50" />
+                                 Secure document locker is empty
+                              </div>
+                            )}
+                         </div>
+                      </CollapsibleSection>
 
                      <InternalNotes 
                         application={selectedApp} 
@@ -584,7 +588,9 @@ export default function AdminPage() {
                      />
                      
                      <div className="pt-8 border-t border-black/5">
-                        <ActivityTimeline application={selectedApp} />
+                        <CollapsibleSection title="Audit Trail & Activity Log">
+                           <ActivityTimeline application={selectedApp} />
+                        </CollapsibleSection>
                      </div>
                   </div>
 

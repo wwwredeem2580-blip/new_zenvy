@@ -24,7 +24,8 @@ import {
   TrendingUp,
   ArrowUpRight,
   Download,
-  Printer
+  Printer,
+  Receipt
 } from "lucide-react";
 import { mockApi, User } from "../lib/api/mockApi";
 import { Application, ApplicationStatus } from "../data/applications";
