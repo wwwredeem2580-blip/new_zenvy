@@ -1,33 +1,23 @@
 import { Worker } from 'bullmq';
 import nodemailer from 'nodemailer';
-import {
-  emailVerificationTemplate,
-} from '../utils/email/emailVerification';
-import { orderConfirmationTemplate } from '../utils/email/orderConfirmation';
-import { ticketSheetReminderTemplate } from '../utils/email/ticketSheetReminder';
-import { welcomeUserTemplate } from '../utils/email/welcomeUser';
-import { welcomeHostTemplate } from '../utils/email/welcomeHost';
-import { suspiciousLoginTemplate } from '../utils/email/suspiciousLogin';
-import { getAdminNotificationTemplate } from '../utils/email/adminNotifications';
-import { Resend } from 'resend';
+import { emailVerificationTemplate } from '../utils/email/emailVerification';
+import { welcomeClientTemplate } from '../utils/email/welcomeClient';
+
 const SibApiV3Sdk = require('sib-api-v3-sdk');
 
-// Redis
+// ─── Redis ───────────────────────────────────────────────────────────────────
 const redisOptions = {
   host: process.env.REDIS_HOST || 'localhost',
   port: parseInt(process.env.REDIS_PORT || '6379'),
   maxRetriesPerRequest: null,
 };
 
-// Resend Setup (Primary)
-const resend = new Resend(process.env.RESEND_API_KEY);
-
-// Brevo Setup (Secondary)
+// ─── Brevo (Primary) ─────────────────────────────────────────────────────────
 const brevoClient = SibApiV3Sdk.ApiClient.instance;
 brevoClient.authentications['api-key'].apiKey = process.env.BREVO_API_KEY;
 const brevoTransactional = new SibApiV3Sdk.TransactionalEmailsApi();
 
-// SMTP (Fallback)
+// ─── SMTP Nodemailer (Fallback) ───────────────────────────────────────────────
 let transporter: nodemailer.Transporter;
 
 const initTransporter = async () => {
@@ -41,10 +31,10 @@ const initTransporter = async () => {
         pass: process.env.SMTP_PASS,
       },
     });
+    console.log('📧 Using configured SMTP transport');
   } else {
     const testAccount = await nodemailer.createTestAccount();
-    console.log('📧 Using Ethereal SMTP fallback');
-
+    console.log('📧 Using Ethereal SMTP fallback (dev mode)');
     transporter = nodemailer.createTransport({
       host: 'smtp.ethereal.email',
       port: 587,
@@ -56,55 +46,17 @@ const initTransporter = async () => {
   }
 };
 
-// Email Sender
+// ─── Email Sender ─────────────────────────────────────────────────────────────
 const sendTransactionalEmail = async ({
   to,
   subject,
   html,
-  attachments = [],
 }: {
   to: string;
   subject: string;
   html: string;
-  attachments?: any[];
 }) => {
-  // 1️⃣ Try Resend first with retry logic
-  try {
-    await resend.emails.send({
-      from: 'Smart CAF <support@smartcaf.it>',
-      to: [to],
-      subject,
-      html,
-      attachments,
-    });
-
-    console.log(`📧 Email sent via Resend → ${to}`);
-    return;
-  } catch (resendError: any) {
-    const errorType = classifyError(resendError);
-    
-    if (errorType === 'HARD_FAIL') {
-      console.error('❌ Resend hard fail, falling back to Brevo', resendError);
-    } else {
-      console.error('⚠️ Resend soft fail, retrying Resend', resendError);
-      // Retry Resend once for soft fails
-      try {
-        await resend.emails.send({
-          from: 'Smart CAF <support@smartcaf.it>',
-          to: [to],
-          subject,
-          html,
-          attachments,
-        });
-        console.log(`📧 Email sent via Resend (retry) → ${to}`);
-        return;
-      } catch (retryError) {
-        console.error('❌ Resend retry failed, falling back to Brevo', retryError);
-      }
-    }
-  }
-
-  // 2️⃣ Try Brevo second with retry logic
+  // 1️⃣ Try Brevo first
   try {
     await brevoTransactional.sendTransacEmail({
       subject,
@@ -115,132 +67,91 @@ const sendTransactionalEmail = async ({
       },
       to: [{ email: to }],
     });
-
     console.log(`📧 Email sent via Brevo → ${to}`);
     return;
   } catch (brevoError: any) {
     const errorType = classifyError(brevoError);
-    
-    if (errorType === 'HARD_FAIL') {
-      console.error('❌ Brevo hard fail, falling back to SMTP', brevoError);
-    } else {
-      console.error('⚠️ Brevo soft fail, retrying Brevo', brevoError);
-      // Retry Brevo once for soft fails
+    if (errorType === 'SOFT_FAIL') {
+      console.warn('⚠️ Brevo soft fail, retrying once...');
       try {
         await brevoTransactional.sendTransacEmail({
           subject,
           htmlContent: html,
-          sender: {
-            name: 'Smart CAF',
-            email: 'support@smartcaf.it',
-          },
+          sender: { name: 'Smart CAF', email: 'support@smartcaf.it' },
           to: [{ email: to }],
         });
         console.log(`📧 Email sent via Brevo (retry) → ${to}`);
         return;
-      } catch (retryError) {
-        console.error('❌ Brevo retry failed, falling back to SMTP', retryError);
+      } catch (retryErr) {
+        console.error('❌ Brevo retry failed, falling back to SMTP', retryErr);
       }
+    } else {
+      console.error('❌ Brevo hard fail, falling back to SMTP', brevoError);
     }
   }
 
-  // 3️⃣ SMTP fallback
+  // 2️⃣ SMTP fallback
   const info = await transporter.sendMail({
     from: '"Smart CAF" <support@smartcaf.it>',
     to,
     subject,
     html,
-    attachments,
   });
-
   console.log(`📧 Email sent via SMTP → ${info.messageId}`);
-
   if (!process.env.SMTP_HOST) {
-    console.log(`📧 Preview: ${nodemailer.getTestMessageUrl(info)}`);
+    console.log(`📧 Ethereal preview: ${nodemailer.getTestMessageUrl(info)}`);
   }
 };
 
-// Error Classification Helper
+// ─── Error Classifier ─────────────────────────────────────────────────────────
 const classifyError = (error: any): 'HARD_FAIL' | 'SOFT_FAIL' => {
-  // Extract error code/status from different providers
   const statusCode = error.status || error.statusCode || error.code || error.response?.status;
-  const message = error.message || error.response?.message || error.toString();
-  
-  // Hard Fail conditions - permanent errors that won't resolve with retry
-  const hardFailConditions = [
-    // Resend specific errors
-    error.name === 'ValidationError', // 400 - Invalid recipient, missing fields
-    error.name === 'UnauthorizedError', // 401 - Invalid API key
-    error.name === 'ForbiddenError', // 403 - Account blocked, insufficient credits
-    
-    // HTTP status codes
-    statusCode === 400, // Bad Request
-    statusCode === 401, // Unauthorized
-    statusCode === 403, // Forbidden
-    statusCode === 422, // Unprocessable Entity
-    statusCode === 450, // Mailbox unavailable (blocked)
-    statusCode === 550, // Mailbox rejected (blocked)
-    statusCode === 429, // Rate limit
-    
-    // Message-based detection
+  const message = (error.message || error.response?.message || error.toString()).toLowerCase();
+
+  const hardFail = [
+    statusCode === 400,
+    statusCode === 401,
+    statusCode === 403,
+    statusCode === 422,
+    statusCode === 429,
+    statusCode === 450,
+    statusCode === 550,
     message.includes('invalid recipient'),
     message.includes('invalid email'),
     message.includes('blocked'),
     message.includes('forbidden'),
     message.includes('unauthorized'),
-    message.includes('insufficient'),
     message.includes('quota exceeded'),
     message.includes('account disabled'),
-    message.includes('email address not found'),
-    message.includes('mailbox unavailable'),
-    // Rate limiting
     message.includes('rate limit'),
     message.includes('too many requests'),
-    message.includes('429'),
   ];
 
-  // Soft Fail conditions - temporary errors that may resolve with retry
-  const softFailConditions = [
-    // HTTP status codes
-    statusCode === 500, // Internal Server Error
-    statusCode === 502, // Bad Gateway
-    statusCode === 503, // Service Unavailable
-    statusCode === 504, // Gateway Timeout
-    
-    // Timeout errors
-    error.name === 'TimeoutError',
+  const softFail = [
+    statusCode === 500,
+    statusCode === 502,
+    statusCode === 503,
+    statusCode === 504,
     message.includes('timeout'),
-    message.includes('ETIMEDOUT'),
-    message.includes('ENOTFOUND'),
-    
-    // Temporary server issues
+    message.includes('etimedout'),
+    message.includes('enotfound'),
     message.includes('temporary'),
     message.includes('service unavailable'),
-    message.includes('server error'),
   ];
 
-  // If it matches hard fail conditions, it's a hard fail
-  if (hardFailConditions.some(condition => condition)) {
-    return 'HARD_FAIL';
-  }
-  
-  // If it matches soft fail conditions, it's a soft fail
-  if (softFailConditions.some(condition => condition)) {
-    return 'SOFT_FAIL';
-  }
-  
-  // Default to hard fail for unknown errors to be safe
+  if (hardFail.some(Boolean)) return 'HARD_FAIL';
+  if (softFail.some(Boolean)) return 'SOFT_FAIL';
   return 'HARD_FAIL';
 };
 
-// Worker
+// ─── Worker ───────────────────────────────────────────────────────────────────
 export const initEmailWorker = async () => {
   await initTransporter();
 
   const worker = new Worker(
     'email-queue',
     async (job) => {
-      console.log(`Processing email job ${job.id} (${job.name})`);
+      console.log(`📬 Processing email job [${job.id}] type: ${job.name}`);
 
       let to = '';
       let subject = '';
@@ -249,59 +160,15 @@ export const initEmailWorker = async () => {
       switch (job.name) {
         case 'EMAIL_VERIFICATION':
           to = job.data.email;
-          subject = 'Verify Your Email - Smart CAF';
+          subject = 'Verify Your Email — Smart CAF';
           html = emailVerificationTemplate(job.data);
           break;
 
-        case 'ORDER_CONFIRMATION':
-          to = job.data.buyerEmail;
-          subject = `Order Confirmed - ${job.data.eventTitle}`;
-          html = orderConfirmationTemplate(job.data);
-          break;
-
-        case 'WELCOME_USER':
+        case 'WELCOME_CLIENT':
           to = job.data.email;
-          subject = 'Welcome to Smart CAF! 🎉';
-          html = welcomeUserTemplate(job.data);
+          subject = 'You\'re verified — Welcome to Smart CAF';
+          html = welcomeClientTemplate(job.data);
           break;
-
-        case 'WELCOME_HOST':
-          to = job.data.email;
-          subject = 'Welcome to Smart CAF for Organizers 🚀';
-          html = welcomeHostTemplate(job.data);
-          break;
-
-        case 'SUSPICIOUS_LOGIN':
-          to = job.data.email;
-          subject = 'New Login Detected - Security Alert';
-          html = suspiciousLoginTemplate(job.data);
-          break;
-
-        case 'TICKET_SHEET_REMINDER':
-          to = job.data.hostEmail;
-          subject = job.data.timing === '24h' 
-            ? `Reminder: ${job.data.eventTitle} is tomorrow!` 
-            : `Reminder: ${job.data.eventTitle} starts in 3 hours!`;
-          html = ticketSheetReminderTemplate(job.data);
-          break;
-        
-        case 'email-notification':
-            const { type, payload } = job.data;
-            
-            // Determine recipient based on payload structure
-            to = payload.email || 
-                 payload.hostEmail || 
-                 payload.host?.email || 
-                 payload.user?.email || 
-                 payload.buyerEmail;
-
-            // Generate HTML using generic admin template
-            html = getAdminNotificationTemplate(type, payload);
-            
-            // Extract title from generated HTML for subject (simple regex) or use default
-            const titleMatch = html.match(/<title>(.*?)<\/title>/);
-            subject = titleMatch ? `${titleMatch[1]} - Smart CAF` : 'Notification - Smart CAF';
-            break;
 
         default:
           throw new Error(`Unknown email job type: ${job.name}`);
@@ -317,11 +184,11 @@ export const initEmailWorker = async () => {
   );
 
   worker.on('completed', (job) => {
-    console.log(`✅ Job ${job.id} completed`);
+    console.log(`✅ Email job ${job.id} completed`);
   });
 
   worker.on('failed', (job, err) => {
-    console.error(`❌ Job ${job?.id} failed`, err.message);
+    console.error(`❌ Email job ${job?.id} failed:`, err.message);
   });
 
   console.log('📧 Email Worker started');

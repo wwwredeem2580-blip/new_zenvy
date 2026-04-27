@@ -1,20 +1,21 @@
-import jwt from "jsonwebtoken";
-import { JwtTokenPayload } from "../../types/auth.type";
-import CustomError from "../CustomError";
+import jwt from 'jsonwebtoken';
+import { JwtTokenPayload } from '../../types/auth.type';
+import CustomError from '../CustomError';
 
+// Access-token-only architecture — no refresh tokens needed for CAF.
+// 7d expiry is practical for a back-office tool.
 export const generateAccessToken = (payload: JwtTokenPayload): string => {
-    return jwt.sign(payload, process.env.JWT_ACCESS_TOKEN_SECRET! || 'secret', { expiresIn: '15m' });
-}
+  return jwt.sign(
+    payload,
+    process.env.JWT_ACCESS_TOKEN_SECRET! || 'secret',
+    { expiresIn: '7d' }
+  );
+};
 
-export const generateRefreshToken = (payload: JwtTokenPayload): string => {
-    return jwt.sign(payload, process.env.JWT_REFRESH_TOKEN_SECRET! || 'secret', { expiresIn: '7d' });
-}
-
-export const verifyToken = (token: string, secret: string): any => {
-    return jwt.verify(token, secret, (error, decoded)=> {
-        if(error){
-            throw new CustomError("Unauthorized", 401);
-        }
-        return decoded;
-    })
+export const verifyToken = (token: string, secret: string): JwtTokenPayload => {
+  try {
+    return jwt.verify(token, secret) as JwtTokenPayload;
+  } catch {
+    throw new CustomError('Unauthorized', 401);
+  }
 };

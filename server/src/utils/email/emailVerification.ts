@@ -1,8 +1,3 @@
-/**
- * Modern Minimal Email Verification Template
- * Clean, premium design matching the PDF aesthetic
- */
-
 interface EmailVerificationPayload {
   email: string;
   verificationLink: string;
@@ -11,6 +6,7 @@ interface EmailVerificationPayload {
 
 export function emailVerificationTemplate(payload: EmailVerificationPayload): string {
   const { email, verificationLink, name } = payload;
+  const displayName = name ? name.split(' ')[0] : null;
 
   return `
 <!DOCTYPE html>
@@ -18,82 +14,102 @@ export function emailVerificationTemplate(payload: EmailVerificationPayload): st
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Verify Your Email</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Verify Your Email — Smart CAF</title>
 </head>
-<body style="margin: 0; padding: 0; font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f8fafc; -webkit-font-smoothing: antialiased;">
-  <table role="presentation" style="width: 100%; border-collapse: collapse;">
+<body style="margin: 0; padding: 0; background-color: #f4f4f4; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'DM Sans', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
+
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
     <tr>
-      <td style="padding: 40px 20px;">
-        <table role="presentation" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
-          
+      <td style="padding: 48px 20px;">
+
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width: 580px; margin: 0 auto;">
+
           <!-- Header -->
           <tr>
-            <td style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); padding: 48px 40px; text-align: center;">
-              <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 600; letter-spacing: -0.5px;">
-                Zenvy
-              </h1>
-              <p style="margin: 8px 0 0; color: rgba(255, 255, 255, 0.9); font-size: 14px; font-weight: 300;">
-                Event Management Platform
-              </p>
+            <td style="background-color: #0a0a0a; padding: 36px 48px; border-radius: 16px 16px 0 0;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                <tr>
+                  <td>
+                    <p style="margin: 0; color: #ffffff; font-size: 22px; font-weight: 700; letter-spacing: -0.5px;">Smart CAF</p>
+                    <p style="margin: 4px 0 0; color: rgba(255,255,255,0.45); font-size: 11px; font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase;">Patronato Digitale</p>
+                  </td>
+                  <td align="right">
+                    <div style="width: 36px; height: 36px; background-color: rgba(255,255,255,0.08); border-radius: 8px; display: inline-block; text-align: center; line-height: 36px;">
+                      <span style="color: #ffffff; font-size: 18px;">✉</span>
+                    </div>
+                  </td>
+                </tr>
+              </table>
             </td>
           </tr>
 
-          <!-- Content -->
+          <!-- Body -->
           <tr>
-            <td style="padding: 48px 40px;">
-              ${name ? `
-              <p style="margin: 0 0 24px; color: #1e293b; font-size: 18px; font-weight: 500;">
-                Hi ${name},
+            <td style="background-color: #ffffff; padding: 48px 48px 40px; border-left: 1px solid #e8e8e8; border-right: 1px solid #e8e8e8;">
+
+              ${displayName ? `
+              <p style="margin: 0 0 8px; color: #0a0a0a; font-size: 24px; font-weight: 700; letter-spacing: -0.5px;">
+                Hi ${displayName}.
               </p>
-              ` : ''}
-              
-              <p style="margin: 0 0 16px; color: #475569; font-size: 16px; line-height: 1.6; font-weight: 300;">
-                Welcome to Zenvy! We're excited to have you on board.
+              ` : `
+              <p style="margin: 0 0 8px; color: #0a0a0a; font-size: 24px; font-weight: 700; letter-spacing: -0.5px;">
+                Welcome.
               </p>
-              
-              <p style="margin: 0 0 32px; color: #475569; font-size: 16px; line-height: 1.6; font-weight: 300;">
-                To get started, please verify your email address by clicking the button below:
+              `}
+
+              <p style="margin: 0 0 24px; color: #555555; font-size: 15px; line-height: 1.7; font-weight: 400;">
+                You're one step away from accessing the Smart CAF portal. Please verify your email address to activate your account.
               </p>
 
-              <!-- CTA Button -->
-              <table role="presentation" style="margin: 0 auto;">
+              <p style="margin: 0 0 8px; color: #888888; font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;">
+                Registered as
+              </p>
+              <p style="margin: 0 0 32px; color: #0a0a0a; font-size: 14px; font-weight: 600; background-color: #f7f7f7; padding: 12px 16px; border-radius: 8px; border-left: 3px solid #0a0a0a;">
+                ${email}
+              </p>
+
+              <!-- CTA -->
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 0 32px;">
                 <tr>
-                  <td style="border-radius: 8px; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);">
-                    <a href="${verificationLink}" style="display: inline-block; padding: 16px 32px; color: #ffffff; text-decoration: none; font-size: 16px; font-weight: 500; border-radius: 8px;">
-                      Verify Email Address
+                  <td style="border-radius: 10px; background-color: #0a0a0a;">
+                    <a href="${verificationLink}"
+                       style="display: inline-block; padding: 16px 36px; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600; letter-spacing: 0.03em; border-radius: 10px;">
+                      Verify Email Address →
                     </a>
                   </td>
                 </tr>
               </table>
 
-              <p style="margin: 32px 0 0; color: #94a3b8; font-size: 14px; line-height: 1.6; font-weight: 300;">
+              <p style="margin: 0 0 8px; color: #aaaaaa; font-size: 13px; line-height: 1.6;">
                 Or copy and paste this link into your browser:
               </p>
-              <p style="margin: 8px 0 0; color: #6366f1; font-size: 14px; word-break: break-all;">
+              <p style="margin: 0; color: #555555; font-size: 12px; word-break: break-all; background-color: #f7f7f7; padding: 12px 16px; border-radius: 8px;">
                 ${verificationLink}
               </p>
 
-              <!-- Security Note -->
-              <table role="presentation" style="margin: 32px 0 0; width: 100%; border-left: 4px solid #6366f1; background-color: #f1f5f9; border-radius: 8px;">
+              <!-- Divider -->
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin: 32px 0 0;">
                 <tr>
-                  <td style="padding: 16px 20px;">
-                    <p style="margin: 0; color: #475569; font-size: 14px; line-height: 1.6; font-weight: 400;">
-                      <strong style="color: #1e293b;">🔒 Security Note:</strong> This link will expire in 24 hours. If you didn't create an account with Zenvy, please ignore this email.
+                  <td style="border-top: 1px solid #eeeeee; padding-top: 24px;">
+                    <p style="margin: 0; color: #aaaaaa; font-size: 12px; line-height: 1.6;">
+                      🔒 This link expires in <strong style="color: #555555;">24 hours</strong>. If you did not create a Smart CAF account, you can safely ignore this email.
                     </p>
                   </td>
                 </tr>
               </table>
+
             </td>
           </tr>
 
           <!-- Footer -->
           <tr>
-            <td style="padding: 32px 40px; background-color: #f8fafc; border-top: 1px solid #e2e8f0;">
-              <p style="margin: 0 0 8px; color: #64748b; font-size: 14px; text-align: center; font-weight: 300;">
-                Need help? Contact us at <a href="mailto:support@zenvy.com" style="color: #6366f1; text-decoration: none;">support@zenvy.com</a>
+            <td style="background-color: #f7f7f7; padding: 24px 48px; border-radius: 0 0 16px 16px; border: 1px solid #e8e8e8; border-top: none;">
+              <p style="margin: 0 0 4px; color: #aaaaaa; font-size: 12px; text-align: center;">
+                Need help? <a href="mailto:support@smartcaf.it" style="color: #0a0a0a; text-decoration: none; font-weight: 600;">support@smartcaf.it</a>
               </p>
-              <p style="margin: 0; color: #94a3b8; font-size: 12px; text-align: center; font-weight: 300;">
-                © ${new Date().getFullYear()} Zenvy Inc. All rights reserved.
+              <p style="margin: 0; color: #cccccc; font-size: 11px; text-align: center;">
+                © ${new Date().getFullYear()} Smart CAF. All rights reserved.
               </p>
             </td>
           </tr>
@@ -102,6 +118,7 @@ export function emailVerificationTemplate(payload: EmailVerificationPayload): st
       </td>
     </tr>
   </table>
+
 </body>
 </html>
   `.trim();
