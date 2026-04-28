@@ -140,6 +140,7 @@ export const loginManual = async (data: LoginInput) => {
     userId: user._id.toString(),
     role: user.role,
     email: user.email,
+    isEmailVerified: user.isEmailVerified,
   });
 
   return {
@@ -197,13 +198,25 @@ export const handleGoogleCallback = async (code: string) => {
   let user = await User.findOne({ email });
 
   if (user) {
-    // Existing user — link Google if not already linked
-    if (user.authProvider === 'manual' && !user.googleId) {
-      user.googleId = googleId;
-      user.isEmailVerified = true; // Google users are inherently verified
-      if (picture && !user.avatar) user.avatar = picture;
-      await user.save();
+    // Ensure email is verified since it's coming from Google
+    let needsSave = false;
+    if (!user.isEmailVerified) {
+      user.isEmailVerified = true;
+      needsSave = true;
     }
+    
+    // Link Google if not already linked
+    if (!user.googleId) {
+      user.googleId = googleId;
+      needsSave = true;
+    }
+
+    if (picture && !user.avatar) {
+      user.avatar = picture;
+      needsSave = true;
+    }
+
+    if (needsSave) await user.save();
   } else {
     // New user via Google
     user = await User.create({
@@ -222,6 +235,7 @@ export const handleGoogleCallback = async (code: string) => {
     userId: user._id.toString(),
     role: user.role,
     email: user.email,
+    isEmailVerified: user.isEmailVerified,
   });
 
   return {
@@ -233,6 +247,7 @@ export const handleGoogleCallback = async (code: string) => {
       email: user.email,
       role: user.role,
       avatar: user.avatar,
+      isEmailVerified: user.isEmailVerified,
     },
   };
 };
