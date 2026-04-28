@@ -11,6 +11,7 @@ interface DateDropdownFieldProps {
   required?: boolean;
   disableFuture?: boolean;
   disablePast?: boolean;
+  externalError?: string;
 }
 
 export default function DateDropdownField({ 
@@ -20,7 +21,8 @@ export default function DateDropdownField({
   onChange, 
   required,
   disableFuture,
-  disablePast
+  disablePast,
+  externalError
 }: DateDropdownFieldProps) {
   const [day, setDay] = useState("");
   const [month, setMonth] = useState("");
@@ -104,12 +106,12 @@ export default function DateDropdownField({
   return (
     <div className="space-y-2">
       <div className="flex justify-between items-center">
-        <label className="text-[10px] font-bold uppercase tracking-widest text-muted flex items-center gap-2">
+        <label className={`text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 ${error || externalError ? 'text-red-500' : 'text-muted'}`}>
           {icon} {label} {required && "*"}
         </label>
-        {error && (
+        {(error || externalError) && (
           <span className="text-[8px] font-bold text-red-500 uppercase tracking-tighter animate-pulse">
-            {error}
+            {error || externalError}
           </span>
         )}
       </div>
@@ -122,7 +124,7 @@ export default function DateDropdownField({
               setYear(e.target.value);
               validateAndChange(day, month, e.target.value);
             }}
-            className={`w-full bg-surface border rounded-xl px-3 py-3 text-[10px] font-bold appearance-none focus:outline-none transition-all text-text ${error ? 'border-red-500/50' : 'border-border focus:border-text/30'}`}
+            className={`w-full bg-surface border rounded-xl px-3 py-3 text-[10px] font-bold appearance-none focus:outline-none transition-all text-text ${error || externalError ? 'border-red-500/50 bg-red-50' : 'border-border focus:border-text/30'}`}
           >
             <option value="">Year</option>
             {yearsList.map((y) => (
@@ -140,7 +142,7 @@ export default function DateDropdownField({
               setMonth(e.target.value);
               validateAndChange(day, e.target.value, year);
             }}
-            className={`w-full bg-surface border rounded-xl px-3 py-3 text-[10px] font-bold appearance-none focus:outline-none transition-all text-text ${error ? 'border-red-500/50' : 'border-border focus:border-text/30'}`}
+            className={`w-full bg-surface border rounded-xl px-3 py-3 text-[10px] font-bold appearance-none focus:outline-none transition-all text-text ${error || externalError ? 'border-red-500/50 bg-red-50' : 'border-border focus:border-text/30'}`}
           >
             <option value="">Month</option>
             {months.map((m) => (
@@ -159,7 +161,7 @@ export default function DateDropdownField({
               setDay(d);
               validateAndChange(d, month, year);
             }}
-            className={`w-full bg-surface border rounded-xl px-3 py-3 text-[10px] font-bold appearance-none focus:outline-none transition-all text-text ${error ? 'border-red-500/50' : 'border-border focus:border-text/30'}`}
+            className={`w-full bg-surface border rounded-xl px-3 py-3 text-[10px] font-bold appearance-none focus:outline-none transition-all text-text ${error || externalError ? 'border-red-500/50 bg-red-50' : 'border-border focus:border-text/30'}`}
           >
             <option value="">Day</option>
             {days.map((d) => (

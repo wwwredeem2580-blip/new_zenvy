@@ -51,6 +51,7 @@ import { AssignAgentModal } from './admin/AssignAgentModal';
 import { ActivityTimeline } from './admin/ActivityTimeline';
 import { Application, ApplicationStatus } from '../data/applications';
 import { mockApi, User as UserType, Workspace, WorkspacePermission, FileRecord, AgentPermissions } from '../lib/api/mockApi';
+import { applicationApi } from '../lib/api/applicationApi';
 import { CollapsibleSection } from './ui/CollapsibleSection';
 
 import { useRouter } from 'next/navigation';
@@ -128,10 +129,10 @@ export default function AdminPage() {
     setIsLoading(true);
     try {
       if (activeTab === 'Applications') {
-        const data = await mockApi.getApplications();
-        setApplications(data);
+        const response = await applicationApi.listAllApplications();
+        setApplications(response.applications);
         if (selectedApp) {
-           const updated = data.find(a => a.id === selectedApp.id);
+           const updated = response.applications.find(a => a.id === selectedApp.id);
            if (updated) setSelectedApp(updated);
         }
       } else if (activeTab === 'Users') {

@@ -38,6 +38,7 @@ import { InternalNotes } from './admin/InternalNotes';
 import { ActivityTimeline } from './admin/ActivityTimeline';
 import { Application, ApplicationStatus } from '../data/applications';
 import { mockApi, User as UserType, Workspace, FileRecord, AgentPermissions } from '../lib/api/mockApi';
+import { applicationApi } from '../lib/api/applicationApi';
 import { RefundModal } from './admin/RefundModal';
 import { CollapsibleSection } from './ui/CollapsibleSection';
 
@@ -97,11 +98,11 @@ export default function AgentPage() {
         });
         setWorkspaces(allowed);
       } else if (activeTab === 'applications' && permissions.canViewApplications) {
-        const data = await mockApi.getApplications();
-        setApplications(data);
+        const response = await applicationApi.listAllApplications();
+        setApplications(response.applications);
         // Refresh selected application if it's currently open
         if (selectedApp) {
-           const updated = data.find(a => a.id === selectedApp.id);
+           const updated = response.applications.find(a => a.id === selectedApp.id);
            if (updated) setSelectedApp(updated);
         }
       }

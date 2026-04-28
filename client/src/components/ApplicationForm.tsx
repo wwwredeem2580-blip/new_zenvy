@@ -31,6 +31,7 @@ import {
 import { useState, useRef, useMemo, useEffect } from "react";
 import React from "react";
 import { mockApi } from "../lib/api/mockApi";
+import { applicationApi } from "../lib/api/applicationApi";
 import PaymentSelection, { PaymentMethod } from "./ui/PaymentSelection";
 import DateDropdownField from "./ui/DateDropdownField";
 
@@ -215,10 +216,10 @@ export default function ApplicationForm() {
   const [expandedService, setExpandedService] = useState<string | null>(null);
   const [userBalance, setUserBalance] = useState(0);
   const [isUseCredits, setIsUseCredits] = useState(true);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   
   // Pre-populate data if user is logged in
   useEffect(() => {
-    const user = mockApi.getCurrentUser();
     if (user) {
       setFormData(prev => ({
         ...prev,
@@ -227,7 +228,7 @@ export default function ApplicationForm() {
       }));
       setUserBalance(user.balance || 0);
     }
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -279,7 +280,39 @@ export default function ApplicationForm() {
     }));
   };
 
-  const nextStep = () => setStep((prev) => (prev + 1) as Step);
+  const validateStep = () => {
+    const newErrors: Record<string, string> = {};
+    
+    if (step === 1) {
+      if (formData.name.length < 2) newErrors.name = "Full name is required";
+      if (!formData.dob) newErrors.dob = "Date of birth is required";
+      if (!formData.pob) newErrors.pob = "Place of birth is required";
+      if (!formData.nationality) newErrors.nationality = "Nationality is required";
+    }
+    
+    if (step === 2) {
+      if (formData.codiceFiscale.length !== 16) newErrors.codiceFiscale = "Codice Fiscale must be exactly 16 characters";
+      if (formData.phone.length < 5) newErrors.phone = "Valid phone number is required";
+      if (!formData.email.includes('@')) newErrors.email = "Valid email address is required";
+      if (!formData.streetAddress) newErrors.streetAddress = "Street address is required";
+      if (!formData.postCode) newErrors.postCode = "Post code is required";
+      if (!formData.province) newErrors.province = "Province is required";
+    }
+    
+    if (step === 3) {
+      if (formData.selectedServices.length === 0) newErrors.services = "Please select at least one service";
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const nextStep = () => {
+    if (validateStep()) {
+      setStep((prev) => (prev + 1) as Step);
+      setErrors({});
+    }
+  };
   const prevStep = () => setStep((prev) => (prev - 1) as Step);
 
   const [submittedAppId, setSubmittedAppId] = useState<string | null>(null);
@@ -303,7 +336,7 @@ export default function ApplicationForm() {
         await mockApi.deductCredits(user.id, discountAmount);
       }
 
-      const application = await mockApi.submitApplication({
+      const applicationResponse = await applicationApi.submitApplication({
         name: formData.name,
         dob: formData.dob,
         pob: formData.pob,
@@ -319,10 +352,9 @@ export default function ApplicationForm() {
         permessoExpiry: formData.permessoExpiry,
         selectedServices: formData.selectedServices,
         paymentMethod: method as any,
-        paymentStatus: method === 'Credits' ? 'Received' : 'Pending'
       });
       
-      setSubmittedAppId(application.id);
+      setSubmittedAppId(applicationResponse.application.id);
       setIsSubmitted(true);
       if (onComplete) onComplete();
     } catch (error) {
@@ -369,6 +401,7 @@ export default function ApplicationForm() {
                       onChange={handleInputChange}
                       icon={<User size={14} />}
                       placeholder="John Doe"
+                      error={errors.name}
                     />
                     <DateDropdownField
                       label="Date of Birth"
@@ -377,6 +410,7 @@ export default function ApplicationForm() {
                       onChange={(val) => setFormData(p => ({ ...p, dob: val }))}
                       required
                       disableFuture
+                      externalError={errors.dob}
                     />
                     <InputField
                       label="Place of Birth"
@@ -385,6 +419,7 @@ export default function ApplicationForm() {
                       onChange={handleInputChange}
                       icon={<MapPin size={14} />}
                       placeholder="Rome, Italy"
+                      error={errors.pob}
                     />
                     <InputField
                       label="Nationality"
@@ -393,6 +428,7 @@ export default function ApplicationForm() {
                       onChange={handleInputChange}
                       icon={<Globe size={14} />}
                       placeholder="Italian"
+                      error={errors.nationality}
                     />
                   </div>
                 )}
@@ -407,6 +443,7 @@ export default function ApplicationForm() {
                         onChange={handleInputChange}
                         icon={<Hash size={14} />}
                         placeholder="RSSMRA80A01H501W"
+                        error={errors.codiceFiscale}
                       />
                       <InputField
                         label="Phone Number *"
@@ -415,6 +452,7 @@ export default function ApplicationForm() {
                         onChange={handleInputChange}
                         icon={<Phone size={14} />}
                         placeholder="+39 123 456 7890"
+                        error={errors.phone}
                       />
                       <InputField
                         label="Email Address"
@@ -424,7 +462,8 @@ export default function ApplicationForm() {
                         onChange={handleInputChange}
                         icon={<Mail size={14} />}
                         placeholder="john@example.com"
-                        readOnly={!!mockApi.getCurrentUser()}
+                        readOnly={!!user}
+                        error={errors.email}
                       />
                       <div className="space-y-2">
                         <label className="text-[10px] font-bold uppercase tracking-widest text-muted flex items-center gap-2">
@@ -449,14 +488,15 @@ export default function ApplicationForm() {
 
                     <div className="grid md:grid-cols-3 gap-6 pt-4 border-t border-border">
                       <div className="md:col-span-1">
-                         <InputField
-                            label="Street Address *"
-                            name="streetAddress"
-                            value={formData.streetAddress}
-                            onChange={handleInputChange}
-                            icon={<MapPin size={14} />}
-                            placeholder="Via Roma 123"
-                          />
+                          <InputField
+                             label="Street Address *"
+                             name="streetAddress"
+                             value={formData.streetAddress}
+                             onChange={handleInputChange}
+                             icon={<MapPin size={14} />}
+                             placeholder="Via Roma 123"
+                             error={errors.streetAddress}
+                           />
                       </div>
                       <InputField
                         label="Post Code *"
@@ -465,6 +505,7 @@ export default function ApplicationForm() {
                         onChange={handleInputChange}
                         icon={<Hash size={14} />}
                         placeholder="00100"
+                        error={errors.postCode}
                       />
                       <InputField
                         label="Province *"
@@ -473,6 +514,7 @@ export default function ApplicationForm() {
                         onChange={handleInputChange}
                         icon={<Globe size={14} />}
                         placeholder="Rome"
+                        error={errors.province}
                       />
                     </div>
 
@@ -659,11 +701,8 @@ export default function ApplicationForm() {
                     <button
                       type="button"
                       onClick={nextStep}
-                      disabled={
-                        (step === 1 && (!formData.name || !formData.dob)) ||
-                        (step === 2 && (!formData.streetAddress || !formData.postCode || !formData.province))
-                      }
-                      className="w-full sm:w-auto flex items-center justify-center gap-2 bg-text text-bg px-10 py-3 rounded-full text-xs font-bold hover:scale-105 active:scale-95 transition-all disabled:opacity-30 disabled:scale-100 shadow-xl shadow-text/10"
+                      disabled={false}
+                      className="w-full sm:w-auto flex items-center justify-center gap-2 bg-text text-bg px-10 py-3 rounded-full text-xs font-bold hover:scale-105 active:scale-95 transition-all shadow-xl shadow-text/10"
                     >
                       Continue to {step === 1 ? "Contact" : step === 2 ? "Services" : "Documents"}
                       <ChevronRight size={16} />
@@ -726,16 +765,29 @@ export default function ApplicationForm() {
   );
 }
 
-function InputField({ label, icon, ...props }: any) {
+function InputField({ label, icon, error, ...props }: any) {
   return (
     <div className="space-y-2">
-      <label className="text-[10px] font-bold uppercase tracking-widest text-muted flex items-center gap-2">
+      <label className={`text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 ${error ? 'text-red-500' : 'text-muted'}`}>
         {icon} {label}
       </label>
-      <input
-        {...props}
-        className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-text/30 transition-all placeholder:text-muted/20 hover:border-text/10 text-text"
-      />
+      <div className="relative">
+        <input
+          {...props}
+          className={`w-full bg-surface border rounded-xl px-4 py-3 text-xs focus:outline-none transition-all placeholder:text-muted/20 text-text ${
+            error ? 'border-red-500 focus:border-red-500 bg-red-50' : 'border-border focus:border-text/30 hover:border-text/10'
+          }`}
+        />
+        {error && (
+          <motion.p 
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-[10px] text-red-500 font-bold mt-1 ml-1"
+          >
+            {error}
+          </motion.p>
+        )}
+      </div>
     </div>
   );
 }

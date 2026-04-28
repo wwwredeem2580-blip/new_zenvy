@@ -28,6 +28,7 @@ import {
   Receipt
 } from "lucide-react";
 import { mockApi, User } from "../lib/api/mockApi";
+import { applicationApi } from "../lib/api/applicationApi";
 import { Application, ApplicationStatus } from "../data/applications";
 
 import { useRouter } from "next/navigation";
@@ -66,8 +67,8 @@ export default function ProfilePage() {
   const loadUserApplications = async () => {
     setIsLoading(true);
     try {
-      const data = await mockApi.getApplicationsByEmail(user.email);
-      setApplications(data);
+      const response = await applicationApi.getMyApplications();
+      setApplications(response.applications);
     } catch (error) {
       console.error("Failed to load user applications", error);
     } finally {
