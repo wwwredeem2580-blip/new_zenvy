@@ -30,10 +30,12 @@ export interface User {
   lastName: string;
   email: string;
   role: 'client' | 'admin' | 'agent';
-  emailVerified: boolean;
+  isEmailVerified: boolean;
   phoneVerified: boolean;
   balance: number;
   createdAt: string;
+  updatedAt?: string;
+  avatar?: string;
   inviteToken?: string;
   permissions?: Partial<AgentPermissions>; // Overrides for agents
 }
@@ -89,8 +91,8 @@ export const mockApi = {
       firstName: data.firstName || '',
       lastName: data.lastName || '',
       email: (data.email || '').trim().toLowerCase(),
-      role: 'user',
-      emailVerified: false,
+      role: 'client',
+      isEmailVerified: false,
       phoneVerified: false,
       balance: 1250, // Initial demo balance
       createdAt: new Date().toISOString(),
@@ -119,8 +121,8 @@ export const mockApi = {
         firstName: 'John',
         lastName: 'Doe',
         email: normalizedEmail,
-        role: 'user',
-        emailVerified: true,
+        role: 'client',
+        isEmailVerified: true,
         phoneVerified: false,
         balance: 1450.50,
         createdAt: new Date().toISOString(),
@@ -143,8 +145,8 @@ export const mockApi = {
       firstName: 'Google',
       lastName: 'User',
       email: 'user@gmail.com',
-      role: 'user',
-      emailVerified: true,
+      role: 'client',
+      isEmailVerified: true,
       phoneVerified: false,
       balance: 2850.75,
       createdAt: new Date().toISOString(),
@@ -226,14 +228,14 @@ export const mockApi = {
     await new Promise((resolve) => setTimeout(resolve, 1000));
     const session = getFromStorage<{ user: User; token: string }>(SESSION_KEY);
     if (session) {
-      session.user.emailVerified = true;
+      session.user.isEmailVerified = true;
       saveToStorage(SESSION_KEY, session);
       
       // Update in users list too
       const users = getFromStorage<User[]>(USERS_KEY) || [];
       const userIndex = users.findIndex(u => u.id === session.user.id);
       if (userIndex !== -1) {
-        users[userIndex].emailVerified = true;
+        users[userIndex].isEmailVerified = true;
         saveToStorage(USERS_KEY, users);
       }
       return true;
@@ -286,7 +288,7 @@ export const mockApi = {
     });
 
     const currentUser = mockApi.getCurrentUser();
-    if (currentUser?.role === 'subagent') {
+    if (currentUser?.role === 'agent') {
       const perms = mockApi.getEffectivePermissions(currentUser);
       // If they can't view all, only show assigned
       if (!perms.canViewApplications) {
@@ -363,7 +365,7 @@ export const mockApi = {
     await new Promise((resolve) => setTimeout(resolve, 600));
     const users = getFromStorage<User[]>(USERS_KEY) || [];
     const apps = getFromStorage<Application[]>(APPLICATIONS_KEY) || [];
-    const agents = users.filter(u => u.role === 'subagent');
+    const agents = users.filter(u => u.role === 'agent');
 
     return agents.map(agent => ({
       ...agent,
@@ -669,8 +671,8 @@ export const mockApi = {
        firstName,
        lastName,
        email: email.toLowerCase(),
-       role: 'subagent',
-       emailVerified: true, // We assume invite link verifies email
+       role: 'agent',
+       isEmailVerified: true, // We assume invite link verifies email
        phoneVerified: false,
        balance: 0,
        createdAt: new Date().toISOString(),

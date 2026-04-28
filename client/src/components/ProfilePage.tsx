@@ -41,7 +41,7 @@ export default function ProfilePage() {
   // Guard for rendering if user is missing (page level should handle this but safety first)
   if (!user) return null;
 
-  const [localUser, setLocalUser] = useState<User>(user);
+  const [localUser, setLocalUser] = useState<User>(user as any);
   const [applications, setApplications] = useState<Application[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedApp, setSelectedApp] = useState<Application | null>(null);
@@ -122,7 +122,7 @@ export default function ProfilePage() {
                 <p className="text-[10px] text-white/40 uppercase tracking-[0.2em] font-bold">My Balance</p>
                 <div className="flex items-baseline gap-2">
                     <span className="text-3xl font-space font-bold text-white tracking-tighter">
-                        {formatCurrency(localUser.balance)}
+                        {formatCurrency(localUser.balance || 0)}
                     </span>
                     <TrendingUp size={14} className="text-green-400" />
                 </div>

@@ -78,7 +78,7 @@ export default function AgentPage() {
   const [isDocUploading, setIsDocUploading] = useState(false);
   const [search, setSearch] = useState("");
 
-  const permissions = mockApi.getEffectivePermissions(user);
+  const permissions = mockApi.getEffectivePermissions(user as any);
 
   useEffect(() => {
     loadData();
