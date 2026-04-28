@@ -7,8 +7,20 @@ import {
   verifyEmail,
   getGoogleAuthUrl,
   handleGoogleCallback,
+  resendVerificationEmail,
 } from './service';
 import { RegisterSchema, LoginSchema } from './schema';
+
+// ─── POST /auth/resend-verification ──────────────────────────────────────────
+export const resendVerification = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = (req as any).user.id;
+    const result = await resendVerificationEmail(userId);
+    res.status(200).json({ success: true, ...result });
+  } catch (error) {
+    handleError(error, res);
+  }
+};
 
 // ─── POST /auth/register ──────────────────────────────────────────────────────
 export const register = async (req: Request, res: Response): Promise<void> => {

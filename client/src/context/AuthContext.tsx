@@ -61,6 +61,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // NEW: Effect to force open auth if user is unverified
+  useEffect(() => {
+    if (user && !user.isEmailVerified) {
+      setIsAuthOpen(true);
+    }
+  }, [user]);
+
   const logout = async () => {
     try {
       await authApi.logout();

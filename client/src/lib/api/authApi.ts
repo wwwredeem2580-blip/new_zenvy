@@ -36,5 +36,11 @@ export const authApi = {
   getGoogleAuthUrl: async () => {
     // This is usually a simple redirect, but we can fetch it if needed
     window.location.href = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/auth/google`;
-  }
+  },
+  resendVerification: async () => {
+    const response = await api.post<{ success: boolean; message: string }>(
+      '/auth/resend-verification'
+    );
+    return response.data;
+  },
 };

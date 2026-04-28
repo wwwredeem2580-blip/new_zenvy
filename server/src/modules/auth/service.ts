@@ -13,8 +13,40 @@ export const registerManual = async (data: RegisterInput) => {
 
   // Check if user already exists
   const existingUser = await User.findOne({ email });
+  
   if (existingUser) {
-    throw new CustomError('An account with this email already exists', 409);
+    // If user is already verified, we cannot overwrite
+    if (existingUser.isEmailVerified) {
+      throw new CustomError('An account with this email already exists', 409);
+    }
+    
+    // If user exists but is NOT verified, we treat this as a "claim/reset" 
+    // This allows the real owner to register even if someone else "squatted" on their email
+    const hashedPassword = await bcrypt.hash(password, 12);
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const tokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    existingUser.firstName = firstName;
+    existingUser.lastName = lastName;
+    existingUser.password = hashedPassword;
+    existingUser.emailVerificationToken = verificationToken;
+    existingUser.emailVerificationTokenExpiry = tokenExpiry;
+    existingUser.authProvider = 'manual'; // Ensure it's marked as manual
+    
+    await existingUser.save();
+
+    // Queue verification email
+    const verificationLink = `${process.env.SERVER_URL}/auth/verify-email?token=${verificationToken}`;
+    await addEmailJob('EMAIL_VERIFICATION', {
+      email,
+      name: `${firstName} ${lastName}`,
+      verificationLink,
+    });
+
+    return {
+      message: 'Registration updated. Please check your email to verify your account.',
+      userId: existingUser._id,
+    };
   }
 
   // Hash password
@@ -102,12 +134,7 @@ export const loginManual = async (data: LoginInput) => {
     throw new CustomError('Invalid email or password', 401);
   }
 
-  if (!user.isEmailVerified) {
-    throw new CustomError(
-      'Please verify your email before logging in. Check your inbox for the verification link.',
-      403
-    );
-  }
+  // ALLOW login even if not verified (frontend will handle the restriction)
 
   const token = generateAccessToken({
     userId: user._id.toString(),
@@ -124,6 +151,7 @@ export const loginManual = async (data: LoginInput) => {
       email: user.email,
       role: user.role,
       avatar: user.avatar,
+      isEmailVerified: user.isEmailVerified,
     },
   };
 };
@@ -207,4 +235,26 @@ export const handleGoogleCallback = async (code: string) => {
       avatar: user.avatar,
     },
   };
+};
+// ─── Resend Verification ──────────────────────────────────────────────────────
+export const resendVerificationEmail = async (userId: string) => {
+  const user = await User.findById(userId);
+  if (!user) throw new CustomError('User not found', 404);
+  if (user.isEmailVerified) throw new CustomError('Email is already verified', 400);
+
+  const verificationToken = crypto.randomBytes(32).toString('hex');
+  const tokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+  user.emailVerificationToken = verificationToken;
+  user.emailVerificationTokenExpiry = tokenExpiry;
+  await user.save();
+
+  const verificationLink = `${process.env.SERVER_URL}/auth/verify-email?token=${verificationToken}`;
+  await addEmailJob('EMAIL_VERIFICATION', {
+    email: user.email,
+    name: `${user.firstName} ${user.lastName}`,
+    verificationLink,
+  });
+
+  return { message: 'Verification email resent. Please check your inbox.' };
 };

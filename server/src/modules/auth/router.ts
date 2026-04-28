@@ -7,6 +7,7 @@ import {
   googleCallback,
   getMe,
   logout,
+  resendVerification,
 } from './controller';
 import { requireAuth } from '../../middlewares/auth';
 
@@ -15,6 +16,7 @@ const router = Router();
 // Manual auth
 router.post('/register', register);
 router.post('/login', login);
+router.post('/resend-verification', requireAuth, resendVerification);
 router.get('/verify-email', verifyEmailController);
 
 // Google OAuth
