@@ -54,12 +54,12 @@ export const verifyEmailController = async (req: Request, res: Response): Promis
 
     // Redirect to client with success flag so the frontend can show a success message
     const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
-    res.redirect(`${clientUrl}/login?verified=true`);
+    res.redirect(`${clientUrl}?verified=true`);
   } catch (error: any) {
     // Redirect to client with error flag
     const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
     const message = encodeURIComponent(error.message || 'Verification failed');
-    res.redirect(`${clientUrl}/login?verified=false&error=${message}`);
+    res.redirect(`${clientUrl}?verified=false&error=${message}`);
   }
 };
 
@@ -87,7 +87,7 @@ export const googleCallback = async (req: Request, res: Response): Promise<void>
   } catch (error: any) {
     const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
     const message = encodeURIComponent(error.message || 'Google authentication failed');
-    res.redirect(`${clientUrl}/login?error=${message}`);
+    res.redirect(`${clientUrl}?error=${message}`);
   }
 };
 
