@@ -56,50 +56,39 @@ const sendTransactionalEmail = async ({
   subject: string;
   html: string;
 }) => {
-  // 1️⃣ Try Brevo first
+  const fromEmail = process.env.SMTP_USER || 'support@smartcaf.it';
+
+  // 1️⃣ Try SMTP first (as requested to skip Brevo for now)
+  if (process.env.SMTP_HOST) {
+    try {
+      const info = await transporter.sendMail({
+        from: `"Smart CAF" <${fromEmail}>`,
+        to,
+        subject,
+        html,
+      });
+      console.log(`📧 Email sent via SMTP → ${info.messageId}`);
+      return;
+    } catch (smtpError) {
+      console.error('❌ SMTP failed, falling back to Brevo', smtpError);
+    }
+  }
+
+  // 2️⃣ Try Brevo fallback
   try {
     await brevoTransactional.sendTransacEmail({
       subject,
       htmlContent: html,
       sender: {
         name: 'Smart CAF',
-        email: 'support@smartcaf.it',
+        email: 'support@smartcaf.it', // Note: Brevo requires authenticated domain
       },
       to: [{ email: to }],
     });
     console.log(`📧 Email sent via Brevo → ${to}`);
     return;
   } catch (brevoError: any) {
-    const errorType = classifyError(brevoError);
-    if (errorType === 'SOFT_FAIL') {
-      console.warn('⚠️ Brevo soft fail, retrying once...');
-      try {
-        await brevoTransactional.sendTransacEmail({
-          subject,
-          htmlContent: html,
-          sender: { name: 'Smart CAF', email: 'support@smartcaf.it' },
-          to: [{ email: to }],
-        });
-        console.log(`📧 Email sent via Brevo (retry) → ${to}`);
-        return;
-      } catch (retryErr) {
-        console.error('❌ Brevo retry failed, falling back to SMTP', retryErr);
-      }
-    } else {
-      console.error('❌ Brevo hard fail, falling back to SMTP', brevoError);
-    }
-  }
-
-  // 2️⃣ SMTP fallback
-  const info = await transporter.sendMail({
-    from: '"Smart CAF" <support@smartcaf.it>',
-    to,
-    subject,
-    html,
-  });
-  console.log(`📧 Email sent via SMTP → ${info.messageId}`);
-  if (!process.env.SMTP_HOST) {
-    console.log(`📧 Ethereal preview: ${nodemailer.getTestMessageUrl(info)}`);
+    console.error('❌ Brevo failed', brevoError);
   }
 };
 

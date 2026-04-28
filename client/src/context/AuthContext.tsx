@@ -1,42 +1,73 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { mockApi, User } from "@/lib/api/mockApi";
+import { User } from "@/types/user";
+import { authApi } from "@/lib/api/authApi";
 
 interface AuthContextType {
   user: User | null;
-  setUser: (user: User | null) => void;
+  setUser: (user: any | null) => void;
   isLoading: boolean;
   isAuthOpen: boolean;
   setIsAuthOpen: (isOpen: boolean) => void;
   logout: () => Promise<void>;
+  verificationMessage: { type: 'success' | 'error', text: string } | null;
+  setVerificationMessage: (msg: { type: 'success' | 'error', text: string } | null) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [verificationMessage, setVerificationMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   useEffect(() => {
-    const currentUser = mockApi.getCurrentUser();
-    if (currentUser) {
-      setUser(currentUser);
-    }
-    setIsLoading(false);
+    const checkSession = async () => {
+      try {
+        const response = await authApi.getMe();
+        if (response.success && response.user) {
+          setUser(response.user);
+        }
+      } catch (error) {
+        console.log("No active session");
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-    // Check for invite token in URL (extracted from SmartCAF logic)
+    checkSession();
+
+    // Check for invite token or verification status in URL
     const params = new URLSearchParams(window.location.search);
     const inviteToken = params.get('invite_token');
-    if (inviteToken && !currentUser) {
+    const verified = params.get('verified');
+    const error = params.get('error');
+
+    if (inviteToken && !user) {
       setIsAuthOpen(true);
+    }
+
+    if (verified === 'true') {
+      setVerificationMessage({ type: 'success', text: 'Email verified successfully! You can now log in.' });
+      setIsAuthOpen(true);
+      // Clear params safely
+      window.history.replaceState({}, '', window.location.pathname);
+    } else if (verified === 'false' || error) {
+      setVerificationMessage({ type: 'error', text: error || 'Email verification failed.' });
+      setIsAuthOpen(true);
+      window.history.replaceState({}, '', window.location.pathname);
     }
   }, []);
 
   const logout = async () => {
-    await mockApi.logout();
-    setUser(null);
+    try {
+      await authApi.logout();
+      setUser(null);
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
   };
 
   return (
@@ -46,7 +77,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isLoading, 
       isAuthOpen, 
       setIsAuthOpen,
-      logout 
+      logout,
+      verificationMessage,
+      setVerificationMessage
     }}>
       {children}
     </AuthContext.Provider>

@@ -29,7 +29,7 @@ export interface User {
   firstName: string;
   lastName: string;
   email: string;
-  role: 'user' | 'admin' | 'subagent';
+  role: 'client' | 'admin' | 'agent';
   emailVerified: boolean;
   phoneVerified: boolean;
   balance: number;
@@ -702,7 +702,7 @@ export const mockApi = {
     return { user, token: jwtToken };
   },
 
-  assignUserRole: async (userId: string, role: 'user' | 'admin' | 'subagent'): Promise<boolean> => {
+  assignUserRole: async (userId: string, role: 'client' | 'admin' | 'agent'): Promise<boolean> => {
     await new Promise((resolve) => setTimeout(resolve, 600));
     const users = getFromStorage<User[]>(USERS_KEY) || [];
     const index = users.findIndex(u => u.id === userId);
@@ -752,7 +752,7 @@ export const mockApi = {
            canIssueCredits: true
         };
      }
-     if (user.role === 'user') {
+     if (user.role === 'client') {
         return {
            canViewWorkspaces: false,
            canUploadFiles: false,

@@ -15,6 +15,7 @@ import {
   Shield
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { User } from "@/types/user";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -52,7 +53,7 @@ export default function Navbar() {
         <div className="hidden md:flex items-center bg-black/5 rounded-full px-6 py-2 space-x-8 border border-black/5">
           <NavLink href="/" label="Home" active={pathname === '/'} />
           <NavLink href="/admin" label="Admin" active={pathname === '/admin'} />
-          {user && (user.role === 'subagent' || user.role === 'admin') && (
+          {user && (user.role === 'agent' || user.role === 'admin') && (
             <NavLink href="/agent" label="Agent Hub" active={pathname === '/agent'} />
           )}
           {user && (
@@ -150,7 +151,7 @@ export default function Navbar() {
                 href="/admin"
                 onClick={() => setIsMenuOpen(false)} 
               />
-              {user && (user.role === 'subagent' || user.role === 'admin') && (
+              {user && (user.role === 'agent' || user.role === 'admin') && (
                 <MobileNavLink 
                   icon={<Shield size={20} />} 
                   label="Agent Hub" 

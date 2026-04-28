@@ -81,7 +81,7 @@ export default function AdminPage() {
   const [isUploading, setIsUploading] = useState(false);
   
   // Agent Management state
-  const [roleFilter, setRoleFilter] = useState<'all' | 'user' | 'subagent' | 'admin'>('all');
+  const [roleFilter, setRoleFilter] = useState<'all' | 'user' | 'agent' | 'admin'>('all');
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [isPermissionsModalOpen, setIsPermissionsModalOpen] = useState(false);
   const [isWsModalOpen, setIsWsModalOpen] = useState(false);

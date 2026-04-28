@@ -33,7 +33,7 @@ export function InternalNotes({ application, onUpdate }: InternalNotesProps) {
 
   const loadAgents = async () => {
     const allUsers = await mockApi.getUsers();
-    setAgents(allUsers.filter(u => u.role === 'admin' || u.role === 'subagent'));
+    setAgents(allUsers.filter(u => u.role === 'admin' || u.role === 'agent'));
   };
 
   const scrollToBottom = () => {

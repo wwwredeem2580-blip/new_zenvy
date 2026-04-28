@@ -10,7 +10,7 @@ import { Search, TrendingUp, Shield, User } from 'lucide-react';
 import { User as UserType } from '../../lib/api/mockApi';
 import { mockApi } from '../../lib/api/mockApi';
 
-type RoleFilter = 'all' | 'user' | 'subagent' | 'admin';
+type RoleFilter = 'all' | 'client' | 'agent' | 'admin';
 
 export function UsersView({ 
   users, 
@@ -35,7 +35,7 @@ export function UsersView({
     return matchesSearch && matchesRole;
   });
 
-  const handleRoleChange = async (userId: string, newRole: 'user' | 'subagent' | 'admin') => {
+  const handleRoleChange = async (userId: string, newRole: 'client' | 'agent' | 'admin') => {
     try {
       await mockApi.assignUserRole(userId, newRole);
       onRefresh();
@@ -59,13 +59,13 @@ export function UsersView({
           </div>
 
           <div className="flex items-center gap-2 p-1 bg-black/5 rounded-2xl">
-             {(['all', 'user', 'subagent', 'admin'] as const).map(role => (
+             {(['all', 'client', 'agent', 'admin'] as const).map(role => (
                 <button
                   key={role}
                   onClick={() => setRoleFilter(role)}
                   className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${roleFilter === role ? 'bg-white text-black shadow-sm' : 'text-black/30 hover:text-black'}`}
                 >
-                   {role === 'subagent' ? 'Agents' : role + 's'}
+                   {role === 'agent' ? 'Agents' : role + 's'}
                 </button>
              ))}
           </div>
@@ -80,14 +80,14 @@ export function UsersView({
                 <div className="flex items-center gap-10">
                    <div className="relative">
                       <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-lg uppercase">
-                        <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.email+user.id}`} alt={user.email}/>
+                         <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.email+user.id}`} alt={user.email}/>
                       </div>
                       {user.role === 'admin' && (
                          <div className="absolute -top-1 -right-1 w-5 h-5 bg-yellow-400 border-2 border-white rounded-full flex items-center justify-center">
                             <Shield size={10} className="text-white" />
                          </div>
                       )}
-                      {user.role === 'subagent' && (
+                      {user.role === 'agent' && (
                          <div className="absolute -top-1 -right-1 w-5 h-5 bg-blue-500 border-2 border-white rounded-full flex items-center justify-center">
                             <User size={10} className="text-white" />
                          </div>
@@ -115,13 +115,13 @@ export function UsersView({
                            onChange={(e) => handleRoleChange(user.id, e.target.value as any)}
                            className="bg-transparent text-[10px] font-bold uppercase tracking-widest focus:outline-none appearance-none cursor-pointer hover:text-blue-600 transition-colors"
                          >
-                            <option value="user">User</option>
-                            <option value="subagent">Agent</option>
+                            <option value="client">User</option>
+                            <option value="agent">Agent</option>
                             <option value="admin">Admin</option>
                          </select>
                       </div>
 
-                      {user.role === 'subagent' && (
+                      {user.role === 'agent' && (
                          <button 
                            onClick={() => onManagePermissions(user)}
                            className="p-3 bg-black/5 rounded-xl hover:bg-black text-white transition-all text-[10px] font-bold uppercase"

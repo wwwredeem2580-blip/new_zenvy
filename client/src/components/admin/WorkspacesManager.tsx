@@ -224,7 +224,7 @@ function WorkspaceModal({ users, workspace, onClose, onSaved }: {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isEdit = !!workspace;
-  const agents = users.filter((u: any) => u.role === 'subagent' || u.role === 'admin');
+  const agents = users.filter((u: any) => u.role === 'agent' || u.role === 'admin');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
