@@ -27,7 +27,7 @@ import {
   Printer,
   Receipt
 } from "lucide-react";
-import { mockApi, User } from "../lib/api/mockApi";
+import { User } from "../types/user";
 import { applicationApi } from "../lib/api/applicationApi";
 import { authApi } from "../lib/api/authApi";
 import { Application, ApplicationStatus } from "../data/applications";
@@ -92,7 +92,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="max-w-[1200px] mx-auto px-6 py-12 space-y-12">
+    <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8 sm:space-y-12">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div className="space-y-1">
@@ -211,7 +211,7 @@ export default function ProfilePage() {
                 <motion.div
                   key={app._id}
                   onClick={() => setSelectedApp(app)}
-                  className="bg-white border border-black/5 p-4 sm:p-5 rounded-[24px] flex items-center justify-between cursor-pointer hover:border-black/20 hover:shadow-xl hover:shadow-black/5 transition-all group gap-2"
+                  className="bg-white border border-black/5 p-4 sm:p-5 rounded-[24px] flex flex-wrap sm:flex-nowrap items-center justify-between cursor-pointer hover:border-black/20 hover:shadow-xl hover:shadow-black/5 transition-all group gap-4"
                 >
                   <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
                     <div className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 bg-black text-white rounded-2xl flex items-center justify-center font-bold text-lg rotate-3 group-hover:rotate-0 transition-transform">
@@ -513,13 +513,13 @@ function InvoiceModal({ app, user, onClose }: { app: Application, user: User, on
 
 function InfoRow({ icon, label, value }: any) {
     return (
-        <div className="flex items-center gap-4 group">
+        <div className="flex items-center gap-4 group min-w-0">
             <div className="w-10 h-10 bg-black/5 rounded-xl flex items-center justify-center text-black/40 group-hover:bg-black group-hover:text-white transition-all">
                 {icon}
             </div>
-            <div>
+            <div className="min-w-0 flex-1">
                 <p className="text-[8px] uppercase tracking-widest font-bold text-black/20">{label}</p>
-                <p className="text-[11px] font-bold text-black/80">{value}</p>
+                <p className="text-[11px] font-bold text-black/80 truncate">{value}</p>
             </div>
         </div>
     );
