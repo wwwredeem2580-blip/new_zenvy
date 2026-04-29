@@ -14,6 +14,6 @@ router.get('/', requireAuth, requireRole('admin', 'agent'), applicationControlle
 
 // Storage Routes
 router.post('/upload-url', requireAuth, applicationController.getUploadUrl);
-router.get('/:id/attachments/:attachmentKey(*)', requireAuth, applicationController.getAttachmentPreviewUrl);
+router.get('/:id/attachment-preview', requireAuth, applicationController.getAttachmentPreviewUrl);
 
 export default router;

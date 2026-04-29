@@ -60,12 +60,10 @@ export const getAttachmentPreviewUrl = async (req: Request, res: Response): Prom
   try {
     const userId = (req as any).user.userId;
     const role = (req as any).user.role;
-    const { id, attachmentKey } = req.params; // application ID (CAF-XXX) and objectKey
+    const { id } = req.params;
+    const { key } = req.query; // application ID (CAF-XXX) and objectKey
     
-    // The attachmentKey might be encoded if it contains slashes, but express usually handles it
-    // However, if the user sends the full key, we might need to handle it.
-    
-    const previewUrl = await applicationService.getSignedPreviewUrl(userId, role, id as string, attachmentKey as string);
+    const previewUrl = await applicationService.getSignedPreviewUrl(userId, role, id as string, key as string);
     res.status(200).json({ success: true, previewUrl });
   } catch (error) {
     handleError(error, res);
