@@ -5,6 +5,7 @@ import CustomError from '../../utils/CustomError';
 import mongoose from 'mongoose';
 import { generatePreviewUrl } from '../../lib/backblaze';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { addEmailJob } from '../../workers/email.queue';
 
 /**
  * submitApplication — Creates a new application in the system.
@@ -193,6 +194,16 @@ export const updatePaymentStatus = async (
   });
 
   await application.save();
+
+  // Send email notification for payment status
+  await addEmailJob('APPLICATION_UPDATE', {
+    email: (application as any).email,
+    name: (application as any).name,
+    applicationId: application.applicationId,
+    updateType: status === 'Received' ? 'PAYMENT_APPROVED' : 'PAYMENT_REJECTED',
+    subject: status === 'Received' ? 'Payment Verified — Smart CAF' : 'Action Required: Payment Issue — Smart CAF'
+  });
+
   return application;
 };
 
@@ -237,7 +248,15 @@ export const assignApplication = async (
 
   await application.save();
   
-  // TODO: Send email notification to applicant
+  // Send email notification for agent assignment
+  await addEmailJob('APPLICATION_UPDATE', {
+    email: (application as any).email,
+    name: (application as any).name,
+    applicationId: application.applicationId,
+    updateType: 'AGENT_ASSIGNED',
+    agentName: application.reviewerName,
+    subject: `Review started for #${application.applicationId} — Smart CAF`
+  });
   
   return application;
 };
@@ -267,6 +286,17 @@ export const updateStatus = async (
   });
 
   await application.save();
+
+  // Send email notification for status update
+  await addEmailJob('APPLICATION_UPDATE', {
+    email: (application as any).email,
+    name: (application as any).name,
+    applicationId: application.applicationId,
+    updateType: 'STATUS_UPDATED',
+    newStatus: status,
+    subject: `Application Status Updated: ${status} — Smart CAF`
+  });
+
   return application;
 };
 

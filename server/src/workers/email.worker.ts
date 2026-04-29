@@ -2,6 +2,7 @@ import { Worker } from 'bullmq';
 import nodemailer from 'nodemailer';
 import { emailVerificationTemplate } from '../utils/email/emailVerification';
 import { welcomeClientTemplate } from '../utils/email/welcomeClient';
+import { applicationUpdateTemplate } from '../utils/email/applicationUpdates';
 
 const SibApiV3Sdk = require('sib-api-v3-sdk');
 
@@ -157,6 +158,12 @@ export const initEmailWorker = async () => {
           to = job.data.email;
           subject = 'You\'re verified — Welcome to Smart CAF';
           html = welcomeClientTemplate(job.data);
+          break;
+
+        case 'APPLICATION_UPDATE':
+          to = job.data.email;
+          subject = job.data.subject || 'Application Update — Smart CAF';
+          html = applicationUpdateTemplate(job.data);
           break;
 
         default:
