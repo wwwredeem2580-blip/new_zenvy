@@ -45,7 +45,7 @@ import {
 import { OverviewView } from './admin/OverviewView';
 import { ApplicationsView } from './admin/ApplicationsView';
 import { UsersView } from './admin/UsersView';
-import { WorkspacesManager } from './admin/WorkspacesManager';
+import { WorkspacesManager, WorkspaceModal } from './admin/WorkspacesManager';
 import { InviteAgentModal } from './admin/InviteAgentModal';
 import { PermissionsModal } from './admin/PermissionsModal';
 import { RefundModal } from './admin/RefundModal';
@@ -149,8 +149,8 @@ export default function AdminPage() {
         }));
         setUsers(mappedUsers);
       } else if (activeTab === 'Workspaces') {
-        const data = await mockApi.getWorkspaces();
-        setWorkspaces(data);
+        const response = await adminApi.listWorkspaces();
+        setWorkspaces(response.workspaces);
       }
     } catch (error) {
       console.error("Failed to load data", error);
@@ -334,12 +334,12 @@ export default function AdminPage() {
                        workspaces={workspaces}
                        users={users}
                        onUpdateFolders={async () => {
-                          const data = await mockApi.getWorkspaces();
-                          setWorkspaces(data);
+                          const response = await adminApi.listWorkspaces();
+                          setWorkspaces(response.workspaces);
                        }}
                        onDeleteWorkspace={async (id: string) => {
-                          await mockApi.deleteWorkspace(id);
-                          setWorkspaces(prev => prev.filter(ws => ws.id !== id));
+                          await adminApi.deleteWorkspace(id);
+                          setWorkspaces(prev => prev.filter(ws => (ws._id || ws.id) !== id));
                        }}
                      />
                   )}
@@ -795,8 +795,8 @@ export default function AdminPage() {
            <WorkspaceModal 
              users={users}
              onClose={() => setIsWsModalOpen(false)}
-             onCreated={(ws: Workspace) => {
-               setWorkspaces(prev => [...prev, ws]);
+             onSaved={() => {
+               loadData();
                setIsWsModalOpen(false);
              }}
            />
@@ -954,122 +954,6 @@ function WorkspaceBrowser({ workspace, onBack, onEdit }: { workspace: Workspace,
   );
 }
 
-function WorkspaceModal({ users, workspace, onClose, onCreated, onSaved }: any) {
-  const [name, setName] = useState(workspace?.name || "");
-  const [permission, setPermission] = useState<WorkspacePermission>(workspace?.permission || 'Public');
-  const [allowedAgents, setAllowedAgents] = useState<string[]>(workspace?.allowedAgents || []);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const isEdit = !!workspace;
-  const agents = users.filter((u: any) => u.role === 'subagent' || u.role === 'admin');
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name) return;
-    setIsSubmitting(true);
-    try {
-      if (isEdit) {
-        await mockApi.updateWorkspace(workspace.id, { name, permission, allowedAgents });
-        onSaved();
-      } else {
-        const ws = await mockApi.createWorkspace({ name, permission, allowedAgents });
-        onCreated(ws);
-      }
-    } catch (error) {
-       console.error(error);
-    } finally {
-       setIsSubmitting(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 z-[600] flex items-center justify-center p-6 bg-black/40 backdrop-blur-sm">
-       <motion.div 
-         initial={{ scale: 0.9, opacity: 0 }} animate={{ opacity: 1, scale: 1 }} exit={{ scale: 0.9, opacity: 0 }}
-         className="bg-white rounded-[40px] w-full max-w-xl p-12 space-y-10 shadow-2xl relative"
-       >
-          <button onClick={onClose} className="absolute right-8 top-8 p-2 hover:bg-black/5 rounded-full transition-colors"><X size={20} /></button>
-          
-          <div className="space-y-2">
-             <p className="text-[10px] uppercase tracking-[0.4em] font-bold text-black/40 text-center">Cloud Logistics</p>
-             <h3 className="text-4xl font-space font-bold tracking-tighter uppercase text-center">{isEdit ? 'Edit Settings.' : 'New Workspace.'}</h3>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-8">
-             <div className="space-y-4">
-                <label className="text-[10px] uppercase tracking-widest font-bold text-black/20 px-1">Workspace Name</label>
-                <input 
-                  type="text"
-                  autoFocus
-                  placeholder="e.g. Internal Templates"
-                  value={name}
-                  onChange={e => setName(e.target.value)}
-                  className="w-full bg-black/5 border border-black/5 rounded-[24px] px-8 py-5 text-lg font-bold focus:outline-none focus:bg-black/10 transition-all"
-                />
-             </div>
-
-             <div className="space-y-4">
-                <label className="text-[10px] uppercase tracking-widest font-bold text-black/20 px-1">Access Level</label>
-                <div className="grid grid-cols-3 gap-3">
-                   {(['Public', 'Read-only', 'Restricted'] as WorkspacePermission[]).map(p => (
-                      <button
-                        key={p}
-                        type="button"
-                        onClick={() => setPermission(p)}
-                        className={`py-4 rounded-2xl text-[10px] font-bold uppercase tracking-widest border transition-all ${permission === p ? 'bg-black text-white border-black' : 'bg-white border-black/5 text-black/30 hover:border-black/20'}`}
-                      >
-                         {p}
-                      </button>
-                   ))}
-                </div>
-             </div>
-
-             {permission === 'Restricted' && (
-                <div className="space-y-4">
-                   <label className="text-[10px] uppercase tracking-widest font-bold text-black/20 px-1">Assign Agents</label>
-                   <div className="flex flex-wrap gap-2 max-h-[120px] overflow-y-auto p-2 bg-black/5 rounded-2xl">
-                      {agents.map((a: any) => (
-                         <button
-                           key={a.id}
-                           type="button"
-                           onClick={() => {
-                              if (allowedAgents.includes(a.id)) setAllowedAgents(prev => prev.filter(id => id !== a.id));
-                              else setAllowedAgents(prev => [...prev, a.id]);
-                           }}
-                           className={`px-4 py-2 rounded-full text-[10px] font-bold transition-all ${allowedAgents.includes(a.id) ? 'bg-black text-white shadow-lg' : 'bg-white border border-black/5 text-black/40'}`}
-                         >
-                            {a.firstName} {a.lastName}
-                         </button>
-                      ))}
-                   </div>
-                </div>
-             )}
-
-             <button 
-               type="submit"
-               disabled={isSubmitting || !name}
-               className="w-full bg-black text-white py-6 rounded-[24px] font-bold text-sm tracking-[0.2em] uppercase hover:scale-[1.02] active:scale-95 transition-all shadow-2xl shadow-black/20 disabled:opacity-20 mt-4"
-             >
-                {isSubmitting ? "Processing..." : (isEdit ? "Update Workspace ↗" : "Confirm Workspace ↗")}
-             </button>
-          </form>
-       </motion.div>
-    </div>
-  );
-}
-
-function PermissionBadge({ type }: { type: WorkspacePermission }) {
-   const styles: Record<WorkspacePermission, string> = {
-      'Public': 'bg-green-500/10 text-green-600 border-green-500/20',
-      'Read-only': 'bg-blue-500/10 text-blue-600 border-blue-500/20',
-      'Restricted': 'bg-red-500/10 text-red-600 border-red-500/20'
-   };
-   return (
-      <span className={`px-3 py-1 rounded-full border text-[8px] font-bold uppercase tracking-widest ${styles[type]}`}>
-         {type}
-      </span>
-   );
-}
 
 function SidebarLink({ label, isActive, onClick, className }: any) {
   return (

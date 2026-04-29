@@ -8,8 +8,20 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { DownloadCloudIcon, Folder, PlusIcon, Settings2, Trash2, UploadCloudIcon, X } from 'lucide-react';
-import { Workspace, WorkspacePermission, User as UserType } from '../../lib/api/mockApi';
-import { mockApi } from '../../lib/api/mockApi';
+import { User as UserType } from '../../lib/api/mockApi';
+import { adminApi } from '@/lib/api/adminApi';
+
+export type WorkspacePermission = 'Public' | 'Read-only' | 'Restricted';
+
+export interface Workspace {
+  _id: string;
+  id?: string;
+  name: string;
+  permission: WorkspacePermission;
+  isSystem: boolean;
+  allowedAgents?: string[];
+  createdAt: string;
+}
 
 function PermissionBadge({ type }: { type: WorkspacePermission }) {
    const styles: Record<WorkspacePermission, string> = {
@@ -53,7 +65,7 @@ export function WorkspacesManager({
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         {workspaces.map((ws: Workspace) => (
           <motion.div
-            key={ws.id}
+            key={ws._id || ws.id}
             whileHover={{ y: -5 }}
             className="group relative bg-black/[0.02] border border-black/5 rounded-[16px] p-8 flex flex-col justify-between h-[180px] hover:bg-white hover:shadow-2xl hover:shadow-black/5 transition-all cursor-pointer overflow-hidden"
             onClick={() => setViewedWorkspace(ws)}
@@ -85,17 +97,19 @@ export function WorkspacesManager({
                </div>
             </div>
 
-            <button 
-              onClick={(e) => {
-                 e.stopPropagation();
-                 if(confirm("Are you sure? This will delete all files inside.")) {
-                   onDeleteWorkspace(ws.id);
-                 }
-              }}
-              className="absolute bottom-8 right-8 p-3 hover:bg-red-50 text-red-500 rounded-full transition-all"
-            >
-               <Trash2 size={16} />
-            </button>
+            {!ws.isSystem && (
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if(confirm("Are you sure? This will delete all files inside.")) {
+                    onDeleteWorkspace(ws._id || ws.id!);
+                  }
+                }}
+                className="absolute bottom-8 right-8 p-3 hover:bg-red-50 text-red-500 rounded-full transition-all"
+              >
+                <Trash2 size={16} />
+              </button>
+            )}
           </motion.div>
         ))}
       </div>
@@ -121,31 +135,62 @@ function WorkspaceBrowser({ workspace, onBack, onEdit }: { workspace: Workspace,
   const [files, setFiles] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
     loadFiles();
-  }, [workspace.id]);
+  }, [workspace._id, workspace.id]);
 
   const loadFiles = async () => {
     setIsLoading(true);
-    const data = await mockApi.getFiles(workspace.id);
-    setFiles(data);
-    setIsLoading(false);
+    try {
+      const res = await adminApi.listFiles(workspace._id || workspace.id!);
+      setFiles(res.files);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleUpload = async () => {
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
     setIsUploading(true);
     try {
-      const newFile = await mockApi.uploadFile(workspace.id, `Manual_Upload_${Math.floor(Math.random()*1000)}.pdf`);
-      setFiles(prev => [newFile, ...prev]);
+      const res = await adminApi.uploadFile(workspace._id || workspace.id!, file);
+      if (res.success) {
+        setFiles(prev => [res.file, ...prev]);
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Upload failed. System folders only accept uploads through applications.");
     } finally {
       setIsUploading(false);
     }
   };
 
   const handleDeleteFile = async (id: string) => {
-    const ok = await mockApi.deleteFile(workspace.id, id);
-    if (ok) setFiles(prev => prev.filter(f => f.id !== id));
+    if (!confirm("Delete this file?")) return;
+    try {
+      const res = await adminApi.deleteFile(workspace._id || workspace.id!, id);
+      if (res.success) setFiles(prev => prev.filter(f => f.id !== id));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handlePreview = async (fileKey: string) => {
+    try {
+      const res = await adminApi.getFilePreviewUrl(workspace._id || workspace.id!, fileKey);
+      if (res.success) {
+        window.open(res.previewUrl, '_blank');
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Failed to generate preview URL");
+    }
   };
 
   return (
@@ -160,17 +205,30 @@ function WorkspaceBrowser({ workspace, onBack, onEdit }: { workspace: Workspace,
           <h2 className="text-2xl font-space font-bold tracking-tighter uppercase">{workspace.name}.</h2>
         </div>
         <div className="flex items-center gap-4">
-           <button onClick={onEdit} className="px-4 py-2 bg-black/5 rounded-xl hover:bg-black/10 transition-colors">
-             <Settings2 size={16} />
-           </button>
-           <button 
-             onClick={handleUpload}
-             disabled={isUploading}
-             className="flex items-center gap-2 px-6 py-2 bg-black text-white rounded-xl font-bold text-sm hover:scale-105 transition-all shadow-xl shadow-black/10 disabled:opacity-20"
-           >
-            <UploadCloudIcon size={16} />
-             {isUploading ? "Uploading..." : "Upload File"}
-           </button>
+           {!workspace.isSystem && (
+             <button onClick={onEdit} className="px-4 py-2 bg-black/5 rounded-xl hover:bg-black/10 transition-colors">
+               <Settings2 size={16} />
+             </button>
+           )}
+           
+           {!workspace.isSystem && (
+             <>
+               <input 
+                 type="file" 
+                 className="hidden" 
+                 ref={fileInputRef} 
+                 onChange={handleUpload}
+               />
+               <button 
+                 onClick={() => fileInputRef.current?.click()}
+                 disabled={isUploading}
+                 className="flex items-center gap-2 px-6 py-2 bg-black text-white rounded-xl font-bold text-sm hover:scale-105 transition-all shadow-xl shadow-black/10 disabled:opacity-20"
+               >
+                <UploadCloudIcon size={16} />
+                 {isUploading ? "Uploading..." : "Upload File"}
+               </button>
+             </>
+           )}
         </div>
       </div>
 
@@ -184,7 +242,11 @@ function WorkspaceBrowser({ workspace, onBack, onEdit }: { workspace: Workspace,
       ) : (
         <div className="grid gap-3">
           {files.map(file => (
-            <div key={file.id} className="group flex items-center justify-between px-4 py-2 bg-black/[0.02] border border-black/5 rounded-[16px] hover:bg-white hover:shadow-xl hover:shadow-black/5 transition-all">
+            <div 
+              key={file.id} 
+              onClick={() => handlePreview(file.id)}
+              className="group flex items-center justify-between px-4 py-2 bg-black/[0.02] border border-black/5 rounded-[16px] hover:bg-white hover:shadow-xl hover:shadow-black/5 transition-all cursor-pointer"
+            >
               <div className="flex items-center gap-6">
                 <div className="w-8 h-8 rounded-xl flex items-center justify-center">
                   <span className="text-black/90 text-2xl">📄</span>
@@ -200,7 +262,13 @@ function WorkspaceBrowser({ workspace, onBack, onEdit }: { workspace: Workspace,
                  <button className="p-3 hover:bg-black/5 rounded-full transition-all">
                   <DownloadCloudIcon size={16} />
                  </button>
-                 <button onClick={() => handleDeleteFile(file.id)} className="p-3 hover:bg-red-50 text-red-500 rounded-full transition-all">
+                 <button 
+                   onClick={(e) => {
+                     e.stopPropagation();
+                     handleDeleteFile(file.id);
+                   }} 
+                   className="p-3 hover:bg-red-50 text-red-500 rounded-full transition-all"
+                 >
                   <Trash2 size={16} />
                  </button>
               </div>
@@ -212,7 +280,7 @@ function WorkspaceBrowser({ workspace, onBack, onEdit }: { workspace: Workspace,
   );
 }
 
-function WorkspaceModal({ users, workspace, onClose, onSaved }: { 
+export function WorkspaceModal({ users, workspace, onClose, onSaved }: { 
   users: UserType[], 
   workspace?: Workspace, 
   onClose: () => void, 
@@ -232,7 +300,10 @@ function WorkspaceModal({ users, workspace, onClose, onSaved }: {
     setIsSubmitting(true);
     try {
       if (isEdit) {
-        await mockApi.updateWorkspace(workspace.id, { name, permission, allowedAgents });
+        await adminApi.updateWorkspace(workspace._id || workspace.id!, { name, permission, allowedAgents });
+        onSaved();
+      } else {
+        await adminApi.createWorkspace({ name, permission, allowedAgents });
         onSaved();
       }
     } catch (error) {

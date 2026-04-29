@@ -45,3 +45,51 @@ export const generatePreviewUrl = async (objectKey: string, expiresIn: number = 
 
   return previewUrl;
 };
+
+/**
+ * Lists objects in a bucket with a specific prefix (folder).
+ */
+export const listObjects = async (prefix: string) => {
+  const { ListObjectsV2Command } = await import('@aws-sdk/client-s3');
+  const command = new ListObjectsV2Command({
+    Bucket: process.env.BACKBLAZE_BUCKET_NAME!,
+    Prefix: prefix,
+  });
+
+  const response = await s3Client.send(command);
+  return response.Contents || [];
+};
+
+/**
+ * Deletes a single object from Backblaze.
+ */
+export const deleteObject = async (objectKey: string) => {
+  const { DeleteObjectCommand } = await import('@aws-sdk/client-s3');
+  const command = new DeleteObjectCommand({
+    Bucket: process.env.BACKBLAZE_BUCKET_NAME!,
+    Key: objectKey,
+  });
+
+  await s3Client.send(command);
+};
+
+/**
+ * Deletes all objects with a specific prefix (recursive folder delete).
+ */
+export const deleteFolder = async (prefix: string) => {
+  const { DeleteObjectsCommand } = await import('@aws-sdk/client-s3');
+  const objects = await listObjects(prefix);
+  
+  if (objects.length === 0) return;
+
+  const deleteCommand = new DeleteObjectsCommand({
+    Bucket: process.env.BACKBLAZE_BUCKET_NAME!,
+    Delete: {
+      Objects: objects.map(obj => ({ Key: obj.Key! })),
+    },
+  });
+
+  await s3Client.send(deleteCommand);
+};
+
+export { s3Client };

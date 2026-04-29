@@ -2,8 +2,11 @@ import { Router } from 'express';
 import { requireAuth, requireRole } from '../../middlewares/auth';
 
 import * as adminController from './controller';
+import * as workspaceController from './workspace.controller';
+import multer from 'multer';
 
 const router = Router();
+const upload = multer({ storage: multer.memoryStorage() });
 
 // Staff Management
 router.get('/agents', requireAuth, requireRole('admin', 'agent'), adminController.listAgents);
@@ -12,6 +15,18 @@ router.get('/agents', requireAuth, requireRole('admin', 'agent'), adminControlle
 router.get('/users', requireAuth, requireRole('admin'), adminController.listUsers);
 router.patch('/users/:id/role', requireAuth, requireRole('admin'), adminController.updateUserRole);
 router.post('/users/:id/credits', requireAuth, requireRole('admin'), adminController.addCredits);
+
+// Workspace Management
+router.get('/workspaces', requireAuth, requireRole('admin', 'agent'), workspaceController.listWorkspaces);
+router.post('/workspaces', requireAuth, requireRole('admin'), workspaceController.createWorkspace);
+router.patch('/workspaces/:id', requireAuth, requireRole('admin'), workspaceController.updateWorkspace);
+router.delete('/workspaces/:id', requireAuth, requireRole('admin'), workspaceController.deleteWorkspace);
+
+// File Management in Workspaces
+router.get('/workspaces/:id/files', requireAuth, requireRole('admin', 'agent'), workspaceController.listFilesInWorkspace);
+router.post('/workspaces/:id/files', requireAuth, requireRole('admin', 'agent'), upload.single('file'), workspaceController.uploadFile);
+router.delete('/workspaces/:id/files', requireAuth, requireRole('admin', 'agent'), workspaceController.deleteFile);
+router.get('/workspaces/:id/preview', requireAuth, requireRole('admin', 'agent'), workspaceController.getPreviewUrl);
 
 router.get('/health', requireAuth, requireRole('admin'), (_req, res) => {
   res.json({ success: true, message: 'Admin router is active' });
