@@ -38,7 +38,8 @@ import {
   PlusIcon,
   CreditCard,
   Check,
-  FolderPlus
+  FolderPlus,
+  Eye
 } from 'lucide-react';
 
 import { OverviewView } from './admin/OverviewView';
@@ -687,9 +688,26 @@ export default function AdminPage() {
                                              </span>
                                           </div>
                                        </div>
-                                       <button className="p-3 bg-black/5 rounded-full hover:bg-black hover:text-white transition-all">
-                                          <Download size={14} />
-                                       </button>
+                                        <div className="flex items-center gap-2">
+                                           <button 
+                                              onClick={async () => {
+                                                 try {
+                                                    const res = await applicationApi.getAttachmentPreviewUrl(selectedApp!._id, doc.url);
+                                                    window.open(res.previewUrl, '_blank');
+                                                 } catch (err) {
+                                                    console.error("Preview failed", err);
+                                                    alert("Failed to generate preview link");
+                                                 }
+                                              }}
+                                              className="p-3 bg-black/5 rounded-full hover:bg-black hover:text-white transition-all"
+                                              title="View Document"
+                                           >
+                                              <Eye size={14} />
+                                           </button>
+                                           <button className="p-3 bg-black/5 rounded-full hover:bg-black hover:text-white transition-all">
+                                              <Download size={14} />
+                                           </button>
+                                        </div>
                                     </div>
                                  ))}
                               </div>
