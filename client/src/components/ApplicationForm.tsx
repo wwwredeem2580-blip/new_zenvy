@@ -332,11 +332,41 @@ export default function ApplicationForm() {
     }
   };
 
+  const uploadFiles = async () => {
+    const uploadedAttachments = [];
+    const documentEntries = Object.entries(formData.documents).filter(([_, file]) => file !== null);
+
+    for (const [key, file] of documentEntries) {
+      if (!file) continue;
+      
+      try {
+        // 1. Upload to our server (which proxies to Backblaze)
+        const { objectKey } = await applicationApi.uploadAttachment(file);
+        
+        // 2. Add to attachments list
+        uploadedAttachments.push({
+          name: key, // e.g., 'passport'
+          url: objectKey,
+          uploadedBy: `${user?.firstName} ${user?.lastName}`,
+          uploadedById: (user as any)?._id || user?.id || 'unknown',
+          uploadedAt: new Date().toISOString()
+        });
+      } catch (err) {
+        console.error(`Error uploading ${key}:`, err);
+        throw err; // Re-throw to handle in main submit
+      }
+    }
+    
+    return uploadedAttachments;
+  };
+
   const handlePaymentSuccess = async (method: PaymentMethod | 'Credits') => {
     setIsShowPayment(false);
     setIsLoading(true);
     
     try {
+      // 1. Upload files first
+      const attachments = await uploadFiles();
       // Credits are handled by the backend during submission now
       // Or we can deduct them here if we have an endpoint for it.
       // For now, let's assume the backend will handle the balance if paymentMethod is 'Credits'
@@ -357,6 +387,7 @@ export default function ApplicationForm() {
         permessoExpiry: formData.permessoExpiry,
         selectedServices: formData.selectedServices,
         paymentMethod: method as any,
+        attachments,
       });
       
       setSubmittedAppId(applicationResponse.application.applicationId);

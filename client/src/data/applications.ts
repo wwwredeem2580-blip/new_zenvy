@@ -27,7 +27,8 @@ export interface Note {
 }
 
 export interface Attachment {
-  id: string;
+  id?: string;
+  _id?: string;
   name: string;
   url: string;
   uploadedBy: string;
@@ -57,6 +58,7 @@ export interface Application {
   transactionId?: string;
   status: ApplicationStatus;
   submittedAt: string;
+  createdAt?: string; // Backend date field
   selectedServices: SubService[];
   reviewerId?: string;
   reviewerName?: string;

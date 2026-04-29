@@ -45,11 +45,13 @@ export const listAll = async (_req: Request, res: Response): Promise<void> => {
   }
 };
 
-export const getUploadUrl = async (req: Request, res: Response): Promise<void> => {
+export const upload = async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = (req as any).user.userId;
-    const { filename, contentType } = req.body;
-    const result = await applicationService.getSignedUploadUrl(userId, filename, contentType);
+    const file = req.file as Express.Multer.File;
+    if (!file) throw new Error('No file uploaded');
+
+    const result = await applicationService.uploadAttachment(userId, file);
     res.status(200).json({ success: true, ...result });
   } catch (error) {
     handleError(error, res);

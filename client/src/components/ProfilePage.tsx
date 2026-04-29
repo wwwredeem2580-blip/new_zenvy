@@ -87,6 +87,20 @@ export default function ProfilePage() {
     }
   };
 
+  const handleViewAttachment = async (attachment: any) => {
+    if (!selectedApp) return;
+    try {
+      const response = await applicationApi.getAttachmentPreviewUrl(selectedApp.applicationId, attachment.url);
+      if (response.success && response.previewUrl) {
+        window.open(response.previewUrl, '_blank');
+      }
+    } catch (error) {
+      console.error("Failed to get preview URL", error);
+      // alert is a bit crude but works for now to show permission error
+      alert("Error: Access denied or file not found.");
+    }
+  };
+
   const formatCurrency = (amt: number) => {
     return new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(amt);
   };
@@ -155,7 +169,7 @@ export default function ProfilePage() {
                <div className="flex justify-between items-end gap-2">
                   <div className="space-y-1 min-w-0 flex-1 pr-2">
                      <p className="text-[8px] text-white/20 uppercase tracking-widest font-bold truncate">Account Holder</p>
-                     <p className="text-sm text-white font-medium tracking-tight uppercase truncate">{localUser?.firstName} {localUser?.lastName}</p>
+                     <p className="text-sm text-white font-medium tracking-tight uppercase truncate">{localUser?.firstName || ''} {localUser?.lastName || ''}</p>
                   </div>
                   <div className="flex -space-x-2 flex-shrink-0">
                      <div className="w-8 h-8 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm" />
@@ -222,7 +236,7 @@ export default function ProfilePage() {
                       <div className="flex items-center gap-1 sm:gap-2 mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis">
                         <span className="text-[9px] uppercase tracking-widest font-bold text-black/40">ID: #{app.applicationId}</span>
                         <div className="flex-shrink-0 w-1 h-1 rounded-full bg-black/10" />
-                        <span className="text-[9px] uppercase tracking-widest font-bold text-black/40 truncate">{new Date(app.submittedAt).toLocaleDateString()}</span>
+                        <span className="text-[9px] uppercase tracking-widest font-bold text-black/40 truncate">{new Date(app.createdAt || app.submittedAt).toLocaleDateString()}</span>
                       </div>
                     </div>
                   </div>
@@ -325,21 +339,31 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
-                {/* Document Preview Placeholder */}
-                <div className="space-y-4">
-                   <h3 className="text-[10px] uppercase tracking-widest font-bold text-black/40">Attached Documents</h3>
-                   <div className="grid grid-cols-2 gap-4">
-                      {["Passport Scan", "Codice Fiscale"].map(doc => (
-                         <div key={doc} className="group p-4 bg-black/5 border border-black/5 rounded-2xl flex items-center gap-4 hover:bg-black hover:text-white transition-all cursor-pointer">
-                            <div className="w-10 h-10 bg-white/50 rounded-lg flex items-center justify-center">
-                                <FileText size={18} />
-                            </div>
-                            <span className="text-[10px] font-bold uppercase tracking-widest">{doc}</span>
-                         </div>
-                      ))}
-                   </div>
-                </div>
-                
+                 <div className="space-y-4">
+                    <h3 className="text-[10px] uppercase tracking-widest font-bold text-black/40">Attached Documents</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                       {selectedApp.attachments && selectedApp.attachments.length > 0 ? (
+                         selectedApp.attachments.map((doc, i) => (
+                           <div 
+                             key={i} 
+                             onClick={() => handleViewAttachment(doc)}
+                             className="group p-4 bg-black/5 border border-black/5 rounded-2xl flex items-center gap-4 hover:bg-black hover:text-white transition-all cursor-pointer"
+                           >
+                              <div className="w-10 h-10 bg-white/50 rounded-lg flex items-center justify-center group-hover:bg-white/20 transition-colors">
+                                  <FileText size={18} />
+                              </div>
+                              <div className="flex flex-col min-w-0">
+                                <span className="text-[10px] font-bold uppercase tracking-widest truncate">{doc.name}</span>
+                                <span className="text-[8px] text-black/40 group-hover:text-white/40 font-medium">Uploaded by {doc.uploadedBy}</span>
+                              </div>
+                           </div>
+                         ))
+                       ) : (
+                         <p className="text-[10px] text-black/30 font-medium uppercase tracking-widest col-span-2 py-4 text-center border border-dashed border-black/10 rounded-2xl">No attachments provided.</p>
+                       )}
+                    </div>
+                 </div>
+
                 <div className="pt-8 block">
                     <button 
                         onClick={() => setSelectedApp(null)}
@@ -414,15 +438,18 @@ function InvoiceModal({ app, user, onClose }: { app: Application, user: User, on
           >
              <div className="p-6 sm:p-10 md:p-12">
                 {/* Invoice Header */}
-                <div className="flex justify-between">
-                  <span className="text-[10px] font-normal uppercase tracking-wide">{new Date(app.submittedAt).toLocaleDateString('en-GB')}</span>
+                <div className="flex justify-between items-start mb-2">
+                  <span className="text-[10px] font-normal uppercase tracking-wide">
+                    {new Date(app.createdAt || app.submittedAt).toLocaleDateString('en-GB')}
+                  </span>
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-black/20">Official Receipt</span>
+                </div>
                 <div className="flex flex-col md:flex-row justify-between items-baseline mb-4 md:mb-6 gap-8">
                    <div className="flex-1 h-[1px] bg-black/10 order-2 md:order-1 self-center hidden sm:block" />
                    <h1 className="text-2xl sm:text-4xl md:text-6xl font-space font-normal tracking-tighter uppercase order-1 md:order-2 sm:ml-8">
                       Invoice
-                      <p className="text-lg font-space font-normal tracking-tighter">#{app.applicationId?.replace('CAF-', '') || '000000'}</p>
+                      <span className="block text-lg font-space font-normal tracking-tighter">#{app.applicationId?.replace('CAF-', '') || '000000'}</span>
                    </h1>
-                </div>
                 </div>
 
                 {/* Meta Info */}
@@ -549,12 +576,18 @@ function StatusBadge({ status }: { status: ApplicationStatus }) {
 }
 
 function DetailItem({ icon, label, value }: any) {
+    // If value is a date string, format it safely
+    let displayValue = value;
+    if (label === "DOB" && value) {
+      try { displayValue = new Date(value).toLocaleDateString(); } catch(e) {}
+    }
+
     return (
       <div className="space-y-1">
         <p className="text-[10px] uppercase tracking-widest font-bold text-black/40 flex items-center gap-2">
           {icon} {label}
         </p>
-        <p className="text-sm font-medium text-black/80">{value || "N/A"}</p>
+        <p className="text-sm font-medium text-black/80">{displayValue || "N/A"}</p>
       </div>
     );
 }

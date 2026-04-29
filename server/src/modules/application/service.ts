@@ -3,7 +3,8 @@ import { User } from '../../models/User.model';
 import { CreateApplicationInput } from './schema';
 import CustomError from '../../utils/CustomError';
 import mongoose from 'mongoose';
-import { generateUploadUrl, generatePreviewUrl } from '../../lib/backblaze';
+import { generatePreviewUrl } from '../../lib/backblaze';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 
 /**
  * submitApplication — Creates a new application in the system.
@@ -97,16 +98,36 @@ export const getAllApplications = async (): Promise<IApplication[]> => {
     .sort({ createdAt: -1 });
 };
 
+const s3Client = new S3Client({
+  region: 'eu-central-003',
+  endpoint: process.env.BACKBLAZE_ENDPOINT!,
+  credentials: {
+    accessKeyId: process.env.BACKBLAZE_KEY_ID!,
+    secretAccessKey: process.env.BACKBLAZE_APP_KEY!,
+  },
+});
+
 /**
- * getSignedUploadUrl - Generates a secure upload link for the frontend.
+ * uploadAttachment - Uploads a file buffer to Backblaze and returns the objectKey.
  */
-export const getSignedUploadUrl = async (userId: string, filename: string, contentType: string) => {
-  // Validate content type (Images and PDFs only as per requirements)
-  const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
-  if (!allowedTypes.includes(contentType)) {
-    throw new CustomError('Invalid file type. Only JPEG, PNG, and PDF are allowed.', 400);
-  }
-  return generateUploadUrl(userId, filename, contentType);
+export const uploadAttachment = async (userId: string, file: Express.Multer.File) => {
+  const timestamp = Date.now();
+  const sanitizedFilename = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
+  const objectKey = `users/${userId}/applications/${timestamp}-${sanitizedFilename}`;
+
+  const command = new PutObjectCommand({
+    Bucket: process.env.BACKBLAZE_BUCKET_NAME!,
+    Key: objectKey,
+    Body: file.buffer,
+    ContentType: file.mimetype,
+  });
+
+  await s3Client.send(command);
+
+  return {
+    objectKey,
+    filename: file.originalname,
+  };
 };
 
 /**

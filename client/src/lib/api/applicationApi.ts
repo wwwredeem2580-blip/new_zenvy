@@ -22,6 +22,12 @@ export interface CreateApplicationData {
     duration: string;
   }[];
   transactionId?: string;
+  attachments?: {
+    name: string;
+    url: string; // The objectKey from Backblaze
+    uploadedBy: string;
+    uploadedById: string;
+  }[];
 }
 
 export const applicationApi = {
@@ -62,6 +68,36 @@ export const applicationApi = {
   listAllApplications: async () => {
     const response = await api.get<{ success: boolean; applications: Application[] }>(
       '/applications'
+    );
+    return response.data;
+  },
+
+  /**
+   * uploadAttachment — Uploads a file directly to the backend, which then proxies it to Backblaze.
+   */
+  uploadAttachment: async (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await api.post<{ success: boolean; objectKey: string; filename: string }>(
+      '/applications/upload',
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+    return response.data;
+  },
+
+  /**
+   * getAttachmentPreviewUrl — Requests a short-lived preview link for an attachment.
+   */
+  getAttachmentPreviewUrl: async (applicationId: string, key: string) => {
+    const response = await api.get<{ success: boolean; previewUrl: string }>(
+      `/applications/${applicationId}/attachment-preview`,
+      { params: { key } }
     );
     return response.data;
   },
