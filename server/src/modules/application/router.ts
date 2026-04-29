@@ -12,4 +12,8 @@ router.get('/:id', requireAuth, applicationController.getDetails);
 // Admin/Agent Routes
 router.get('/', requireAuth, requireRole('admin', 'agent'), applicationController.listAll);
 
+// Storage Routes
+router.post('/upload-url', requireAuth, applicationController.getUploadUrl);
+router.get('/:id/attachments/:attachmentKey(*)', requireAuth, applicationController.getAttachmentPreviewUrl);
+
 export default router;

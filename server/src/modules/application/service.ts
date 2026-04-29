@@ -3,6 +3,7 @@ import { User } from '../../models/User.model';
 import { CreateApplicationInput } from './schema';
 import CustomError from '../../utils/CustomError';
 import mongoose from 'mongoose';
+import { generateUploadUrl, generatePreviewUrl } from '../../lib/backblaze';
 
 /**
  * submitApplication — Creates a new application in the system.
@@ -94,4 +95,46 @@ export const getAllApplications = async (): Promise<IApplication[]> => {
   return Application.find({})
     .populate('userId', 'firstName lastName email balance')
     .sort({ createdAt: -1 });
+};
+
+/**
+ * getSignedUploadUrl - Generates a secure upload link for the frontend.
+ */
+export const getSignedUploadUrl = async (userId: string, filename: string, contentType: string) => {
+  // Validate content type (Images and PDFs only as per requirements)
+  const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+  if (!allowedTypes.includes(contentType)) {
+    throw new CustomError('Invalid file type. Only JPEG, PNG, and PDF are allowed.', 400);
+  }
+  return generateUploadUrl(userId, filename, contentType);
+};
+
+/**
+ * getSignedPreviewUrl - Generates a short-lived secure viewing link.
+ */
+export const getSignedPreviewUrl = async (
+  userId: string,
+  userRole: string,
+  applicationId: string,
+  objectKey: string
+) => {
+  const application = await Application.findOne({ applicationId });
+  if (!application) throw new CustomError('Application not found', 404);
+
+  // Security check: Only owner, admin, or assigned agent can view
+  const isOwner = application.userId.toString() === userId.toString();
+  const isAdmin = userRole === 'admin';
+  const isAssignedAgent = userRole === 'agent' && application.reviewerId?.toString() === userId.toString();
+
+  if (!isOwner && !isAdmin && !isAssignedAgent) {
+    throw new CustomError('Access denied to this document', 403);
+  }
+
+  // Ensure the objectKey actually belongs to this application's attachments
+  const hasAttachment = application.attachments.some(a => a.url === objectKey);
+  if (!hasAttachment && !isAdmin) {
+    throw new CustomError('Document not found in this application', 404);
+  }
+
+  return generatePreviewUrl(objectKey);
 };
