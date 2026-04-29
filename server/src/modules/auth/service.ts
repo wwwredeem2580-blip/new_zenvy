@@ -141,6 +141,8 @@ export const loginManual = async (data: LoginInput) => {
     role: user.role,
     email: user.email,
     isEmailVerified: user.isEmailVerified,
+    firstName: user.firstName,
+    lastName: user.lastName,
   });
 
   return {
@@ -242,6 +244,8 @@ export const handleGoogleCallback = async (code: string) => {
     role: user.role,
     email: user.email,
     isEmailVerified: user.isEmailVerified,
+    firstName: user.firstName,
+    lastName: user.lastName,
   });
 
   return {

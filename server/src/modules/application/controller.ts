@@ -133,3 +133,35 @@ export const unassignAgent = async (req: Request, res: Response): Promise<void> 
     handleError(error, res);
   }
 };
+
+export const addNote = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { text } = req.body;
+    const note = {
+      text,
+      authorId: (req as any).user.userId,
+      authorName: `${(req as any).user.firstName} ${(req as any).user.lastName}`,
+    };
+
+    const application = await applicationService.addNote(id as string, note);
+    res.status(200).json({ success: true, application });
+  } catch (error) {
+    handleError(error, res);
+  }
+};
+
+export const addAttachment = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const userId = (req as any).user.userId;
+    const uploaderName = `${(req as any).user.firstName} ${(req as any).user.lastName}`;
+    const file = req.file as Express.Multer.File;
+    if (!file) throw new Error('No file uploaded');
+
+    const application = await applicationService.addAttachment(id as string, userId, file, uploaderName);
+    res.status(200).json({ success: true, application });
+  } catch (error) {
+    handleError(error, res);
+  }
+};

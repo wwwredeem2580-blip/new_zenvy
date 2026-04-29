@@ -29,8 +29,10 @@ router.patch('/:id/assign', requireAuth, requireRole('admin', 'agent'), applicat
 router.patch('/:id/unassign', requireAuth, requireRole('admin', 'agent'), applicationController.unassignAgent);
 router.patch('/:id/status', requireAuth, requireRole('admin', 'agent'), applicationController.updateStatus);
 
-// Storage Routes
+// Storage & Communication Routes
 router.post('/upload', requireAuth, upload.single('file'), applicationController.upload);
+router.post('/:id/attachments', requireAuth, requireRole('admin', 'agent'), upload.single('file'), applicationController.addAttachment);
+router.post('/:id/notes', requireAuth, requireRole('admin', 'agent'), applicationController.addNote);
 router.get('/:id/attachment-preview', requireAuth, applicationController.getAttachmentPreviewUrl);
 
 export default router;

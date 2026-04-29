@@ -1,39 +1,40 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Lock, Send, Trash2, AtSign, Clock, MessageSquare, ShieldCheck } from 'lucide-react';
-import { Note, Application } from '../../data/applications';
-import { mockApi, User } from '../../lib/api/mockApi';
+import { applicationApi } from '../../lib/api/applicationApi';
+import { adminApi } from '../../lib/api/adminApi';
+import { useAuth } from '../../context/AuthContext';
+import { User } from '../../types/user';
 
 interface InternalNotesProps {
-  application: Application;
+  application: any; // Using any or specific Application type
   onUpdate: () => void;
 }
 
 export function InternalNotes({ application, onUpdate }: InternalNotesProps) {
-  const [notes, setNotes] = useState<Note[]>(application.notes || []);
+  const { user: currentUser } = useAuth();
+  const [notes, setNotes] = useState<any[]>(application.notes || []);
   const [newNote, setNewNote] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showMentions, setShowMentions] = useState(false);
   const [mentionQuery, setMentionQuery] = useState('');
-  const [agents, setAgents] = useState<User[]>([]);
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [agents, setAgents] = useState<any[]>([]);
   
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const notesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setNotes(application.notes || []);
-    const user = mockApi.getCurrentUser();
-    setCurrentUser(user);
     loadAgents();
-  }, [application.id, application.notes]);
-
-  // Scroll to bottom is now manually triggered after adding a note
-  // to prevent annoying auto-scroll on mount/other updates.
+  }, [application._id, application.notes]);
 
   const loadAgents = async () => {
-    const allUsers = await mockApi.getUsers();
-    setAgents(allUsers.filter(u => u.role === 'admin' || u.role === 'agent'));
+    try {
+      const data = await adminApi.listAgents();
+      setAgents(data.agents);
+    } catch (e) {
+      console.error("Failed to load agents for mentions", e);
+    }
   };
 
   const scrollToBottom = () => {
@@ -44,31 +45,27 @@ export function InternalNotes({ application, onUpdate }: InternalNotesProps) {
     if (!newNote.trim() || isSubmitting) return;
     setIsSubmitting(true);
     try {
-      const note = await mockApi.addNote(application.id, newNote);
-      if (note) {
+      const res = await applicationApi.addNote(application._id, newNote);
+      if (res.success) {
         setNewNote('');
         onUpdate();
         
-        // Only scroll to bottom when the user explicitly sends a message
         setTimeout(() => {
           scrollToBottom();
         }, 100);
-        
-        // Handle mentions in console for demo
-        const mentions = newNote.match(/@(\w+)/g);
-        if (mentions) {
-          console.log("System Notification: Agent mentioned in note", mentions);
-        }
       }
+    } catch (e) {
+      console.error("Failed to add note", e);
+      alert("Failed to post note to database.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleDeleteNote = async (noteId: string) => {
-    if (!confirm("Delete this internal note?")) return;
-    const ok = await mockApi.deleteNote(application.id, noteId);
-    if (ok) onUpdate();
+    // Note: deleteNote is not implemented in backend yet as per requirements
+    // but we can keep the UI if needed or remove it.
+    alert("Note deletion is restricted to system administrators.");
   };
 
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -134,25 +131,25 @@ export function InternalNotes({ application, onUpdate }: InternalNotesProps) {
           </div>
         ) : (
           notes.map((note) => (
-            <div key={note.id} className="group flex gap-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div key={note._id || note.id} className="group flex gap-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
               <div className="w-10 h-10 rounded-2xl bg-black/5 flex items-center justify-center shrink-0 border border-black/5 overflow-hidden">
                 <img 
-                  src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${note.authorName}${note.authorId}`} 
-                  alt={note.authorName}
+                  src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${note.authorName || 'User'}${note.authorId}`} 
+                  alt={note.authorName || 'User'}
                   className="w-full h-full object-cover"
                 />
               </div>
               <div className="flex-1 space-y-1">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold">{note.authorName}</span>
+                    <span className="text-sm font-bold">{note.authorName || 'Unknown User'}</span>
                     <span className="text-[10px] text-black/20 flex items-center gap-1 font-medium">
                       <Clock size={10} /> {timeAgo(note.createdAt)}
                     </span>
                   </div>
                   {(note.authorId === currentUser?.id || currentUser?.role === 'admin') && (
                     <button 
-                      onClick={() => handleDeleteNote(note.id)}
+                      onClick={() => handleDeleteNote(note._id || note.id)}
                       className="opacity-0 group-hover:opacity-100 p-2 hover:bg-red-50 text-red-500 rounded-lg transition-all"
                     >
                       <Trash2 size={14} />
@@ -160,7 +157,7 @@ export function InternalNotes({ application, onUpdate }: InternalNotesProps) {
                   )}
                 </div>
                 <div className="text-[13px] text-black/70 leading-relaxed font-medium whitespace-pre-wrap">
-                  {note.text.split(/(@\w+\s\w+|@\w+)/g).map((part, i) => (
+                  {note.text.split(/(@\w+\s\w+|@\w+)/g).map((part: any, i: any) => (
                     part.startsWith('@') ? (
                       <span key={i} className="text-blue-600 font-bold bg-blue-500/5 px-1 rounded">
                         {part}

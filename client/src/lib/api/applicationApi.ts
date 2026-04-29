@@ -144,4 +144,34 @@ export const applicationApi = {
     );
     return response.data;
   },
+
+  /**
+   * uploadFinalDocument — Uploads a final document and attaches it to the application.
+   */
+  uploadFinalDocument: async (applicationId: string, file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await api.post<{ success: boolean; application: Application }>(
+      `/applications/${applicationId}/attachments`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+    return response.data;
+  },
+
+  /**
+   * addNote — Adds an internal note/communication to the application.
+   */
+  addNote: async (applicationId: string, text: string) => {
+    const response = await api.post<{ success: boolean; application: Application }>(
+      `/applications/${applicationId}/notes`,
+      { text }
+    );
+    return response.data;
+  },
 };

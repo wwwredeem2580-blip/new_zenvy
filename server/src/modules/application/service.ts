@@ -301,3 +301,71 @@ export const unassignApplication = async (
   await application.save();
   return application;
 };
+
+/**
+ * addNote - Adds a communication note to an application.
+ */
+export const addNote = async (
+  applicationId: string,
+  note: { text: string; authorId: string; authorName: string }
+) => {
+  const query = mongoose.Types.ObjectId.isValid(applicationId) 
+    ? { _id: applicationId } 
+    : { applicationId };
+
+  const application = await Application.findOne(query);
+  if (!application) throw new CustomError('Application not found', 404);
+
+  application.notes.push({
+    ...note,
+    createdAt: new Date()
+  });
+  
+  application.lastActivityAt = new Date();
+  await application.save();
+  return application;
+};
+
+/**
+ * addAttachment - Uploads and associates a file with an application.
+ */
+export const addAttachment = async (
+  applicationId: string,
+  userId: string,
+  file: Express.Multer.File,
+  uploaderName: string
+) => {
+  // 1. Upload to storage
+  const uploadResult = await uploadAttachment(userId, file);
+
+  // 2. Find application
+  const query = mongoose.Types.ObjectId.isValid(applicationId) 
+    ? { _id: applicationId } 
+    : { applicationId };
+
+  const application = await Application.findOne(query);
+  if (!application) throw new CustomError('Application not found', 404);
+
+  // 3. Add to attachments
+  application.attachments.push({
+    name: file.originalname,
+    url: uploadResult.objectKey,
+    uploadedBy: uploaderName,
+    uploadedById: userId,
+    uploadedAt: new Date()
+  });
+
+  application.lastActivityAt = new Date();
+  
+  // Add to activity log
+  application.activityLog.push({
+    type: 'upload',
+    description: `Document "${file.originalname}" uploaded by ${uploaderName}.`,
+    actorName: uploaderName,
+    actorId: userId,
+    timestamp: new Date()
+  });
+
+  await application.save();
+  return application;
+};

@@ -5,7 +5,7 @@
 
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   X, 
@@ -65,6 +65,7 @@ type AdminTab = 'Overview' | 'Applications' | 'Users' | 'Workspaces' | 'Analytic
 export default function AdminPage() {
   const router = useRouter();
   const { user } = useAuth();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const onBack = () => router.push('/');
   const [activeTab, setActiveTab] = useState<AdminTab>('Applications');
@@ -637,26 +638,44 @@ export default function AdminPage() {
                          <div className="space-y-6">
                             <div className="flex justify-end">
                                {(user?.role === 'admin' || user?.id === selectedApp.reviewerId) && (
-                                  <button 
-                                    disabled={isDocUploading}
-                                    onClick={async () => {
-                                       setIsDocUploading(true);
-                                       await mockApi.uploadApplicationDocument(selectedApp._id, `Signed_Final_${Math.floor(Math.random()*1000)}.pdf`);
-                                       await loadData();
-                                       setIsDocUploading(false);
-                                    }}
-                                    className="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-xl font-bold text-[9px] uppercase tracking-widest hover:scale-105 transition-all shadow-lg"
-                                  >
-                                     {isDocUploading ? <Loader2 size={12} className="animate-spin" /> : <PlusIcon size={12} />}
-                                     Upload Final Document
-                                  </button>
+                                  <>
+                                    <input 
+                                      type="file" 
+                                      className="hidden" 
+                                      ref={fileInputRef} 
+                                      onChange={async (e) => {
+                                        const file = e.target.files?.[0];
+                                        if (!file || !selectedApp) return;
+                                        setIsDocUploading(true);
+                                        try {
+                                          const res = await applicationApi.uploadFinalDocument(selectedApp._id, file);
+                                          if (res.success) {
+                                            await loadData();
+                                          }
+                                        } catch (err) {
+                                          console.error("Upload failed", err);
+                                          alert("Failed to upload document to storage.");
+                                        } finally {
+                                          setIsDocUploading(false);
+                                        }
+                                      }}
+                                    />
+                                    <button 
+                                      disabled={isDocUploading}
+                                      onClick={() => fileInputRef.current?.click()}
+                                      className="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-xl font-bold text-[9px] uppercase tracking-widest hover:scale-105 transition-all shadow-lg"
+                                    >
+                                       {isDocUploading ? <Loader2 size={12} className="animate-spin" /> : <PlusIcon size={12} />}
+                                       Upload Final Document
+                                    </button>
+                                  </>
                                )}
                             </div>
 
                             {selectedApp.attachments && selectedApp.attachments.length > 0 ? (
                               <div className="grid gap-2">
-                                 {selectedApp.attachments.map((doc) => (
-                                    <div key={doc.id} className="group p-5 bg-white border border-black/5 rounded-[24px] flex items-center justify-between hover:shadow-xl hover:shadow-black/5 transition-all">
+                                 {selectedApp.attachments.map((doc: any) => (
+                                    <div key={doc._id || doc.id} className="group p-5 bg-white border border-black/5 rounded-[24px] flex items-center justify-between hover:shadow-xl hover:shadow-black/5 transition-all">
                                        <div className="flex items-center gap-4">
                                           <div className="w-12 h-12 bg-black/5 rounded-2xl flex items-center justify-center text-black/20">
                                              <FileText size={20} />

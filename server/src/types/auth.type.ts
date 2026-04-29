@@ -7,6 +7,8 @@ export interface JwtTokenPayload {
   role: UserRole;
   email: string;
   isEmailVerified: boolean;
+  firstName: string;
+  lastName: string;
 }
 
 // Augment Express Request globally so req.user is available in all controllers
