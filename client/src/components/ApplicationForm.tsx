@@ -31,6 +31,7 @@ import {
 import { useState, useRef, useMemo, useEffect } from "react";
 import React from "react";
 import { applicationApi } from "../lib/api/applicationApi";
+import { authApi } from "../lib/api/authApi";
 import PaymentSelection, { PaymentMethod } from "./ui/PaymentSelection";
 import DateDropdownField from "./ui/DateDropdownField";
 
@@ -203,9 +204,15 @@ export default function ApplicationForm() {
   const [showBouncingArrow, setShowBouncingArrow] = useState(false);
 
   const onClose = () => router.push('/');
-  const onComplete = () => {
-    const freshUser = mockApi.getCurrentUser();
-    if (freshUser) setUser(freshUser);
+  const onComplete = async () => {
+    try {
+      const response = await authApi.getMe();
+      if (response.success && response.user) {
+        setUser(response.user);
+      }
+    } catch (error) {
+      console.error("Failed to refresh user after completion", error);
+    }
   };
   const [step, setStep] = useState<Step>(1);
   const [formData, setFormData] = useState<FormData>(initialData);
@@ -352,7 +359,7 @@ export default function ApplicationForm() {
         paymentMethod: method as any,
       });
       
-      setSubmittedAppId(applicationResponse.application.id);
+      setSubmittedAppId(applicationResponse.application.applicationId);
       setIsSubmitted(true);
       if (onComplete) onComplete();
     } catch (error) {

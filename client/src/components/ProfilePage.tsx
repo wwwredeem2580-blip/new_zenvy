@@ -37,12 +37,10 @@ import { useAuth } from "@/context/AuthContext";
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const onBack = () => router.push('/');
   
   // Guard for rendering if user is missing (page level should handle this but safety first)
-  if (!user) return null;
-
   const [localUser, setLocalUser] = useState<User>(user as any);
   const [applications, setApplications] = useState<Application[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -50,9 +48,21 @@ export default function ProfilePage() {
   const [showInvoice, setShowInvoice] = useState(false);
 
   useEffect(() => {
+    if (!user) return;
     refreshUser();
     loadUserApplications();
   }, [user]);
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#F5F5F7] space-y-4">
+        <Loader2 size={40} className="animate-spin text-black/10" />
+        <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-black/40">Authenticating...</p>
+      </div>
+    );
+  }
+
+  if (!user) return null;
 
   const refreshUser = async () => {
     try {
@@ -124,7 +134,7 @@ export default function ProfilePage() {
                 <p className="text-[10px] text-white/40 uppercase tracking-[0.2em] font-bold">My Balance</p>
                 <div className="flex items-baseline gap-2">
                     <span className="text-3xl font-space font-bold text-white tracking-tighter">
-                        {formatCurrency(localUser.balance || 0)}
+                        {formatCurrency(localUser?.balance || 0)}
                     </span>
                     <TrendingUp size={14} className="text-green-400" />
                 </div>
@@ -145,7 +155,7 @@ export default function ProfilePage() {
                <div className="flex justify-between items-end gap-2">
                   <div className="space-y-1 min-w-0 flex-1 pr-2">
                      <p className="text-[8px] text-white/20 uppercase tracking-widest font-bold truncate">Account Holder</p>
-                     <p className="text-sm text-white font-medium tracking-tight uppercase truncate">{localUser.firstName} {localUser.lastName}</p>
+                     <p className="text-sm text-white font-medium tracking-tight uppercase truncate">{localUser?.firstName} {localUser?.lastName}</p>
                   </div>
                   <div className="flex -space-x-2 flex-shrink-0">
                      <div className="w-8 h-8 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm" />
@@ -161,12 +171,12 @@ export default function ProfilePage() {
                 <p className="text-[10px] uppercase tracking-widest font-bold text-black/40">Profile Summary</p>
                 <h3 className="text-xl font-space font-bold">Account Details.</h3>
              </div>
-             <div className="space-y-4">
-                 <InfoRow icon={<UserIcon size={14} />} label="Full Name" value={`${localUser.firstName} ${localUser.lastName}`} />
-                 <InfoRow icon={<Mail size={14} />} label="Email Address" value={localUser.email} />
-                 <InfoRow icon={<Hash size={14} />} label="Member ID" value={`#${localUser.id}`} />
-                 <InfoRow icon={<Calendar size={14} />} label="Joined" value={new Date(localUser.createdAt).toLocaleDateString()} />
-              </div>
+              <div className="space-y-4">
+                  <InfoRow icon={<UserIcon size={14} />} label="Full Name" value={`${localUser?.firstName || ''} ${localUser?.lastName || ''}`} />
+                  <InfoRow icon={<Mail size={14} />} label="Email Address" value={localUser?.email || ''} />
+                  <InfoRow icon={<Hash size={14} />} label="Member ID" value={`#${localUser?.id || localUser?._id || ''}`} />
+                  <InfoRow icon={<Calendar size={14} />} label="Joined" value={localUser?.createdAt ? new Date(localUser.createdAt).toLocaleDateString() : ''} />
+               </div>
           </div>
         </div>
 
@@ -199,7 +209,7 @@ export default function ProfilePage() {
             <div className="grid gap-4">
               {applications.map((app) => (
                 <motion.div
-                  key={app.id}
+                  key={app._id}
                   onClick={() => setSelectedApp(app)}
                   className="bg-white border border-black/5 p-4 sm:p-5 rounded-[24px] flex items-center justify-between cursor-pointer hover:border-black/20 hover:shadow-xl hover:shadow-black/5 transition-all group gap-2"
                 >
@@ -210,7 +220,7 @@ export default function ProfilePage() {
                     <div className="min-w-0 pr-2">
                       <h4 className="font-bold text-xs sm:text-sm truncate">{app.selectedServices.map(s => s.name).join(", ")}</h4>
                       <div className="flex items-center gap-1 sm:gap-2 mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis">
-                        <span className="text-[9px] uppercase tracking-widest font-bold text-black/40">ID: #{app.id}</span>
+                        <span className="text-[9px] uppercase tracking-widest font-bold text-black/40">ID: #{app.applicationId}</span>
                         <div className="flex-shrink-0 w-1 h-1 rounded-full bg-black/10" />
                         <span className="text-[9px] uppercase tracking-widest font-bold text-black/40 truncate">{new Date(app.submittedAt).toLocaleDateString()}</span>
                       </div>
@@ -410,7 +420,7 @@ function InvoiceModal({ app, user, onClose }: { app: Application, user: User, on
                    <div className="flex-1 h-[1px] bg-black/10 order-2 md:order-1 self-center hidden sm:block" />
                    <h1 className="text-2xl sm:text-4xl md:text-6xl font-space font-normal tracking-tighter uppercase order-1 md:order-2 sm:ml-8">
                       Invoice
-                      <p className="text-lg font-space font-normal tracking-tighter">#{app.id.replace('CAF-', '')}</p>
+                      <p className="text-lg font-space font-normal tracking-tighter">#{app.applicationId?.replace('CAF-', '') || '000000'}</p>
                    </h1>
                 </div>
                 </div>
@@ -421,8 +431,8 @@ function InvoiceModal({ app, user, onClose }: { app: Application, user: User, on
                       <div className="space-y-1">
                          <p className="text-[8px] uppercase tracking-[0.2em] font-bold text-black/40">Issued To:</p>
                          <div className="space-y-1">
-                            <p className="font-bold text-sm tracking-tight">{user.firstName} {user.lastName}</p>
-                            <p className="text-xs text-black/60">{user.email}</p>
+                            <p className="font-bold text-sm tracking-tight">{user?.firstName} {user?.lastName}</p>
+                            <p className="text-xs text-black/60">{user?.email}</p>
                          </div>
                       </div>
 
@@ -455,7 +465,7 @@ function InvoiceModal({ app, user, onClose }: { app: Application, user: User, on
                           <div key={i} className="grid grid-cols-[1fr_60px_30px_60px] sm:grid-cols-[1fr_80px_40px_80px] items-start group">
                              <div className="space-y-0.5 pr-2 sm:pr-8">
                                 <span className="font-light text-xs sm:text-sm block tracking-tight italic truncate">{s.name}</span>
-                                <span className="text-[7px] sm:text-[8px] text-black/60 block font-medium uppercase tracking-tight">Ref: {app.id.slice(-4)}-{i+1}</span>
+                                <span className="text-[7px] sm:text-[8px] text-black/60 block font-medium uppercase tracking-tight">Ref: {app.applicationId.slice(-4)}-{i+1}</span>
                              </div>
                              <span className="text-[10px] sm:text-xs font-bold text-right py-0.5">€{s.price.toFixed(0)}</span>
                              <span className="text-[10px] sm:text-xs font-bold text-center py-0.5 opacity-20 text-[10px]">1</span>

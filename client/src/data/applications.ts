@@ -36,7 +36,9 @@ export interface Attachment {
 }
 
 export interface Application {
-  id: string;
+  _id: string;
+  applicationId: string;
+  id?: string; // Legacy field for mock data
   name: string;
   dob: string;
   pob: string;
@@ -68,7 +70,8 @@ export interface Application {
 
 export const mockApplications: Application[] = [
   {
-    id: "CAF-882910",
+    _id: "1",
+    applicationId: "CAF-882910",
     name: "Marco Rossi",
     dob: "1985-05-12",
     pob: "Rome, Italy",
@@ -85,7 +88,8 @@ export const mockApplications: Application[] = [
     ]
   },
   {
-    id: "CAF-192837",
+    _id: "2",
+    applicationId: "CAF-192837",
     name: "Sofia Bianchi",
     dob: "1992-09-21",
     pob: "Milan, Italy",
@@ -101,7 +105,8 @@ export const mockApplications: Application[] = [
     ]
   },
   {
-    id: "CAF-556677",
+    _id: "3",
+    applicationId: "CAF-556677",
     name: "Ahmed Khan",
     dob: "1988-11-20",
     pob: "Dhaka, Bangladesh",
@@ -118,7 +123,8 @@ export const mockApplications: Application[] = [
     ]
   },
   {
-    id: "CAF-123456",
+    _id: "4",
+    applicationId: "CAF-123456",
     name: "Elena Popescu",
     dob: "1995-02-28",
     pob: "Bucharest, Romania",

@@ -28,7 +28,7 @@ function StatusPill({ status }: { status: ApplicationStatus }) {
 export function ApplicationsView({ applications, onSelect }: { applications: Application[], onSelect: (app: Application) => void }) {
   const [search, setSearch] = useState("");
   const filtered = applications.filter((app: Application) => 
-    app.name.toLowerCase().includes(search.toLowerCase()) || app.id.includes(search)
+    app.name.toLowerCase().includes(search.toLowerCase()) || (app.applicationId || "").includes(search)
   );
 
   return (
@@ -49,12 +49,12 @@ export function ApplicationsView({ applications, onSelect }: { applications: App
       <div className="space-y-0.5">
          {filtered.map((app: Application) => (
             <motion.div 
-               key={app.id} 
+               key={app.applicationId} 
                onClick={() => onSelect(app)}
                className="group flex items-center justify-between py-4 px-4 border-b border-black/5 hover:bg-black/[0.02] transition-all cursor-pointer"
             >
                <div className="flex items-center gap-12">
-                  <span className="text-[10px] max-w-[20px] sm:max-w-none font-mono font-bold text-black/50">#{app.id}</span>
+                  <span className="text-[10px] max-w-[20px] sm:max-w-none font-mono font-bold text-black/50">#{app.applicationId}</span>
                   <div className="flex flex-col">
                      <span className="text-sm font-bold">{app.name}</span>
                      <span className="text-[10px] uppercase tracking-widest font-bold text-black/30">{new Date(app.submittedAt).toLocaleDateString()}</span>
