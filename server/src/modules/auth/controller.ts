@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { User } from '../../models/User.model';
 import { handleError } from '../../utils/handleError';
 import { ACCESS_TOKEN_CONFIG } from '../../utils/cookieConfig';
 import {
@@ -94,8 +95,13 @@ export const googleCallback = async (req: Request, res: Response): Promise<void>
 // ─── GET /auth/me ─────────────────────────────────────────────────────────────
 export const getMe = async (req: Request, res: Response): Promise<void> => {
   try {
-    // req.user is set by requireAuth middleware
-    res.status(200).json({ success: true, user: req.user });
+    const userId = (req as any).user.userId;
+    const user = await User.findById(userId);
+    if (!user) {
+      res.status(404).json({ success: false, message: 'User not found' });
+      return;
+    }
+    res.status(200).json({ success: true, user });
   } catch (error) {
     handleError(error, res);
   }

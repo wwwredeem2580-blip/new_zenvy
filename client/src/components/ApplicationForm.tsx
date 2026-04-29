@@ -30,7 +30,6 @@ import {
 } from "lucide-react";
 import { useState, useRef, useMemo, useEffect } from "react";
 import React from "react";
-import { mockApi } from "../lib/api/mockApi";
 import { applicationApi } from "../lib/api/applicationApi";
 import PaymentSelection, { PaymentMethod } from "./ui/PaymentSelection";
 import DateDropdownField from "./ui/DateDropdownField";
@@ -331,10 +330,9 @@ export default function ApplicationForm() {
     setIsLoading(true);
     
     try {
-      const user = mockApi.getCurrentUser();
-      if (user && discountAmount > 0) {
-        await mockApi.deductCredits(user.id, discountAmount);
-      }
+      // Credits are handled by the backend during submission now
+      // Or we can deduct them here if we have an endpoint for it.
+      // For now, let's assume the backend will handle the balance if paymentMethod is 'Credits'
 
       const applicationResponse = await applicationApi.submitApplication({
         name: formData.name,

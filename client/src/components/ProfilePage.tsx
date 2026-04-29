@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import { mockApi, User } from "../lib/api/mockApi";
 import { applicationApi } from "../lib/api/applicationApi";
+import { authApi } from "../lib/api/authApi";
 import { Application, ApplicationStatus } from "../data/applications";
 
 import { useRouter } from "next/navigation";
@@ -55,9 +56,9 @@ export default function ProfilePage() {
 
   const refreshUser = async () => {
     try {
-      const freshUser = await mockApi.getUserById(user.id);
-      if (freshUser) {
-        setLocalUser(freshUser);
+      const response = await authApi.getMe();
+      if (response.success && response.user) {
+        setLocalUser(response.user);
       }
     } catch (error) {
       console.error("Failed to refresh user data", error);

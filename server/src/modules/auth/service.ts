@@ -153,6 +153,7 @@ export const loginManual = async (data: LoginInput) => {
       role: user.role,
       avatar: user.avatar,
       isEmailVerified: user.isEmailVerified,
+      balance: user.balance ?? 0,
     },
   };
 };
@@ -213,6 +214,11 @@ export const handleGoogleCallback = async (code: string) => {
 
     if (picture && !user.avatar) {
       user.avatar = picture;
+      needsSave = true;
+    }
+
+    if (user.balance === undefined) {
+      user.balance = 0;
       needsSave = true;
     }
 
