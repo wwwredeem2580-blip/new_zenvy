@@ -13,6 +13,11 @@ export interface AgentWorkload {
 }
 
 export const adminApi = {
+  getAnalytics: async () => {
+    const response = await api.get<{ success: boolean; analytics: any }>('/admin/analytics');
+    return response.data;
+  },
+
   /**
    * listAgents — Fetches all agents and their current workload.
    */

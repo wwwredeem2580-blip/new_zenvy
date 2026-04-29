@@ -9,6 +9,9 @@ import multer from 'multer';
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
+// Analytics
+router.get('/analytics', requireAuth, requireRole('admin'), adminController.getAnalytics);
+
 // Staff Management
 router.get('/agents', requireAuth, requireRole('admin', 'agent'), adminController.listAgents);
 router.get('/invitations', requireAuth, requireRole('admin'), invitationController.listInvitations);

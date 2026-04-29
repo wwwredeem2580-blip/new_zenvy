@@ -59,3 +59,57 @@ export const addCredits = async (userId: string, amount: number) => {
   await user.save();
   return user;
 };
+
+/**
+ * getDashboardAnalytics - Aggregates real revenue, pending revenue, and graphical timeseries data.
+ */
+export const getDashboardAnalytics = async () => {
+  const applications = await Application.find();
+
+  let totalRevenue = 0;
+  let pendingRevenue = 0;
+  let statuses = { Pending: 0, Reviewing: 0, Approved: 0, Rejected: 0 };
+
+  // For charts: last 7 days of revenue inflow
+  const last7Days: Record<string, number> = {};
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    last7Days[d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })] = 0;
+  }
+
+  applications.forEach((app) => {
+    // Tally Statuses
+    if (app.status in statuses) {
+      statuses[app.status as keyof typeof statuses] += 1;
+    }
+
+    // Calculate Application Total
+    const appTotal = app.selectedServices.reduce((sum, s) => sum + s.price, 0);
+
+    if (app.paymentStatus === 'Received') {
+      totalRevenue += appTotal;
+      
+      // Chart Data grouping
+      const d = new Date((app as any).createdAt || (app as any).submittedAt || new Date());
+      const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      if (last7Days[dateStr] !== undefined) {
+        last7Days[dateStr] += appTotal;
+      }
+    } else {
+      pendingRevenue += appTotal;
+    }
+  });
+
+  const chartData = Object.keys(last7Days).map((date) => ({
+    date,
+    revenue: last7Days[date],
+  }));
+
+  return {
+    totalRevenue,
+    pendingRevenue,
+    statuses,
+    chartData,
+  };
+};

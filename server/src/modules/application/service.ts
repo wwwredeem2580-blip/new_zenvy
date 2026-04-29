@@ -6,7 +6,7 @@ import mongoose from 'mongoose';
 import { generatePreviewUrl } from '../../lib/backblaze';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { addEmailJob } from '../../workers/email.queue';
-
+import { generateAndUploadInvoice } from '../../utils/invoice.service';
 /**
  * submitApplication — Creates a new application in the system.
  * Generates a unique CAF-XXXXXX ID.
@@ -192,6 +192,28 @@ export const updatePaymentStatus = async (
     actorId: actor.id,
     timestamp: new Date(),
   });
+
+  if (status === 'Received') {
+    try {
+      const invoiceData = await generateAndUploadInvoice(application);
+      application.attachments.push({
+        name: invoiceData.name,
+        url: invoiceData.url,
+        uploadedBy: 'System (Auto-generated)',
+        uploadedById: 'system',
+        uploadedAt: new Date(),
+      });
+      application.activityLog.push({
+        type: 'document',
+        description: `Invoice ${invoiceData.name} automatically generated and attached.`,
+        actorName: 'System',
+        actorId: 'system',
+        timestamp: new Date(),
+      });
+    } catch (err) {
+      console.error('Failed to generate invoice:', err);
+    }
+  }
 
   await application.save();
 

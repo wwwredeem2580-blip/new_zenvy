@@ -21,8 +21,22 @@ export const ensureSystemWorkspace = async () => {
   return ws;
 };
 
+export const ensureInvoicesWorkspace = async () => {
+  const invoicesName = 'Invoices';
+  let ws = await Workspace.findOne({ name: invoicesName });
+  if (!ws) {
+    ws = await Workspace.create({
+      name: invoicesName,
+      isSystem: true,
+      permission: 'Restricted',
+    });
+  }
+  return ws;
+};
+
 export const listWorkspaces = async () => {
   await ensureSystemWorkspace();
+  await ensureInvoicesWorkspace();
   return Workspace.find().sort({ isSystem: -1, name: 1 });
 };
 

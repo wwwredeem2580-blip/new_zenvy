@@ -41,3 +41,12 @@ export const addCredits = async (req: Request, res: Response): Promise<void> => 
     handleError(error, res);
   }
 };
+
+export const getAnalytics = async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const analytics = await adminService.getDashboardAnalytics();
+    res.status(200).json({ success: true, analytics });
+  } catch (error) {
+    handleError(error, res);
+  }
+};
