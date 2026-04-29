@@ -1,5 +1,5 @@
 import { api } from './axios';
-import { Application } from '../../data/applications';
+import { Application, ApplicationStatus } from '../../data/applications';
 
 export interface CreateApplicationData {
   name: string;
@@ -87,6 +87,39 @@ export const applicationApi = {
           'Content-Type': 'multipart/form-data',
         },
       }
+    );
+    return response.data;
+  },
+
+  /**
+   * updatePaymentStatus - (Admin/Agent) Updates the payment status.
+   */
+  updatePaymentStatus: async (applicationId: string, status: 'Pending' | 'Received') => {
+    const response = await api.patch<{ success: boolean; application: Application }>(
+      `/applications/${applicationId}/payment-status`,
+      { status }
+    );
+    return response.data;
+  },
+
+  /**
+   * assignAgent - (Admin/Agent) Assigns an agent to the application.
+   */
+  assignAgent: async (applicationId: string, agentId: string) => {
+    const response = await api.patch<{ success: boolean; application: Application }>(
+      `/applications/${applicationId}/assign`,
+      { agentId }
+    );
+    return response.data;
+  },
+
+  /**
+   * updateStatus - (Admin/Agent) Updates the application status.
+   */
+  updateStatus: async (applicationId: string, status: ApplicationStatus) => {
+    const response = await api.patch<{ success: boolean; application: Application }>(
+      `/applications/${applicationId}/status`,
+      { status }
     );
     return response.data;
   },

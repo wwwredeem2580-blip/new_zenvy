@@ -71,3 +71,50 @@ export const getAttachmentPreviewUrl = async (req: Request, res: Response): Prom
     handleError(error, res);
   }
 };
+export const updatePaymentStatus = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    const actor = {
+      name: `${(req as any).user.firstName} ${(req as any).user.lastName}`,
+      id: (req as any).user.userId,
+    };
+
+    const application = await applicationService.updatePaymentStatus(id as string, status, actor);
+    res.status(200).json({ success: true, application });
+  } catch (error) {
+    handleError(error, res);
+  }
+};
+
+export const assignAgent = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { agentId } = req.body;
+    const actor = {
+      name: `${(req as any).user.firstName} ${(req as any).user.lastName}`,
+      id: (req as any).user.userId,
+    };
+
+    const application = await applicationService.assignApplication(id as string, agentId, actor);
+    res.status(200).json({ success: true, application });
+  } catch (error) {
+    handleError(error, res);
+  }
+};
+
+export const updateStatus = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    const actor = {
+      name: `${(req as any).user.firstName} ${(req as any).user.lastName}`,
+      id: (req as any).user.userId,
+    };
+
+    const application = await applicationService.updateStatus(id as string, status, actor);
+    res.status(200).json({ success: true, application });
+  } catch (error) {
+    handleError(error, res);
+  }
+};

@@ -1,4 +1,4 @@
-import { Application, IApplication } from '../../models/Application.model';
+import { Application, IApplication, ApplicationStatus } from '../../models/Application.model';
 import { User } from '../../models/User.model';
 import { CreateApplicationInput } from './schema';
 import CustomError from '../../utils/CustomError';
@@ -158,4 +158,94 @@ export const getSignedPreviewUrl = async (
   }
 
   return generatePreviewUrl(objectKey);
+};
+
+/**
+ * updatePaymentStatus - Updates the payment status of an application.
+ */
+export const updatePaymentStatus = async (
+  applicationId: string,
+  status: 'Pending' | 'Received',
+  actor: { name: string; id: string }
+) => {
+  const application = await Application.findOne({ applicationId });
+  if (!application) throw new CustomError('Application not found', 404);
+
+  application.paymentStatus = status;
+  application.activityLog.push({
+    type: 'financial',
+    description: `Payment status updated to ${status}.`,
+    actorName: actor.name,
+    actorId: actor.id,
+    timestamp: new Date(),
+  });
+
+  await application.save();
+  return application;
+};
+
+/**
+ * assignApplication - Assigns an application to an agent or admin.
+ */
+export const assignApplication = async (
+  applicationId: string,
+  reviewerId: string,
+  actor: { name: string; id: string }
+) => {
+  const application = await Application.findOne({ applicationId });
+  if (!application) throw new CustomError('Application not found', 404);
+
+  // Requirement: Payment must be received
+  if (application.paymentStatus !== 'Received') {
+    throw new CustomError('Cannot assign agent until payment is received/approved.', 400);
+  }
+
+  const reviewer = await User.findById(reviewerId);
+  if (!reviewer) throw new CustomError('Reviewer not found', 404);
+  if (reviewer.role !== 'agent' && reviewer.role !== 'admin') {
+    throw new CustomError('Assigned user must be an agent or admin.', 400);
+  }
+
+  application.reviewerId = new mongoose.Types.ObjectId(reviewerId);
+  application.reviewerName = `${reviewer.firstName} ${reviewer.lastName}`;
+  application.status = 'Reviewing';
+  application.lastActivityAt = new Date();
+
+  application.activityLog.push({
+    type: 'assignment',
+    description: `Application assigned to ${application.reviewerName}. Status updated to Reviewing.`,
+    actorName: actor.name,
+    actorId: actor.id,
+    timestamp: new Date(),
+  });
+
+  await application.save();
+  
+  // TODO: Send email notification to applicant
+  
+  return application;
+};
+
+/**
+ * updateStatus - Updates the status of an application.
+ */
+export const updateStatus = async (
+  applicationId: string,
+  status: ApplicationStatus,
+  actor: { name: string; id: string }
+) => {
+  const application = await Application.findOne({ applicationId });
+  if (!application) throw new CustomError('Application not found', 404);
+
+  application.status = status;
+  application.activityLog.push({
+    type: 'status',
+    description: `Status updated to ${status}.`,
+    actorName: actor.name,
+    actorId: actor.id,
+    timestamp: new Date(),
+  });
+
+  await application.save();
+  return application;
 };

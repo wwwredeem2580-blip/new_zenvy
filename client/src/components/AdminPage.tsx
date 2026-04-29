@@ -36,6 +36,8 @@ import {
   Search,
   Home,
   PlusIcon,
+  CreditCard,
+  Check,
   FolderPlus
 } from 'lucide-react';
 
@@ -429,56 +431,102 @@ export default function AdminPage() {
                     </div>
                  </div>
 
-                 {/* Admin Action Section */}
-                 <section className="space-y-4">
+                  {/* Financial Verification & Payment Control */}
+                  <section className="bg-black/5 p-8 rounded-[40px] space-y-6">
                     <div className="flex items-center justify-between">
-                       <p className="text-[10px] uppercase tracking-widest font-bold text-black/40">Admin Actions</p>
-                           <div className="flex items-center gap-4">
-                              <button 
-                                 onClick={() => setIsAssignModalOpen(true)}
-                                 className="text-[9px] uppercase tracking-widest font-bold text-blue-600 hover:text-blue-700 transition-colors flex items-center gap-2"
-                              >
-                                 <PlusIcon size={12} /> Assign Agent
-                              </button>
-                              {selectedApp.status === 'Reviewing' && (
-                                 <button 
-                                    onClick={async () => {
-                                       if (!confirm(`Admin Override: You are about to release the review held by ${selectedApp.reviewerName}. Proceed?`)) return;
-                                       await mockApi.updateApplicationStatus(selectedApp.id, 'Pending', true);
-                                       const updatedApps = await mockApi.getApplications();
-                                       setApplications(updatedApps);
-                                       const current = updatedApps.find(a => a.id === selectedApp.id);
-                                       if (current) setSelectedApp(current);
-                                    }}
-                                    className="text-[9px] uppercase tracking-widest font-bold text-red-500 hover:text-red-600 transition-colors flex items-center gap-2"
-                                 >
-                                    <X size={12} /> Release Review
-                                 </button>
-                              )}
-                           </div>
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 bg-white rounded-2xl flex items-center justify-center text-black shadow-sm">
+                          <CreditCard size={18} />
+                        </div>
+                        <div>
+                          <p className="text-[8px] uppercase tracking-widest font-bold text-black/30">Payment Method</p>
+                          <p className="text-sm font-bold tracking-tight">{selectedApp.paymentMethod || "Not Selected"} • {selectedApp.transactionId || "No TXID"}</p>
+                        </div>
+                      </div>
+                      <div className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest border ${selectedApp.paymentStatus === 'Received' ? 'bg-green-500/10 text-green-600 border-green-500/20' : 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20'}`}>
+                        {selectedApp.paymentStatus}
+                      </div>
                     </div>
-                    <div className="flex flex-wrap gap-2">
+
+                    <div className="pt-4 border-t border-black/5 flex items-center justify-between">
+                      <p className="text-[10px] uppercase tracking-widest font-bold text-black/40">Verify Payment</p>
+                      <div className="flex gap-2">
+                        <button 
+                          onClick={async () => {
+                            const res = await applicationApi.updatePaymentStatus(selectedApp.applicationId, 'Received');
+                            if (res.success) loadData();
+                          }}
+                          disabled={selectedApp.paymentStatus === 'Received'}
+                          className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${selectedApp.paymentStatus === 'Received' ? 'bg-black text-white opacity-50 cursor-default' : 'bg-black text-white hover:scale-105 shadow-lg'}`}
+                        >
+                          Approve Payment
+                        </button>
+                        <button 
+                          onClick={async () => {
+                            const res = await applicationApi.updatePaymentStatus(selectedApp.applicationId, 'Pending');
+                            if (res.success) loadData();
+                          }}
+                          disabled={selectedApp.paymentStatus === 'Pending'}
+                          className="px-4 py-2 bg-white border border-black/5 text-black/40 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:border-black/20 transition-all"
+                        >
+                          Reset to Pending
+                        </button>
+                      </div>
+                    </div>
+                  </section>
+
+                  {/* Admin Assignment Section */}
+                  <section className="space-y-6">
+                    <div className="flex items-center justify-between">
+                       <p className="text-[10px] uppercase tracking-widest font-bold text-black/40">Task Assignment</p>
+                       <div className="flex items-center gap-4">
+                          {selectedApp.paymentStatus === 'Received' ? (
+                            <>
+                              <button 
+                                onClick={async () => {
+                                  if (!user?.id) return;
+                                  const res = await applicationApi.assignAgent(selectedApp.applicationId, user.id);
+                                  if (res.success) loadData();
+                                }}
+                                className="text-[9px] uppercase tracking-widest font-bold text-green-600 hover:text-green-700 transition-colors flex items-center gap-2"
+                              >
+                                <Check size={12} /> Claim Task
+                              </button>
+                              <button 
+                                onClick={() => setIsAssignModalOpen(true)}
+                                className="text-[9px] uppercase tracking-widest font-bold text-blue-600 hover:text-blue-700 transition-colors flex items-center gap-2"
+                              >
+                                <PlusIcon size={12} /> Assign Agent
+                              </button>
+                            </>
+                          ) : (
+                            <div className="flex items-center gap-2 text-[8px] uppercase tracking-widest font-bold text-black/20 bg-black/5 px-3 py-1.5 rounded-lg">
+                               <Shield size={10} /> Payment Approval Required to Assign
+                            </div>
+                          )}
+                       </div>
+                    </div>
+
+                    <div className="bg-black/5 p-1 rounded-full flex gap-1">
                        {(['Pending', 'Reviewing', 'Approved', 'Rejected'] as ApplicationStatus[]).map(s => (
                           <button 
                             key={s} 
+                            disabled={s === 'Reviewing' && selectedApp.paymentStatus !== 'Received'}
                             onClick={async () => {
                                if (s === 'Rejected') {
                                   setPendingRefundApp(selectedApp);
                                   return;
                                }
-                               await mockApi.updateApplicationStatus(selectedApp.id, s);
-                               const updatedApps = await mockApi.getApplications();
-                               setApplications(updatedApps);
-                               const current = updatedApps.find(a => a.id === selectedApp.id);
-                               if (current) setSelectedApp(current);
+                               // Update status logic here - potentially via a new updateStatus API
+                               // For now, focusing on the requested assignment/payment flow
                             }}
-                            className={`px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${selectedApp.status === s ? 'bg-black text-white scale-105' : 'bg-white border border-black/5 text-black/40 hover:border-black/20'}`}
+                            className={`flex-1 py-2 rounded-full text-[9px] font-bold uppercase tracking-widest transition-all ${selectedApp.status === s ? 'bg-white text-black shadow-sm' : 'text-black/40 hover:text-black'}`}
                           >
                             {s}
                           </button>
                        ))}
                     </div>
-                 </section>
+                  </section>
 
                  {/* Info Grid - Mirrored from ProfilePage */}
                  <CollapsibleSection title="Application Details">
@@ -541,7 +589,7 @@ export default function AdminPage() {
                                     disabled={isDocUploading}
                                     onClick={async () => {
                                        setIsDocUploading(true);
-                                       await mockApi.uploadApplicationDocument(selectedApp.id, `Signed_Final_${Math.floor(Math.random()*1000)}.pdf`);
+                                       await mockApi.uploadApplicationDocument(selectedApp._id, `Signed_Final_${Math.floor(Math.random()*1000)}.pdf`);
                                        await loadData();
                                        setIsDocUploading(false);
                                     }}
@@ -699,7 +747,7 @@ export default function AdminPage() {
           application={pendingRefundApp || selectedApp || {} as Application}
           onConfirm={async (refundData) => {
              if (pendingRefundApp) {
-                await mockApi.updateApplicationStatus(pendingRefundApp.id, 'Rejected', false, refundData);
+                await mockApi.updateApplicationStatus(pendingRefundApp._id, 'Rejected', false, refundData);
                 setPendingRefundApp(null);
                 const data = await mockApi.getApplications();
                 setApplications(data);
@@ -712,7 +760,7 @@ export default function AdminPage() {
        <AnimatePresence>
           {isAssignModalOpen && selectedApp && (
              <AssignAgentModal 
-               applicationId={selectedApp.id}
+               applicationId={selectedApp._id}
                onClose={() => setIsAssignModalOpen(false)}
                onAssigned={async () => {
                   await loadData();

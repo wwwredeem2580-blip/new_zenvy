@@ -43,8 +43,8 @@ export function createServer() {
       process.env.CLIENT_URL || 'http://localhost:3000'
     ],
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
   }));
   app.use(helmet());
   app.use(cookieParser());

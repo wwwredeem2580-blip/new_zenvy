@@ -3,11 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, UserPlus, Check, Users, Loader2, AlertCircle, ChevronRight } from 'lucide-react';
-import { mockApi, User } from '../../lib/api/mockApi';
-
-interface AgentWithWorkload extends User {
-  activeWorkload: number;
-}
+import { adminApi, AgentWorkload } from '../../lib/api/adminApi';
+import { applicationApi } from '../../lib/api/applicationApi';
 
 interface AssignAgentModalProps {
   applicationId: string;
@@ -16,7 +13,7 @@ interface AssignAgentModalProps {
 }
 
 export function AssignAgentModal({ applicationId, onClose, onAssigned }: AssignAgentModalProps) {
-  const [agents, setAgents] = useState<AgentWithWorkload[]>([]);
+  const [agents, setAgents] = useState<AgentWorkload[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState<string | null>(null);
 
@@ -26,20 +23,26 @@ export function AssignAgentModal({ applicationId, onClose, onAssigned }: AssignA
 
   const loadAgents = async () => {
     setIsLoading(true);
-    const data = await mockApi.getAgentsWithWorkload();
-    setAgents(data);
-    setIsLoading(false);
+    try {
+      const data = await adminApi.listAgents();
+      setAgents(data.agents);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleAssign = async (agentId: string) => {
     setIsProcessing(agentId);
     try {
-      const ok = await mockApi.assignApplication(applicationId, agentId);
-      if (ok) {
+      const res = await applicationApi.assignAgent(applicationId, agentId);
+      if (res.success) {
         onAssigned();
       }
     } catch (e) {
       console.error(e);
+      alert(typeof e === 'string' ? e : (e as any).message || "Failed to assign agent");
     } finally {
       setIsProcessing(null);
     }
