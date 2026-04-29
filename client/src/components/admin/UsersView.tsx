@@ -8,7 +8,7 @@
 import React, { useState } from 'react';
 import { Search, TrendingUp, Shield, User } from 'lucide-react';
 import { User as UserType } from '../../lib/api/mockApi';
-import { mockApi } from '../../lib/api/mockApi';
+import { adminApi } from '../../lib/api/adminApi';
 
 type RoleFilter = 'all' | 'client' | 'agent' | 'admin';
 
@@ -37,10 +37,13 @@ export function UsersView({
 
   const handleRoleChange = async (userId: string, newRole: 'client' | 'agent' | 'admin') => {
     try {
-      await mockApi.assignUserRole(userId, newRole);
-      onRefresh();
+      const response = await adminApi.updateUserRole(userId, newRole);
+      if (response.success) {
+        onRefresh();
+      }
     } catch (e) {
-      console.error(e);
+      console.error("Failed to update role", e);
+      alert("Failed to update user role");
     }
   };
 

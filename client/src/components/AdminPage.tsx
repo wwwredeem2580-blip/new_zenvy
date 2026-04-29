@@ -55,6 +55,7 @@ import { Application, ApplicationStatus } from '../data/applications';
 import { mockApi, User as UserType, Workspace, WorkspacePermission, FileRecord, AgentPermissions } from '../lib/api/mockApi';
 import { applicationApi } from '../lib/api/applicationApi';
 import { CollapsibleSection } from './ui/CollapsibleSection';
+import { adminApi } from '@/lib/api/adminApi';
 
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
@@ -138,8 +139,13 @@ export default function AdminPage() {
            if (updated) setSelectedApp(updated);
         }
       } else if (activeTab === 'Users') {
-        const data = await mockApi.getUsers();
-        setUsers(data);
+        const response = await adminApi.listUsers();
+        // Map _id to id if necessary, or ensure backend returns id
+        const mappedUsers = response.users.map((u: any) => ({
+           ...u,
+           id: u._id || u.id
+        }));
+        setUsers(mappedUsers);
       } else if (activeTab === 'Workspaces') {
         const data = await mockApi.getWorkspaces();
         setWorkspaces(data);
@@ -168,10 +174,12 @@ export default function AdminPage() {
     if (!selectedUser || !creditAmount || isNaN(parseFloat(creditAmount))) return;
     setIsProcessing(true);
     try {
-      await mockApi.addCredits(selectedUser.id, parseFloat(creditAmount));
-      setUsers(prev => prev.map(u => u.id === selectedUser.id ? { ...u, balance: (u.balance || 0) + parseFloat(creditAmount) } : u));
-      setIsCreditModalOpen(false);
-      setCreditAmount("");
+      const response = await adminApi.addCredits(selectedUser.id, parseFloat(creditAmount));
+      if (response.success) {
+        setUsers(prev => prev.map(u => u.id === selectedUser.id ? { ...u, balance: response.user.balance } : u));
+        setIsCreditModalOpen(false);
+        setCreditAmount("");
+      }
     } catch (error) {
       console.error("Failed to issue credit", error);
     } finally {

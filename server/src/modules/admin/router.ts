@@ -8,6 +8,11 @@ const router = Router();
 // Staff Management
 router.get('/agents', requireAuth, requireRole('admin', 'agent'), adminController.listAgents);
 
+// User Management
+router.get('/users', requireAuth, requireRole('admin'), adminController.listUsers);
+router.patch('/users/:id/role', requireAuth, requireRole('admin'), adminController.updateUserRole);
+router.post('/users/:id/credits', requireAuth, requireRole('admin'), adminController.addCredits);
+
 router.get('/health', requireAuth, requireRole('admin'), (_req, res) => {
   res.json({ success: true, message: 'Admin router is active' });
 });
