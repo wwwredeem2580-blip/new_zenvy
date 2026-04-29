@@ -18,8 +18,7 @@ export const generateAndUploadInvoice = async (application: IApplication): Promi
 
       // Calculate totals
       const subtotal = application.selectedServices.reduce((sum, s) => sum + s.price, 0);
-      const fee = subtotal * 0.05;
-      const total = subtotal + fee;
+      const total = subtotal;
       
       const invoiceNumber = `INV-${application.applicationId}-${Date.now().toString().slice(-4)}`;
       const date = new Date().toLocaleDateString();
@@ -57,8 +56,12 @@ export const generateAndUploadInvoice = async (application: IApplication): Promi
 
       // Bill To
       doc.fontSize(12).text('Bill To:', 50, 180);
+      
+      // Clean up "undefined undefined" from name if present
+      const cleanName = application.name === 'undefined undefined' ? 'Client' : application.name;
+      
       doc.fontSize(10)
-         .text(`Name: ${application.name}`, 50, 200)
+         .text(`Name: ${cleanName}`, 50, 200)
          .text(`Codice Fiscale: ${application.codiceFiscale}`, 50, 215)
          .text(`Email: ${application.email}`, 50, 230)
          .text(`Phone: ${application.phone}`, 50, 245)
@@ -89,10 +92,6 @@ export const generateAndUploadInvoice = async (application: IApplication): Promi
       // Totals
       doc.text('Subtotal:', 350, y);
       doc.text(`EUR ${subtotal.toFixed(2)}`, 0, y, { align: 'right' });
-      y += 20;
-      
-      doc.text('Processing Fee (5%):', 350, y);
-      doc.text(`EUR ${fee.toFixed(2)}`, 0, y, { align: 'right' });
       y += 20;
 
       doc.font('Helvetica-Bold');
