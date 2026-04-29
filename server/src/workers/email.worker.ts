@@ -166,6 +166,14 @@ export const initEmailWorker = async () => {
           html = applicationUpdateTemplate(job.data);
           break;
 
+        case 'INVITATION':
+          to = job.data.email;
+          subject = "You're invited to join Smart CAF";
+          // We need to import invitationTemplate, let's just assume it was passed in data or we import it.
+          // Since the template logic is already in invitation.service, it might be better to just support raw HTML.
+          html = job.data.html;
+          break;
+
         default:
           throw new Error(`Unknown email job type: ${job.name}`);
       }

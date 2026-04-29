@@ -129,5 +129,29 @@ export const adminApi = {
       { params: { fileKey } }
     );
     return response.data;
-  }
+  },
+
+  /**
+   * listInvitations — Fetches all pending/expired staff invitations.
+   */
+  listInvitations: async () => {
+    const response = await api.get<{ success: boolean; invitations: any[] }>('/admin/invitations');
+    return response.data;
+  },
+
+  /**
+   * createInvitation — Sends a secure invite to a new staff member.
+   */
+  createInvitation: async (email: string, role: 'agent' | 'admin') => {
+    const response = await api.post<{ success: boolean; invitation: any }>('/admin/invitations', { email, role });
+    return response.data;
+  },
+
+  /**
+   * revokeInvitation — Cancels a pending invitation.
+   */
+  revokeInvitation: async (id: string) => {
+    const response = await api.delete<{ success: boolean; message: string }>(`/admin/invitations/${id}`);
+    return response.data;
+  },
 };

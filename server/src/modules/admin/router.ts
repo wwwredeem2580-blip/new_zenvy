@@ -3,6 +3,7 @@ import { requireAuth, requireRole } from '../../middlewares/auth';
 
 import * as adminController from './controller';
 import * as workspaceController from './workspace.controller';
+import * as invitationController from './invitation.controller';
 import multer from 'multer';
 
 const router = Router();
@@ -10,6 +11,9 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 // Staff Management
 router.get('/agents', requireAuth, requireRole('admin', 'agent'), adminController.listAgents);
+router.get('/invitations', requireAuth, requireRole('admin'), invitationController.listInvitations);
+router.post('/invitations', requireAuth, requireRole('admin'), invitationController.createInvitation);
+router.delete('/invitations/:id', requireAuth, requireRole('admin'), invitationController.revokeInvitation);
 
 // User Management
 router.get('/users', requireAuth, requireRole('admin'), adminController.listUsers);

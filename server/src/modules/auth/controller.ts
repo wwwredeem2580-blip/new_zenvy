@@ -10,6 +10,7 @@ import {
   handleGoogleCallback,
   resendVerificationEmail,
 } from './service';
+import * as authService from './service';
 import { RegisterSchema, LoginSchema } from './schema';
 
 // ─── POST /auth/resend-verification ──────────────────────────────────────────
@@ -116,6 +117,26 @@ export const logout = async (_req: Request, res: Response): Promise<void> => {
       sameSite: 'lax',
     });
     res.status(200).json({ success: true, message: 'Logged out successfully' });
+  } catch (error) {
+    handleError(error, res);
+  }
+};
+
+// ─── Agent Invitations ────────────────────────────────────────────────────────
+export const verifyInvitationController = async (req: Request, res: Response) => {
+  try {
+    const { token } = req.params;
+    const invitation = await authService.verifyAgentInvitation(token as string);
+    res.json({ success: true, invitation });
+  } catch (error) {
+    handleError(error, res);
+  }
+};
+
+export const registerAgentController = async (req: Request, res: Response) => {
+  try {
+    const result = await authService.registerAgent(req.body);
+    res.status(201).json({ success: true, ...result });
   } catch (error) {
     handleError(error, res);
   }

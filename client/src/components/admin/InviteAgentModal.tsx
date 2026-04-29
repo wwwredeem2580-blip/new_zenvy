@@ -7,23 +7,23 @@
 
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { X, CheckCircle2 } from 'lucide-react';
-import { mockApi } from '../../lib/api/mockApi';
+import { X, CheckCircle2, UserPlus, ShieldCheck } from 'lucide-react';
+import { adminApi } from '@/lib/api/adminApi';
 
 export function InviteAgentModal({ onClose, onInvited }: { onClose: () => void, onInvited: () => void }) {
   const [email, setEmail] = useState("");
-  const [name, setName] = useState("");
+  const [role, setRole] = useState<'agent' | 'admin'>('agent');
   const [isSending, setIsSending] = useState(false);
-  const [inviteLink, setInviteLink] = useState("");
+  const [isSuccess, setIsSuccess] = useState(false);
 
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSending(true);
     try {
-      const result = await mockApi.inviteAgent(email, name);
-      setInviteLink(result.inviteLink);
+      await adminApi.createInvitation(email, role);
+      setIsSuccess(true);
     } catch (e: any) {
-      alert(e.message);
+      alert(e.response?.data?.message || e.message);
     } finally {
       setIsSending(false);
     }
@@ -42,19 +42,30 @@ export function InviteAgentModal({ onClose, onInvited }: { onClose: () => void, 
              <h3 className="text-2xl font-space font-bold tracking-tighter uppercase text-center">Invite Agent.</h3>
           </div>
 
-          {!inviteLink ? (
+          {!isSuccess ? (
              <form onSubmit={handleInvite} className="space-y-8">
                 <div className="space-y-4">
-                   <label className="text-[10px] uppercase tracking-widest font-bold text-black/20 px-1">Agent Full Name</label>
-                   <input 
-                     type="text" 
-                     required
-                     value={name}
-                     onChange={e => setName(e.target.value)}
-                     placeholder="John Smith"
-                     className="w-full bg-black/5 border border-black/5 rounded-[16px] px-4 py-3 text-sm font-bold focus:outline-none"
-                   />
+                   <label className="text-[10px] uppercase tracking-widest font-bold text-black/20 px-1">Designated Role</label>
+                   <div className="grid grid-cols-2 gap-3">
+                      <button 
+                        type="button" 
+                        onClick={() => setRole('agent')}
+                        className={`flex items-center justify-center gap-3 py-4 rounded-2xl border transition-all ${role === 'agent' ? 'bg-black text-white border-black' : 'bg-white text-black/30 border-black/5 hover:border-black/20'}`}
+                      >
+                         <UserPlus size={16} />
+                         <span className="text-[10px] font-bold uppercase tracking-widest">Agent</span>
+                      </button>
+                      <button 
+                        type="button" 
+                        onClick={() => setRole('admin')}
+                        className={`flex items-center justify-center gap-3 py-4 rounded-2xl border transition-all ${role === 'admin' ? 'bg-black text-white border-black' : 'bg-white text-black/30 border-black/5 hover:border-black/20'}`}
+                      >
+                         <ShieldCheck size={16} />
+                         <span className="text-[10px] font-bold uppercase tracking-widest">Admin</span>
+                      </button>
+                   </div>
                 </div>
+
                 <div className="space-y-4">
                    <label className="text-[10px] uppercase tracking-widest font-bold text-black/20 px-1">Email Address</label>
                    <input 
@@ -63,33 +74,34 @@ export function InviteAgentModal({ onClose, onInvited }: { onClose: () => void, 
                      value={email}
                      onChange={e => setEmail(e.target.value)}
                      placeholder="agent@smartcaf.it"
-                     className="w-full bg-black/5 border border-black/5 rounded-[16px] px-4 py-3 text-sm font-bold focus:outline-none"
+                     className="w-full bg-black/5 border border-black/5 rounded-[24px] px-8 py-5 text-lg font-bold focus:outline-none focus:bg-black/10 transition-all"
                    />
                 </div>
+
                 <button 
                   type="submit"
                   disabled={isSending}
-                  className="w-full bg-black text-white py-4 rounded-[16px] font-bold text-xs tracking-[0.2em] hover:scale-[1.02] shadow-2xl shadow-black/20"
+                  className="w-full bg-black text-white py-6 rounded-[24px] font-bold text-sm tracking-[0.2em] uppercase hover:scale-[1.02] active:scale-95 transition-all shadow-2xl shadow-black/20 disabled:opacity-20"
                 >
-                   {isSending ? "Generating Invite..." : "Generate Invitation Link ↗"}
+                   {isSending ? "Sending Invite..." : "Confirm Invitation ↗"}
                 </button>
              </form>
           ) : (
              <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="bg-green-50 p-6 rounded-[32px] border border-green-100 space-y-4">
-                   <div className="flex items-center gap-3 text-green-600">
-                      <CheckCircle2 size={24} />
-                      <span className="font-bold text-xs uppercase tracking-widest">Invitation Ready</span>
+                <div className="bg-green-50 p-8 rounded-[40px] border border-green-100 flex flex-col items-center text-center space-y-6">
+                   <div className="w-20 h-20 bg-green-500 text-white rounded-full flex items-center justify-center shadow-xl shadow-green-200">
+                      <CheckCircle2 size={40} />
                    </div>
-                   <p className="text-xs text-green-800/60 leading-relaxed">
-                      Copy the link below and send it to your new agent. They can use it to set their password and join the hub.
-                   </p>
+                   <div className="space-y-2">
+                      <h4 className="text-2xl font-space font-bold tracking-tighter uppercase">Invitation Sent.</h4>
+                      <p className="text-xs text-green-800/60 leading-relaxed max-w-xs mx-auto">
+                        A secure onboarding link has been sent to <strong>{email}</strong>. 
+                        The recipient can use it to set up their staff profile.
+                      </p>
+                   </div>
                 </div>
-                <div className="p-6 bg-black/5 rounded-2xl break-all font-mono text-[12px] border border-black/5 select-all cursor-pointer hover:bg-black/10 transition-colors" title="Click to select all">
-                   {inviteLink}
-                </div>
-                <button onClick={onInvited} className="w-full py-4 rounded-xl border-2 bg-black/90 text-white font-bold text-[12px] uppercase tracking-widest hover:bg-black hover:text-white transition-all">
-                   Done
+                <button onClick={onInvited} className="w-full py-6 rounded-[24px] bg-black text-white font-bold text-xs uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl shadow-black/10">
+                   Back to Agents
                 </button>
              </div>
           )}

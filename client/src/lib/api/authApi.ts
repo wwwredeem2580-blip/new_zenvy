@@ -43,4 +43,14 @@ export const authApi = {
     );
     return response.data;
   },
+
+  verifyInvitation: async (token: string) => {
+    const response = await api.get<{ success: boolean; invitation: any }>(`/auth/invitations/${token}`);
+    return response.data;
+  },
+
+  registerAgent: async (data: any) => {
+    const response = await api.post<AuthResponse>('/auth/register-agent', data);
+    return response.data;
+  },
 };

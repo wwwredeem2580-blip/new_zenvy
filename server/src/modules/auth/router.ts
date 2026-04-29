@@ -8,6 +8,8 @@ import {
   getMe,
   logout,
   resendVerification,
+  verifyInvitationController,
+  registerAgentController,
 } from './controller';
 import { requireAuth } from '../../middlewares/auth';
 
@@ -26,5 +28,9 @@ router.get('/google/callback', googleCallback);
 // Session
 router.get('/me', requireAuth, getMe);
 router.post('/logout', requireAuth, logout);
+
+// Staff Onboarding
+router.get('/invitations/:token', verifyInvitationController);
+router.post('/register-agent', registerAgentController);
 
 export default router;

@@ -428,7 +428,7 @@ export default function AgentPage() {
                                           if (selectedApp.reviewerId !== user.id) {
                                              if (!confirm(`This is being reviewed by ${selectedApp.reviewerName}. Are you sure you want to release it?`)) return;
                                           }
-                                          updateAppStatus(selectedApp.id, 'Pending', true);
+                                          updateAppStatus((selectedApp._id || selectedApp.id) as string, 'Pending', true);
                                        }}
                                        className="text-[9px] uppercase tracking-widest font-bold text-red-500 hover:text-red-600 transition-colors flex items-center gap-2"
                                     >
@@ -468,7 +468,7 @@ export default function AgentPage() {
                                            return;
                                          }
                                          
-                                         updateAppStatus(selectedApp.id, s as any);
+                                         updateAppStatus((selectedApp._id || selectedApp.id) as string, s as any);
                                       }}
                                       className={`px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${selectedApp.status === s ? 'bg-black text-white scale-105 shadow-xl' : 'bg-white border border-black/5 text-black/40 hover:border-black/20'}`}
                                     >
@@ -539,7 +539,7 @@ export default function AgentPage() {
                                           disabled={isDocUploading}
                                           onClick={async () => {
                                              setIsDocUploading(true);
-                                             await mockApi.uploadApplicationDocument(selectedApp.id, `Signed_Final_${Math.floor(Math.random()*1000)}.pdf`);
+                                             await mockApi.uploadApplicationDocument((selectedApp._id || selectedApp.id) as string, `Signed_Final_${Math.floor(Math.random()*1000)}.pdf`);
                                              await loadData();
                                              setIsDocUploading(false);
                                           }}
@@ -613,7 +613,7 @@ export default function AgentPage() {
             application={pendingRefundApp || selectedApp || {} as Application}
             onConfirm={async (refundData) => {
                if (pendingRefundApp) {
-                  await mockApi.updateApplicationStatus(pendingRefundApp.id, 'Rejected', false, refundData);
+                  await mockApi.updateApplicationStatus((pendingRefundApp._id || pendingRefundApp.id) as string, 'Rejected', false, refundData);
                   setPendingRefundApp(null);
                   loadData();
                   setSelectedApp(null);

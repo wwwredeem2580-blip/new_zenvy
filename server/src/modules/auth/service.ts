@@ -283,3 +283,65 @@ export const resendVerificationEmail = async (userId: string) => {
 
   return { message: 'Verification email resent. Please check your inbox.' };
 };
+
+// ─── Agent Onboarding (Invitations) ───────────────────────────────────────────
+import { Invitation } from '../../models/Invitation.model';
+
+export const verifyAgentInvitation = async (token: string) => {
+  const invitation = await Invitation.findOne({ token, status: 'Pending' });
+  if (!invitation) throw new CustomError('Invalid or expired invitation link', 400);
+  if (invitation.expiresAt < new Date()) {
+    invitation.status = 'Expired';
+    await invitation.save();
+    throw new CustomError('Invitation has expired', 400);
+  }
+  return invitation;
+};
+
+export const registerAgent = async (data: RegisterInput & { token: string }) => {
+  const { firstName, lastName, password, token } = data;
+
+  // 1. Verify invitation
+  const invitation = await verifyAgentInvitation(token);
+
+  // 2. Hash password
+  const hashedPassword = await bcrypt.hash(password, 12);
+
+  // 3. Create user (email is already in the invitation)
+  const user = await User.create({
+    firstName,
+    lastName,
+    email: invitation.email,
+    password: hashedPassword,
+    role: invitation.role, // 'agent' or 'admin'
+    authProvider: 'manual',
+    isEmailVerified: true, // They verified by clicking the invitation link
+  });
+
+  // 4. Update invitation status
+  invitation.status = 'Accepted';
+  await invitation.save();
+
+  // 5. Generate session token
+  const sessionToken = generateAccessToken({
+    userId: user._id.toString(),
+    role: user.role,
+    email: user.email,
+    isEmailVerified: user.isEmailVerified,
+    firstName: user.firstName,
+    lastName: user.lastName,
+  });
+
+  return {
+    message: 'Staff account created successfully. Welcome to the team!',
+    token: sessionToken,
+    user: {
+      id: user._id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      role: user.role,
+      isEmailVerified: user.isEmailVerified,
+    },
+  };
+};

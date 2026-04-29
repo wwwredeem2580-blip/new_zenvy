@@ -6,7 +6,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Search, TrendingUp, Shield, User } from 'lucide-react';
+import { Search, TrendingUp, Shield, User, Clock, X } from 'lucide-react';
 import { User as UserType } from '../../lib/api/mockApi';
 import { adminApi } from '../../lib/api/adminApi';
 
@@ -14,17 +14,21 @@ type RoleFilter = 'all' | 'client' | 'agent' | 'admin';
 
 export function UsersView({ 
   users, 
+  invitations = [],
   roleFilter, 
   setRoleFilter, 
   onIssueCredit, 
   onManagePermissions, 
+  onRevokeInvite,
   onRefresh 
 }: { 
   users: UserType[], 
+  invitations?: any[],
   roleFilter: RoleFilter, 
   setRoleFilter: (filter: RoleFilter) => void, 
   onIssueCredit: (user: UserType) => void, 
   onManagePermissions: (user: UserType) => void, 
+  onRevokeInvite?: (id: string) => void,
   onRefresh: () => void 
 }) {
   const [search, setSearch] = useState("");
@@ -75,6 +79,46 @@ export function UsersView({
        </div>
 
        <div className="space-y-0.5">
+          {invitations.length > 0 && (roleFilter === 'all' || roleFilter === 'agent' || roleFilter === 'admin') && (
+            <div className="mb-8">
+              <h3 className="text-[10px] uppercase tracking-widest font-bold text-black/40 mb-4 px-4">Pending Invitations</h3>
+              <div className="space-y-0.5">
+                {invitations.map((invite: any) => (
+                  <div key={invite._id} className="group flex items-center justify-between py-4 px-4 bg-orange-50/50 hover:bg-orange-50 border-b border-orange-100 transition-all rounded-xl">
+                    <div className="flex items-center gap-10">
+                      <div className="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center text-orange-500">
+                        <Clock size={16} />
+                      </div>
+                      <div className="flex flex-col">
+                         <span className="text-md font-bold tracking-tight text-orange-900">Pending Invite</span>
+                         <span className="text-[9px] max-w-[150px] overflow-hidden text-ellipsis text-orange-900/60 font-bold tracking-widest">{invite.email}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-16">
+                      <div className="flex flex-col items-end">
+                         <span className="text-xs font-space font-bold uppercase text-orange-600">{invite.role}</span>
+                         <span className="text-[8px] uppercase tracking-widest font-bold text-orange-900/40">Role</span>
+                      </div>
+                      <div className="h-10 w-px bg-orange-200" />
+                      <div className="flex items-center gap-6">
+                        {onRevokeInvite && (
+                           <button 
+                             onClick={() => onRevokeInvite(invite._id)}
+                             className="p-3 hover:bg-red-100 text-red-500 rounded-xl transition-all"
+                             title="Revoke Invitation"
+                           >
+                             <X size={16} />
+                           </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {filtered.map((user: UserType) => (
              <div 
                 key={user.id} 

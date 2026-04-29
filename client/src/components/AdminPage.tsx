@@ -79,6 +79,17 @@ export default function AdminPage() {
   const [creditAmount, setCreditAmount] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [pendingRefundApp, setPendingRefundApp] = useState<Application | null>(null);
+  const [invitations, setInvitations] = useState<any[]>([]);
+
+  const handleRevokeInvitation = async (id: string) => {
+    if (!confirm("Revoke this invitation?")) return;
+    try {
+      await adminApi.revokeInvitation(id);
+      loadData();
+    } catch (e) {
+      console.error(e);
+    }
+  };
   
   // Workspace specific state
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
@@ -141,13 +152,16 @@ export default function AdminPage() {
            if (updated) setSelectedApp(updated);
         }
       } else if (activeTab === 'Users') {
-        const response = await adminApi.listUsers();
-        // Map _id to id if necessary, or ensure backend returns id
-        const mappedUsers = response.users.map((u: any) => ({
+        const [userRes, inviteRes] = await Promise.all([
+          adminApi.listUsers(),
+          adminApi.listInvitations()
+        ]);
+        const mappedUsers = userRes.users.map((u: any) => ({
            ...u,
            id: u._id || u.id
         }));
         setUsers(mappedUsers);
+        setInvitations(inviteRes.invitations);
       } else if (activeTab === 'Workspaces') {
         const response = await adminApi.listWorkspaces();
         setWorkspaces(response.workspaces);
@@ -316,9 +330,11 @@ export default function AdminPage() {
                   {activeTab === 'Users' && (
                      <UsersView 
                        users={users} 
+                       invitations={invitations}
                        roleFilter={roleFilter}
                        setRoleFilter={setRoleFilter}
                        onRefresh={loadData}
+                       onRevokeInvite={handleRevokeInvitation}
                        onIssueCredit={(u: UserType) => {
                          setSelectedUser(u);
                          setIsCreditModalOpen(true);
@@ -331,7 +347,7 @@ export default function AdminPage() {
                   )}
                   {activeTab === 'Workspaces' && (
                      <WorkspacesManager 
-                       workspaces={workspaces}
+                       workspaces={workspaces as any[]}
                        users={users}
                        onUpdateFolders={async () => {
                           const response = await adminApi.listWorkspaces();
@@ -339,7 +355,7 @@ export default function AdminPage() {
                        }}
                        onDeleteWorkspace={async (id: string) => {
                           await adminApi.deleteWorkspace(id);
-                          setWorkspaces(prev => prev.filter(ws => (ws._id || ws.id) !== id));
+                          setWorkspaces(prev => prev.filter(ws => ((ws as any)._id || ws.id) !== id));
                        }}
                      />
                   )}
