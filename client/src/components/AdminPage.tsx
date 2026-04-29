@@ -134,7 +134,7 @@ export default function AdminPage() {
         const response = await applicationApi.listAllApplications();
         setApplications(response.applications);
         if (selectedApp) {
-           const updated = response.applications.find(a => a.id === selectedApp.id);
+           const updated = response.applications.find(a => a._id === selectedApp._id || (a.id && a.id === selectedApp.id));
            if (updated) setSelectedApp(updated);
         }
       } else if (activeTab === 'Users') {
@@ -453,7 +453,7 @@ export default function AdminPage() {
                       <div className="flex gap-2">
                         <button 
                           onClick={async () => {
-                            const res = await applicationApi.updatePaymentStatus(selectedApp.applicationId, 'Received');
+                            const res = await applicationApi.updatePaymentStatus(selectedApp._id, 'Received');
                             if (res.success) loadData();
                           }}
                           disabled={selectedApp.paymentStatus === 'Received'}
@@ -463,7 +463,7 @@ export default function AdminPage() {
                         </button>
                         <button 
                           onClick={async () => {
-                            const res = await applicationApi.updatePaymentStatus(selectedApp.applicationId, 'Pending');
+                            const res = await applicationApi.updatePaymentStatus(selectedApp._id, 'Pending');
                             if (res.success) loadData();
                           }}
                           disabled={selectedApp.paymentStatus === 'Pending'}
@@ -485,7 +485,7 @@ export default function AdminPage() {
                               <button 
                                 onClick={async () => {
                                   if (!user?.id) return;
-                                  const res = await applicationApi.assignAgent(selectedApp.applicationId, user.id);
+                                  const res = await applicationApi.assignAgent(selectedApp._id, user.id);
                                   if (res.success) loadData();
                                 }}
                                 className="text-[9px] uppercase tracking-widest font-bold text-green-600 hover:text-green-700 transition-colors flex items-center gap-2"

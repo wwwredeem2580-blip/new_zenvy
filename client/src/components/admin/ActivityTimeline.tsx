@@ -65,12 +65,6 @@ export function ActivityTimeline({ application }: ActivityTimelineProps) {
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
-      {/* Header Label */}
-      <div className="flex items-center gap-2">
-         <Shield size={14} className="text-black/20" />
-         <h3 className="text-[10px] uppercase tracking-widest font-bold text-black/40">Audit Trail & Activity Log</h3>
-      </div>
-
       {/* Lifecycle Summary Strip */}
       <div className="bg-black/5 rounded-3xl p-6 border border-black/5">
          <div className="flex items-center justify-between mb-4">

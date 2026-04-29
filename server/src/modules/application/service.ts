@@ -168,7 +168,11 @@ export const updatePaymentStatus = async (
   status: 'Pending' | 'Received',
   actor: { name: string; id: string }
 ) => {
-  const application = await Application.findOne({ applicationId });
+  const query = mongoose.Types.ObjectId.isValid(applicationId) 
+    ? { _id: applicationId } 
+    : { applicationId };
+    
+  const application = await Application.findOne(query);
   if (!application) throw new CustomError('Application not found', 404);
 
   application.paymentStatus = status;
@@ -192,7 +196,11 @@ export const assignApplication = async (
   reviewerId: string,
   actor: { name: string; id: string }
 ) => {
-  const application = await Application.findOne({ applicationId });
+  const query = mongoose.Types.ObjectId.isValid(applicationId) 
+    ? { _id: applicationId } 
+    : { applicationId };
+
+  const application = await Application.findOne(query);
   if (!application) throw new CustomError('Application not found', 404);
 
   // Requirement: Payment must be received
@@ -234,7 +242,11 @@ export const updateStatus = async (
   status: ApplicationStatus,
   actor: { name: string; id: string }
 ) => {
-  const application = await Application.findOne({ applicationId });
+  const query = mongoose.Types.ObjectId.isValid(applicationId) 
+    ? { _id: applicationId } 
+    : { applicationId };
+
+  const application = await Application.findOne(query);
   if (!application) throw new CustomError('Application not found', 404);
 
   application.status = status;
