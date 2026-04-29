@@ -99,15 +99,30 @@ export const generateAndUploadInvoice = async (application: IApplication): Promi
       doc.text(`EUR ${total.toFixed(2)}`, 0, y, { align: 'right' });
       doc.font('Helvetica');
 
-      // Footer
-      doc.fontSize(10)
-         .text(
-           'Payment received with thanks. This document serves as official proof of payment.',
-           50,
-           700,
-           { align: 'center', width: 500 }
-         );
+      // Signature
+      doc.font('Times-Italic')
+         .fontSize(32)
+         .fillColor('#000000')
+         .text('Mijan', 50, 640)
+         .font('Helvetica-Bold')
+         .fontSize(10)
+         .text('Mijan', 50, 675)
+         .font('Helvetica')
+         .text('Founder, SmartCAF', 50, 690);
 
+      // PAID Stamp Overlay
+      doc.save()
+         .translate(420, 650)
+         .font('Times-Bold')
+         .fontSize(54)
+         .lineWidth(1.5)
+         .strokeColor('#5a52d5') // Indigo/purple-blue color matching the image
+         .text('PAID', 0, 0, { 
+           stroke: true, 
+           fill: false, 
+           characterSpacing: 4 
+         })
+         .restore();
       doc.end();
 
       // Handle stream finish
