@@ -75,7 +75,11 @@ export const getApplicationById = async (
   userRole: string,
   applicationId: string
 ): Promise<IApplication> => {
-  const application = await Application.findOne({ applicationId });
+  const query = mongoose.Types.ObjectId.isValid(applicationId) 
+    ? { _id: applicationId } 
+    : { applicationId };
+
+  const application = await Application.findOne(query);
   if (!application) throw new CustomError('Application not found', 404);
 
   // Security check: Only owner or admin/agent can view
@@ -139,7 +143,11 @@ export const getSignedPreviewUrl = async (
   applicationId: string,
   objectKey: string
 ) => {
-  const application = await Application.findOne({ applicationId });
+  const query = mongoose.Types.ObjectId.isValid(applicationId) 
+    ? { _id: applicationId } 
+    : { applicationId };
+
+  const application = await Application.findOne(query);
   if (!application) throw new CustomError('Application not found', 404);
 
   // Security check: Only owner, admin, or assigned agent can view
@@ -253,6 +261,38 @@ export const updateStatus = async (
   application.activityLog.push({
     type: 'status',
     description: `Status updated to ${status}.`,
+    actorName: actor.name,
+    actorId: actor.id,
+    timestamp: new Date(),
+  });
+
+  await application.save();
+  return application;
+};
+
+/**
+ * unassignApplication - Removes the assigned agent from an application.
+ */
+export const unassignApplication = async (
+  applicationId: string,
+  actor: { name: string; id: string }
+) => {
+  const query = mongoose.Types.ObjectId.isValid(applicationId) 
+    ? { _id: applicationId } 
+    : { applicationId };
+
+  const application = await Application.findOne(query);
+  if (!application) throw new CustomError('Application not found', 404);
+
+  const previousReviewer = application.reviewerName;
+  application.reviewerId = undefined;
+  application.reviewerName = undefined;
+  application.status = 'Pending';
+  application.lastActivityAt = new Date();
+
+  application.activityLog.push({
+    type: 'reassignment',
+    description: `Agent ${previousReviewer || 'Unknown'} unassigned. Status reverted to Pending.`,
     actorName: actor.name,
     actorId: actor.id,
     timestamp: new Date(),

@@ -151,6 +151,19 @@ export default function AdminPage() {
     }
   };
 
+  const handleViewAttachment = async (attachment: any) => {
+    if (!selectedApp) return;
+    try {
+      const response = await applicationApi.getAttachmentPreviewUrl(selectedApp._id, attachment.url);
+      if (response.success && response.previewUrl) {
+        window.open(response.previewUrl, '_blank');
+      }
+    } catch (error) {
+      console.error("Failed to get preview URL", error);
+      alert("Error: Access denied or file not found.");
+    }
+  };
+
   const handleIssueCredit = async () => {
     if (!selectedUser || !creditAmount || isNaN(parseFloat(creditAmount))) return;
     setIsProcessing(true);
@@ -320,9 +333,9 @@ export default function AdminPage() {
                        }}
                      />
                   )}
-{activeTab === 'Overview' && (
-                      <OverviewView />
-                   )}
+                  {activeTab === 'Overview' && (
+                       <OverviewView />
+                  )}
                   {activeTab === 'Settings' && (
                      <div className="space-y-12 py-12">
                         <section className="space-y-6">
@@ -482,22 +495,42 @@ export default function AdminPage() {
                        <div className="flex items-center gap-4">
                           {selectedApp.paymentStatus === 'Received' ? (
                             <>
-                              <button 
-                                onClick={async () => {
-                                  if (!user?.id) return;
-                                  const res = await applicationApi.assignAgent(selectedApp._id, user.id);
-                                  if (res.success) loadData();
-                                }}
-                                className="text-[9px] uppercase tracking-widest font-bold text-green-600 hover:text-green-700 transition-colors flex items-center gap-2"
-                              >
-                                <Check size={12} /> Claim Task
-                              </button>
-                              <button 
-                                onClick={() => setIsAssignModalOpen(true)}
-                                className="text-[9px] uppercase tracking-widest font-bold text-blue-600 hover:text-blue-700 transition-colors flex items-center gap-2"
-                              >
-                                <PlusIcon size={12} /> Assign Agent
-                              </button>
+                              {selectedApp.reviewerId ? (
+                                <div className="flex items-center gap-4">
+                                  <div className="flex flex-col items-end">
+                                     <span className="text-[8px] uppercase tracking-widest font-bold text-black/20">Assigned To</span>
+                                     <span className="text-[10px] font-bold text-blue-600">{selectedApp.reviewerName}</span>
+                                  </div>
+                                  <button 
+                                     onClick={async () => {
+                                       const res = await applicationApi.unassignAgent(selectedApp._id);
+                                       if (res.success) loadData();
+                                     }}
+                                     className="text-[9px] uppercase tracking-widest font-bold text-red-500 hover:text-red-600 transition-colors"
+                                  >
+                                     Unassign
+                                  </button>
+                                </div>
+                              ) : (
+                                <>
+                                  <button 
+                                    onClick={async () => {
+                                      if (!user?.id) return;
+                                      const res = await applicationApi.assignAgent(selectedApp._id, user.id);
+                                      if (res.success) loadData();
+                                    }}
+                                    className="text-[9px] uppercase tracking-widest font-bold text-green-600 hover:text-green-700 transition-colors flex items-center gap-2"
+                                  >
+                                    <Check size={12} /> Claim Task
+                                  </button>
+                                  <button 
+                                    onClick={() => setIsAssignModalOpen(true)}
+                                    className="text-[9px] uppercase tracking-widest font-bold text-blue-600 hover:text-blue-700 transition-colors flex items-center gap-2"
+                                  >
+                                    <PlusIcon size={12} /> Assign Agent
+                                  </button>
+                                </>
+                              )}
                             </>
                           ) : (
                             <div className="flex items-center gap-2 text-[8px] uppercase tracking-widest font-bold text-black/20 bg-black/5 px-3 py-1.5 rounded-lg">
@@ -517,8 +550,8 @@ export default function AdminPage() {
                                   setPendingRefundApp(selectedApp);
                                   return;
                                }
-                               // Update status logic here - potentially via a new updateStatus API
-                               // For now, focusing on the requested assignment/payment flow
+                               const res = await applicationApi.updateStatus(selectedApp._id, s);
+                               if (res.success) loadData();
                             }}
                             className={`flex-1 py-2 rounded-full text-[9px] font-bold uppercase tracking-widest transition-all ${selectedApp.status === s ? 'bg-white text-black shadow-sm' : 'text-black/40 hover:text-black'}`}
                           >
@@ -563,14 +596,25 @@ export default function AdminPage() {
                     <div className="space-y-4">
                        <h3 className="text-[10px] uppercase tracking-widest font-bold text-black/40">Attached Documents</h3>
                        <div className="grid grid-cols-2 gap-4">
-                          {["Passport Scan", "Codice Fiscale"].map(doc => (
-                             <div key={doc} className="group p-4 bg-black/5 border border-black/5 rounded-2xl flex items-center gap-4 hover:bg-black hover:text-white transition-all cursor-pointer">
-                                <div className="w-10 h-10 bg-white/50 rounded-lg flex items-center justify-center">
-                                    <FileText size={18} />
+                          {selectedApp.attachments && selectedApp.attachments.length > 0 ? (
+                             selectedApp.attachments.map((doc, i) => (
+                                <div 
+                                   key={i} 
+                                   onClick={() => handleViewAttachment(doc)}
+                                   className="group p-4 bg-black/5 border border-black/5 rounded-2xl flex items-center gap-4 hover:bg-black hover:text-white transition-all cursor-pointer"
+                                >
+                                   <div className="w-10 h-10 bg-white/50 rounded-lg flex items-center justify-center group-hover:bg-white/20 transition-colors">
+                                       <FileText size={18} />
+                                   </div>
+                                   <div className="flex flex-col min-w-0">
+                                     <span className="text-[10px] font-bold uppercase tracking-widest truncate">{doc.name}</span>
+                                     <span className="text-[8px] text-black/40 group-hover:text-white/40 font-medium italic">Click to Preview</span>
+                                   </div>
                                 </div>
-                                <span className="text-[10px] font-bold uppercase tracking-widest">{doc}</span>
-                             </div>
-                          ))}
+                             ))
+                          ) : (
+                            <p className="text-[10px] text-black/30 font-medium uppercase tracking-widest col-span-2 py-8 text-center border border-dashed border-black/10 rounded-2xl">No attachments provided.</p>
+                          )}
                        </div>
                     </div>
                  </CollapsibleSection>
@@ -982,11 +1026,11 @@ function PermissionBadge({ type }: { type: WorkspacePermission }) {
    );
 }
 
-function SidebarLink({ label, isActive, onClick }: any) {
+function SidebarLink({ label, isActive, onClick, className }: any) {
   return (
     <button 
       onClick={onClick}
-      className={`text-left transition-all ${isActive ? 'text-black font-bold scale-105 origin-left' : 'text-black/30 hover:text-black'}`}
+      className={`text-left transition-all ${className} ${isActive ? 'text-black font-bold scale-105 origin-left' : 'text-black/30 hover:text-black'}`}
     >
       {label}
     </button>
@@ -1031,6 +1075,29 @@ function StatusPill({ status }: { status: ApplicationStatus }) {
   );
 }
 
+function StatusBadge({ status }: { status: ApplicationStatus }) {
+    const styles = {
+      Pending: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
+      Reviewing: "bg-blue-500/10 text-blue-500 border-blue-500/20",
+      Approved: "bg-green-500/10 text-green-500 border-green-500/20",
+      Rejected: "bg-red-500/10 text-red-500 border-red-500/20",
+    };
+  
+    const icons = {
+      Pending: <Clock size={12} />,
+      Reviewing: <Search size={12} />,
+      Approved: <CheckCircle2 size={12} />,
+      Rejected: <X size={12} />,
+    };
+  
+    return (
+      <div className={`flex items-center gap-2 px-3 py-1 rounded-full border text-[10px] font-bold uppercase tracking-widest ${styles[status]}`}>
+        {icons[status]}
+        {status}
+      </div>
+    );
+}
+
 function DetailItem({ icon, label, value }: any) {
     return (
       <div className="space-y-1">
@@ -1041,5 +1108,3 @@ function DetailItem({ icon, label, value }: any) {
       </div>
     );
 }
-
-

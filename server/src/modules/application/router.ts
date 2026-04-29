@@ -26,6 +26,7 @@ router.get('/:id', requireAuth, applicationController.getDetails);
 router.get('/', requireAuth, requireRole('admin', 'agent'), applicationController.listAll);
 router.patch('/:id/payment-status', requireAuth, requireRole('admin', 'agent'), applicationController.updatePaymentStatus);
 router.patch('/:id/assign', requireAuth, requireRole('admin', 'agent'), applicationController.assignAgent);
+router.patch('/:id/unassign', requireAuth, requireRole('admin', 'agent'), applicationController.unassignAgent);
 router.patch('/:id/status', requireAuth, requireRole('admin', 'agent'), applicationController.updateStatus);
 
 // Storage Routes

@@ -114,6 +114,16 @@ export const applicationApi = {
   },
 
   /**
+   * unassignAgent - (Admin/Agent) Removes the assigned agent.
+   */
+  unassignAgent: async (applicationId: string) => {
+    const response = await api.patch<{ success: boolean; application: Application }>(
+      `/applications/${applicationId}/unassign`
+    );
+    return response.data;
+  },
+
+  /**
    * updateStatus - (Admin/Agent) Updates the application status.
    */
   updateStatus: async (applicationId: string, status: ApplicationStatus) => {

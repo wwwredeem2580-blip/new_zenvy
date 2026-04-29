@@ -118,3 +118,18 @@ export const updateStatus = async (req: Request, res: Response): Promise<void> =
     handleError(error, res);
   }
 };
+
+export const unassignAgent = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const actor = {
+      name: `${(req as any).user.firstName} ${(req as any).user.lastName}`,
+      id: (req as any).user.userId,
+    };
+
+    const application = await applicationService.unassignApplication(id as string, actor);
+    res.status(200).json({ success: true, application });
+  } catch (error) {
+    handleError(error, res);
+  }
+};
