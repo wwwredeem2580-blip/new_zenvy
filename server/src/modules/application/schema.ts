@@ -23,6 +23,13 @@ export const CreateApplicationSchema = z.object({
   paymentMethod: z.enum(['Cash', 'Revolut', 'PostPay', 'Card', 'Credits']),
   selectedServices: z.array(SubServiceSchema).min(1, 'At least one service must be selected'),
   transactionId: z.string().optional(),
+  attachments: z.array(z.object({
+    name: z.string(),
+    url: z.string(),
+    uploadedBy: z.string(),
+    uploadedById: z.string(),
+    uploadedAt: z.string().optional(),
+  })).optional(),
 });
 
 export type CreateApplicationInput = z.infer<typeof CreateApplicationSchema>;
