@@ -522,8 +522,12 @@ export default function AdminPage() {
                            <Shield size={16} /> Verify Payment
                         </button>
                         <button 
-                          disabled={selectedApp.paymentStatus !== 'Received'}
-                          className="flex items-center justify-center gap-3 py-4 rounded-sm bg-black text-white font-bold text-[10px] uppercase tracking-widest hover:bg-black/90 transition-all disabled:opacity-20 disabled:cursor-not-allowed"
+                          onClick={async () => {
+                            const res = await applicationApi.updatePaymentStatus(selectedApp._id, 'Received');
+                            if (res.success) loadData();
+                          }}
+                          disabled={selectedApp.paymentStatus === 'Received'}
+                          className={`flex items-center justify-center gap-3 py-4 rounded-sm font-bold text-[10px] uppercase tracking-widest transition-all ${selectedApp.paymentStatus === 'Received' ? 'bg-black/5 text-black/20 cursor-default border border-black/10' : 'bg-black text-white hover:bg-black/90'}`}
                         >
                            <Check size={16} /> Approve Payment
                         </button>
