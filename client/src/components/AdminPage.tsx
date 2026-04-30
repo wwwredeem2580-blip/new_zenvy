@@ -298,10 +298,6 @@ export default function AdminPage() {
                  animate={{ opacity: 1 }}
                  className="mt-6 flex items-center gap-6"
                >
-                  <button className="flex items-center gap-3 px-6 py-2 bg-black/5 border-black/5 rounded-lg font-bold text-sm shadow-sm hover:shadow-md transition-all group">
-                     Export CSV
-                     <ArrowUpRight size={18} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                  </button>
                </motion.div>
              )}
 
