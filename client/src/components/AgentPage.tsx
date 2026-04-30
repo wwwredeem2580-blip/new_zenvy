@@ -32,14 +32,22 @@ import {
   User, 
   Calendar, 
   Mail, 
-  Phone
+  Phone,
+  Check,
+  Shield,
+  RefreshCw,
+  Lock,
+  PlusIcon,
+  Eye
 } from 'lucide-react';
 import { InternalNotes } from './admin/InternalNotes';
 import { ActivityTimeline } from './admin/ActivityTimeline';
 import { Application, ApplicationStatus } from '../data/applications';
-import { mockApi, User as UserType, Workspace, FileRecord, AgentPermissions } from '../lib/api/mockApi';
+import { adminApi } from '../lib/api/adminApi';
 import { applicationApi } from '../lib/api/applicationApi';
+import { Workspace, AgentPermissions, FileRecord } from '../lib/api/mockApi'; // Keeping types from mockApi for now or defining them
 import { RefundModal } from './admin/RefundModal';
+import { AssignAgentModal } from './admin/AssignAgentModal';
 import { CollapsibleSection } from './ui/CollapsibleSection';
 
 import { useRouter } from 'next/navigation';
@@ -79,7 +87,31 @@ export default function AgentPage() {
   const [isDocUploading, setIsDocUploading] = useState(false);
   const [search, setSearch] = useState("");
 
-  const permissions = mockApi.getEffectivePermissions(user as any);
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [isDocsExpanded, setIsDocsExpanded] = useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleViewAttachment = async (attachment: any) => {
+    if (!selectedApp) return;
+    try {
+      const response = await applicationApi.getAttachmentPreviewUrl((selectedApp._id || selectedApp.id) as string, attachment.url);
+      if (response.success && response.previewUrl) {
+        window.open(response.previewUrl, '_blank');
+      }
+    } catch (error) {
+      console.error('Failed to get preview URL', error);
+      alert('Error: Access denied or file not found.');
+    }
+  };
+
+
+  const permissions = {
+    canViewWorkspaces: true,
+    canUploadFiles: true,
+    canDeleteFiles: true,
+    canViewApplications: true,
+    canManageApplications: true,
+  };
 
   useEffect(() => {
     loadData();
@@ -89,20 +121,17 @@ export default function AgentPage() {
     setIsLoading(true);
     try {
       if (activeTab === 'workspaces' && permissions.canViewWorkspaces) {
-        const all = await mockApi.getWorkspaces();
-        const allowed = all.filter(ws => {
-           if (user.role === 'admin') return true;
-           if (ws.permission === 'Public' || ws.permission === 'Read-only') return true;
-           if (ws.permission === 'Restricted' && ws.allowedAgents?.includes(user.id)) return true;
-           return false;
-        });
-        setWorkspaces(allowed);
+        const response = await adminApi.listWorkspaces();
+        // Backend handles filtering workspaces for agents now.
+        const mappedWs = response.workspaces.map((w: any) => ({ ...w, id: w._id || w.id }));
+        setWorkspaces(mappedWs);
       } else if (activeTab === 'applications' && permissions.canViewApplications) {
         const response = await applicationApi.listAllApplications();
-        setApplications(response.applications);
+        const mappedApps = response.applications.map((a: any) => ({ ...a, id: a._id || a.id }));
+        setApplications(mappedApps);
         // Refresh selected application if it's currently open
         if (selectedApp) {
-           const updated = response.applications.find(a => a.id === selectedApp.id);
+           const updated = mappedApps.find((a: any) => a.id === selectedApp.id);
            if (updated) setSelectedApp(updated);
         }
       }
@@ -114,8 +143,12 @@ export default function AgentPage() {
   };
 
   const loadFiles = async (wsId: string) => {
-    const files = await mockApi.getFiles(wsId);
-    setWorkspaceFiles(files);
+    try {
+      const response = await adminApi.listFiles(wsId);
+      setWorkspaceFiles(response.files);
+    } catch(e) {
+      console.error(e);
+    }
   };
 
   const handleSelectWorkspace = (ws: Workspace) => {
@@ -127,10 +160,12 @@ export default function AgentPage() {
     if (!selectedWorkspace || selectedWorkspace.permission === 'Read-only' || !permissions.canUploadFiles) return;
     setIsUploading(true);
     try {
-      const newFile = await mockApi.uploadFile(selectedWorkspace.id, fileName);
-      setWorkspaceFiles(prev => [newFile, ...prev]);
-    } catch (e) {
+      const dummyFile = new File(["dummy content"], fileName, { type: "text/plain" });
+      const response = await adminApi.uploadFile(selectedWorkspace.id, dummyFile);
+      setWorkspaceFiles(prev => [response.file, ...prev]);
+    } catch (e: any) {
       console.error(e);
+      alert("Failed to upload: " + (e.response?.data?.message || e.message));
     } finally {
       setIsUploading(false);
     }
@@ -138,21 +173,22 @@ export default function AgentPage() {
 
   const handleFileDelete = async (fileId: string) => {
     if (!selectedWorkspace || selectedWorkspace.permission === 'Read-only' || !permissions.canDeleteFiles) return;
-    const ok = await mockApi.deleteFile(selectedWorkspace.id, fileId);
-    if (ok) {
+    try {
+      await adminApi.deleteFile(selectedWorkspace.id, fileId);
       setWorkspaceFiles(prev => prev.filter(f => f.id !== fileId));
+    } catch(e) {
+      console.error(e);
+      alert("Failed to delete file");
     }
   };
 
    const updateAppStatus = async (id: string, status: ApplicationStatus, forceRelease: boolean = false) => {
     if (!permissions.canManageApplications) return;
-    await mockApi.updateApplicationStatus(id, status, forceRelease);
-    const updatedApps = await mockApi.getApplications();
-    setApplications(updatedApps);
-    
-    if (selectedApp?.id === id) {
-       const current = updatedApps.find(a => a.id === id);
-       if (current) setSelectedApp(current);
+    try {
+      await applicationApi.updateStatus(id, status);
+      await loadData();
+    } catch(e) {
+      console.error(e);
     }
   };
 
@@ -394,226 +430,379 @@ export default function AgentPage() {
          )}
 
          {/* Application Detail View Modal for Agent */}
-         <AnimatePresence>
-            {selectedApp && (
-               <div className="fixed inset-0 z-[500] flex items-center justify-end">
-                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSelectedApp(null)} className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-                  <motion.div 
-                     initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                     className="relative w-full max-w-2xl h-full bg-white border-l border-black/5 shadow-2xl p-8 overflow-y-auto"
-                  >
-                     <div className="flex justify-between items-center mb-12">
-                        <h2 className="text-2xl font-space font-bold tracking-tighter uppercase">Review Queue.</h2>
-                        <button onClick={() => setSelectedApp(null)} className="p-2 hover:bg-black/5 rounded-full transition-colors"><X size={20} /></button>
-                     </div>
+{/* Unified Application Detail View (Agent Version) */}
+      <AnimatePresence>
+        {selectedApp && (
+          <div className="fixed inset-0 z-[500] flex items-center justify-end">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSelectedApp(null)} className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+            <motion.div 
+              initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="relative w-full max-w-4xl h-full bg-white border-l border-black/10 shadow-2xl p-6 sm:p-12 overflow-y-auto"
+            >
+              <div className="flex justify-between items-center mb-16">
+                 <h2 className="text-2xl font-space tracking-tight uppercase font-bold">Document Details</h2>
+                 <button onClick={() => setSelectedApp(null)} className="p-3 hover:bg-black/5 rounded-sm transition-colors"><X size={24} /></button>
+              </div>
 
-                     <div className="space-y-12">
-                        <div className="bg-black/5 p-8 rounded-[40px] flex items-center justify-between">
-                           <div>
-                               <p className="text-[8px] uppercase tracking-[0.3em] font-bold text-black/40 mb-2">Live Status</p>
-                               <p className="text-3xl font-space font-bold tracking-tighter uppercase">{selectedApp.status}</p>
+              <div className="space-y-6">
+                 {/* Top Card: Status & Payment Actions */}
+                 <div className="bg-white border border-black/5 rounded-sm p-8 flex flex-col gap-10">
+                    {/* Status Info Row */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 items-start">
+                       {/* Application Status */}
+                       <div className="flex flex-col gap-3 lg:border-r border-black/10 pr-4">
+                           <span className="text-[10px] font-bold text-black/40 uppercase tracking-widest">Application Status</span>
+                           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-sm bg-indigo-50 border border-indigo-100 text-indigo-600 w-max">
+                              <div className="w-1.5 h-1.5 rounded-sm bg-indigo-500" />
+                              <span className="text-xs font-bold">{selectedApp.status}</span>
                            </div>
-                           <div className="w-16 h-16 bg-white rounded-[24px] flex items-center justify-center shadow-lg border border-black/5">
-                                {selectedApp.status === "Approved" ? <CheckCircle2 size={32} className="text-green-500" /> : <Clock size={32} className="text-black/20" />}
-                           </div>
-                        </div>
-
-                        {permissions.canManageApplications && (
-                           <section className="space-y-6">
-                              <div className="flex items-center justify-between">
-                                 <p className="text-[10px] uppercase tracking-widest font-bold text-black/40">Operational Actions</p>
-                                 {selectedApp.status === 'Reviewing' && (
-                                    <button 
-                                       onClick={() => {
-                                          if (selectedApp.reviewerId !== user.id) {
-                                             if (!confirm(`This is being reviewed by ${selectedApp.reviewerName}. Are you sure you want to release it?`)) return;
-                                          }
-                                          updateAppStatus((selectedApp._id || selectedApp.id) as string, 'Pending', true);
-                                       }}
-                                       className="text-[9px] uppercase tracking-widest font-bold text-red-500 hover:text-red-600 transition-colors flex items-center gap-2"
-                                    >
-                                       <X size={12} /> Release Review
-                                    </button>
-                                 )}
+                       </div>
+                       
+                       {/* Reviewer */}
+                       <div className="flex flex-col gap-3 lg:border-r border-black/10 lg:px-4">
+                           <span className="text-[10px] font-bold text-black/40 uppercase tracking-widest">Reviewer</span>
+                           {selectedApp.reviewerId ? (
+                              <div className="flex items-center gap-3">
+                                 <div className="w-8 h-8 rounded-sm bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-sm border border-white/20">
+                                    {selectedApp.reviewerName?.charAt(0)}
+                                 </div>
+                                 <div className="flex flex-col">
+                                    <span className="text-sm font-bold leading-tight">{selectedApp.reviewerName}</span>
+                                    <span className="text-[10px] text-black/40 font-medium">Smart CAF</span>
+                                 </div>
                               </div>
+                           ) : (
+                              <span className="text-sm font-bold text-black/20 mt-1">Unassigned</span>
+                           )}
+                       </div>
 
-                              {selectedApp.status === 'Reviewing' && selectedApp.reviewerId !== user.id && (
-                                 <motion.div 
-                                    initial={{ opacity: 0, y: -10 }} 
-                                    animate={{ opacity: 1, y: 0 }}
-                                    className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-2xl flex items-start gap-4"
-                                 >
-                                    <AlertTriangle className="text-yellow-600 shrink-0" size={20} />
-                                    <div>
-                                       <p className="text-[11px] font-bold text-yellow-800 uppercase tracking-tight">Active Conflict Warning</p>
-                                       <p className="text-[10px] text-yellow-700/80 leading-relaxed mt-1 font-medium">
-                                          This application is currently being reviewed by <span className="font-bold text-black">{selectedApp.reviewerName}</span>. 
-                                          Modifying the status will reassign it to you.
-                                       </p>
-                                    </div>
-                                 </motion.div>
+                       {/* Payment Method */}
+                       <div className="flex flex-col gap-3 lg:border-r border-black/10 lg:px-4">
+                           <span className="text-[10px] font-bold text-black/40 uppercase tracking-widest">Payment Method</span>
+                           <span className="text-sm font-bold text-black/80 mt-1">{selectedApp.paymentMethod || "Cash"} • {selectedApp.transactionId || "No TXID"}</span>
+                       </div>
+
+                       {/* Received */}
+                       <div className="flex flex-col gap-3 lg:pl-4">
+                           <span className="text-[10px] font-bold text-black/40 uppercase tracking-widest">Received</span>
+                           <div className="mt-1">
+                              {selectedApp.paymentStatus === 'Received' ? (
+                                 <div className="w-8 h-8 rounded-sm bg-green-50 text-green-500 flex items-center justify-center border border-green-100 shadow-sm">
+                                    <Check size={16} strokeWidth={3} />
+                                 </div>
+                              ) : (
+                                 <div className="w-8 h-8 rounded-sm bg-black/5 flex items-center justify-center">
+                                    <Clock size={16} className="text-black/20" />
+                                 </div>
                               )}
-
-                              <div className="flex flex-wrap gap-2">
-                                 {['Pending', 'Reviewing', 'Approved', 'Rejected'].map(s => (
-                                    <button 
-                                      key={s} 
-                                      onClick={() => {
-                                         if (selectedApp.status === 'Reviewing' && selectedApp.reviewerId && selectedApp.reviewerId !== user.id) {
-                                            if (!confirm(`Warning: This application is owned by ${selectedApp.reviewerName}. Overwrite ownership?`)) return;
-                                         }
-                                         
-                                         if (s === 'Rejected') {
-                                           setPendingRefundApp(selectedApp);
-                                           return;
-                                         }
-                                         
-                                         updateAppStatus((selectedApp._id || selectedApp.id) as string, s as any);
-                                      }}
-                                      className={`px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${selectedApp.status === s ? 'bg-black text-white scale-105 shadow-xl' : 'bg-white border border-black/5 text-black/40 hover:border-black/20'}`}
-                                    >
-                                      {s}
-                                    </button>
-                                 ))}
-                              </div>
-                           </section>
-                        )}
-
-                        {/* App Metadata Displays */}
-                        <CollapsibleSection title="Application Details">
-                           <div className="grid grid-cols-2 gap-8 mb-8">
-                              <DetailItem icon={<User size={14}/>} label="Full Name" value={selectedApp.name} />
-                              <DetailItem icon={<Calendar size={14}/>} label="DOB" value={selectedApp.dob} />
-                              <DetailItem icon={<MapPin size={14}/>} label="Place of Birth" value={selectedApp.pob} />
-                              <DetailItem icon={<Globe size={14}/>} label="Nationality" value={selectedApp.nationality} />
-                              <DetailItem icon={<Hash size={14}/>} label="Codice Fiscale" value={selectedApp.codiceFiscale} />
-                              <DetailItem icon={<Phone size={14}/>} label="Phone" value={selectedApp.phone} />
-                              <DetailItem icon={<Mail size={14}/>} label="Email" value={selectedApp.email} />
-                              <DetailItem icon={<Home size={14}/>} label="Address" value={selectedApp.address} />
                            </div>
+                       </div>
+                    </div>
 
-                           {/* Services Section */}
-                           <div className="space-y-4 mb-8">
-                              <h3 className="text-[10px] uppercase tracking-widest font-bold text-black/40">Included Services</h3>
-                              <div className="space-y-2">
-                                 {selectedApp.selectedServices.map((s, i) => (
-                                    <div key={i} className="flex justify-between items-center p-5 bg-black/[0.02] border border-black/5 rounded-[24px] hover:bg-white hover:shadow-xl hover:shadow-black/5 transition-all">
-                                       <div className="space-y-1">
-                                           <span className="block font-bold text-sm">{s.name}</span>
-                                           <span className="flex items-center gap-1 text-[8px] uppercase tracking-widest font-bold text-black/40">
-                                               <Clock size={10} /> {s.duration}
-                                           </span>
-                                       </div>
-                                       <span className="text-xl font-space font-bold">€{s.price}</span>
-                                    </div>
-                                 ))}
-                              </div>
-                           </div>
+                    {/* Action Buttons Row */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <button 
+                          onClick={async () => {
+                            const res = await applicationApi.updatePaymentStatus(selectedApp._id, 'Received');
+                            if (res.success) loadData();
+                          }}
+                          disabled={selectedApp.paymentStatus === 'Received'}
+                          className={`flex items-center justify-center gap-3 py-4 rounded-sm font-bold text-[10px] uppercase tracking-widest transition-all ${selectedApp.paymentStatus === 'Received' ? 'bg-indigo-50 text-indigo-200 cursor-default border border-indigo-100' : 'bg-indigo-600 text-white hover:bg-indigo-700'}`}
+                        >
+                           <Shield size={16} /> Verify Payment
+                        </button>
+                        <button 
+                          disabled={selectedApp.paymentStatus !== 'Received'}
+                          className="flex items-center justify-center gap-3 py-4 rounded-sm bg-black text-white font-bold text-[10px] uppercase tracking-widest hover:bg-black/90 transition-all disabled:opacity-20 disabled:cursor-not-allowed"
+                        >
+                           <Check size={16} /> Approve Payment
+                        </button>
+                        <button 
+                          onClick={async () => {
+                            const res = await applicationApi.updatePaymentStatus(selectedApp._id, 'Pending');
+                            if (res.success) loadData();
+                          }}
+                          disabled={selectedApp.paymentStatus === 'Pending'}
+                          className="flex items-center justify-center gap-3 py-4 rounded-sm border border-black/20 bg-white font-bold text-[10px] uppercase tracking-widest hover:bg-black/5 transition-all text-black/60 disabled:opacity-20 disabled:cursor-not-allowed"
+                        >
+                           <RefreshCw size={14} />
+                           Reset to Pending
+                        </button>
+                    </div>
+                 </div>
 
-                           {/* Documents Section */}
-                           <div className="space-y-4">
-                              <h3 className="text-[10px] uppercase tracking-widest font-bold text-black/40">Attached Documents</h3>
-                              <div className="grid grid-cols-2 gap-4">
-                                 {["Passport Scan", "Codice Fiscale"].map(doc => (
-                                    <div key={doc} className="group p-4 bg-black/5 border border-black/5 rounded-2xl flex items-center gap-4 hover:bg-black hover:text-white transition-all cursor-pointer">
-                                       <div className="w-10 h-10 bg-white/50 rounded-lg flex items-center justify-center">
-                                           <FileText size={18} />
-                                       </div>
-                                       <span className="text-[10px] font-bold uppercase tracking-widest">{doc}</span>
-                                    </div>
-                                 ))}
-                              </div>
-                           </div>
-                        </CollapsibleSection>
+                 {/* Task Assignment Card */}
+                 <div className="bg-white border border-black/10 rounded-sm p-8 flex flex-col gap-10">
+                    <h3 className="font-bold text-sm text-black/80">Task Assignment</h3>
+                    
+                    {/* Assigned To Row */}
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border border-black/10 rounded-sm p-6 bg-black/[0.02] gap-6">
+                       <div className="flex items-center gap-4">
+                          <span className="text-xs font-bold text-black/60 uppercase tracking-widest">Assigned To</span>
+                          {selectedApp.reviewerId ? (
+                             <div className="flex items-center gap-2">
+                                <div className="w-6 h-6 rounded-sm bg-indigo-600 text-white flex items-center justify-center text-[10px] font-bold">{selectedApp.reviewerName?.charAt(0)}</div>
+                                <span className="text-sm font-bold text-black/80">{selectedApp.reviewerName}</span>
+                             </div>
+                          ) : (
+                             <span className="text-sm font-bold text-black/40">Unassigned</span>
+                          )}
+                       </div>
+                       
+                       <div className="flex items-center gap-3">
+                          {!selectedApp.reviewerId && selectedApp.paymentStatus === 'Received' && (
+                             <>
+                                <button onClick={async () => {
+                                   if (!user?.id) return;
+                                   const res = await applicationApi.assignAgent(selectedApp._id, user.id);
+                                   if (res.success) loadData();
+                                }} className="px-6 py-2 rounded-sm bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-700 transition-colors shadow-sm">
+                                   Claim
+                                </button>
+                                <button onClick={() => setIsAssignModalOpen(true)} className="px-6 py-2 rounded-sm border border-black/10 bg-white text-black/60 text-xs font-bold hover:bg-black/5 transition-colors shadow-sm">
+                                   Assign
+                                </button>
+                             </>
+                          )}
+                          {selectedApp.reviewerId && (
+                             <button onClick={async () => {
+                                const res = await applicationApi.unassignAgent(selectedApp._id);
+                                if (res.success) loadData();
+                             }} className="px-6 py-2 rounded-sm border border-black/10 bg-white text-black/60 text-xs font-bold hover:bg-black/5 transition-colors shadow-sm">
+                                Unassign
+                             </button>
+                          )}
+                       </div>
+                    </div>
 
-                         {/* Secure Application Documents Workspace */}
-                         <div className="pt-8 bg-black/5 -mx-8 px-8 border-t border-black/5">
-                            <CollapsibleSection 
-                              title="Secure Application Documents" 
-                              subtitle="Visible only to Admin & Assigned Agent"
-                            >
-                               <div className="space-y-6">
-                                  <div className="flex justify-end">
-                                     {(user?.role === 'admin' || user?.id === selectedApp.reviewerId) && (
-                                        <button 
-                                          disabled={isDocUploading}
-                                          onClick={async () => {
-                                             setIsDocUploading(true);
-                                             await mockApi.uploadApplicationDocument((selectedApp._id || selectedApp.id) as string, `Signed_Final_${Math.floor(Math.random()*1000)}.pdf`);
-                                             await loadData();
-                                             setIsDocUploading(false);
-                                          }}
-                                          className="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-xl font-bold text-[9px] uppercase tracking-widest hover:scale-105 transition-all shadow-lg"
-                                        >
-                                           {isDocUploading ? <Loader2 size={12} className="animate-spin" /> : <UploadCloudIcon size={12} />}
-                                           Upload Final Document
-                                        </button>
-                                     )}
-                                  </div>
+                    {/* Flowchart Row */}
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 items-center">
+                       <button 
+                          onClick={async () => {
+                             const res = await applicationApi.updateStatus(selectedApp._id, 'Pending');
+                             if (res.success) loadData();
+                          }}
+                          className={`py-4 text-center rounded-sm text-[10px] uppercase tracking-widest font-bold transition-all border ${selectedApp.status === 'Pending' ? 'bg-black text-white border-black shadow-lg' : 'border-black/10 text-black/40 bg-white hover:border-black/20'}`}>
+                          Pending
+                       </button>
 
-                                  {selectedApp.attachments && selectedApp.attachments.length > 0 ? (
-                                    <div className="grid gap-2">
-                                       {selectedApp.attachments.map((doc) => (
-                                          <div key={doc.id} className="group p-5 bg-white border border-black/5 rounded-[24px] flex items-center justify-between hover:shadow-xl hover:shadow-black/5 transition-all">
-                                             <div className="flex items-center gap-4">
-                                                <div className="w-12 h-12 bg-black/5 rounded-2xl flex items-center justify-center text-black/20">
-                                                   <FileText size={20} />
-                                                </div>
-                                                <div className="flex flex-col">
-                                                   <span className="text-sm font-bold">{doc.name}</span>
-                                                   <span className="text-[8px] uppercase tracking-widest font-bold text-black/30">
-                                                      Uploaded by {doc.uploadedBy} • {new Date(doc.uploadedAt).toLocaleDateString()}
-                                                   </span>
-                                                </div>
-                                             </div>
-                                             <button className="p-3 bg-black/5 rounded-full hover:bg-black hover:text-white transition-all">
-                                                <Download size={14} />
-                                             </button>
-                                          </div>
-                                       ))}
-                                    </div>
-                                  ) : (
-                                    <div className="py-12 border-2 border-dashed border-black/10 rounded-[32px] flex flex-col items-center justify-center text-black/10 font-bold uppercase tracking-widest text-[8px] gap-2">
-                                       <ShieldAlert size={24} className="opacity-50" />
-                                       Secure document locker is empty
-                                    </div>
-                                  )}
-                               </div>
-                            </CollapsibleSection>
-                         </div>
+                       <button 
+                          disabled={selectedApp.paymentStatus !== 'Received'}
+                          onClick={async () => {
+                             const res = await applicationApi.updateStatus(selectedApp._id, 'Reviewing');
+                             if (res.success) loadData();
+                          }}
+                          className={`py-4 text-center rounded-sm text-[10px] uppercase tracking-widest font-bold border transition-all ${selectedApp.status === 'Reviewing' ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg' : 'border-black/10 text-black/40 bg-white hover:border-black/20 disabled:opacity-20'}`}>
+                          Reviewing
+                       </button>
 
-                         {/* Internal Notes Section */}
-                        <div className="pt-4 space-y-12">
-                           <InternalNotes 
-                              application={selectedApp} 
-                              onUpdate={loadData} 
-                           />
-                           
-                           <div className="pt-8 border-t border-black/5">
-                              <CollapsibleSection title="Audit Trail & Activity Log">
-                                 <ActivityTimeline application={selectedApp} />
-                              </CollapsibleSection>
-                           </div>
-                        </div>
+                       <button 
+                          onClick={async () => {
+                             const res = await applicationApi.updateStatus(selectedApp._id, 'Approved');
+                             if (res.success) loadData();
+                          }}
+                          className={`py-4 text-center rounded-sm text-[10px] uppercase tracking-widest font-bold border transition-all ${selectedApp.status === 'Approved' ? 'bg-green-600 text-white border-green-600 shadow-lg' : 'border-black/10 text-black/40 bg-white hover:border-black/20'}`}>
+                          Approved
+                       </button>
 
-                        <div className="pt-8">
-                           <button onClick={() => setSelectedApp(null)} className="w-full bg-black text-white py-4 rounded-xl font-bold text-[10px] tracking-widest uppercase hover:scale-[1.02] transition-all shadow-2xl shadow-black/20">
-                              Release Record
-                           </button>
-                        </div>
-                     </div>
-                  </motion.div>
-               </div>
-            )}
-         </AnimatePresence>
+                       <button 
+                          onClick={async () => {
+                             setPendingRefundApp(selectedApp);
+                          }}
+                          className={`py-4 text-center rounded-sm text-[10px] uppercase tracking-widest font-bold border transition-all ${selectedApp.status === 'Rejected' ? 'bg-red-600 text-white border-red-600 shadow-lg' : 'border-black/10 text-black/40 bg-white hover:border-black/20'}`}>
+                          Rejected
+                       </button>
+                    </div>
+                 </div>
 
+                 {/* 2-Column Grid Layout for Bottom Section */}
+                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
+                    {/* Left Column: Application Details & Audit Trail */}
+                    <div className="space-y-6">
+                       {/* Application Details Summary Card */}
+                       <div className="bg-white border border-black/10 rounded-sm p-8 shadow-sm space-y-12">
+                          <div className="space-y-4">
+                             <h3 className="font-bold text-[10px] uppercase tracking-widest text-black/40">Application Details</h3>
+                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-8 gap-x-6">
+                                <DetailItem icon={<User size={14}/>} label="Full Name" value={selectedApp.name} />
+                                <DetailItem icon={<Calendar size={14}/>} label="DOB" value={selectedApp.dob} />
+                                <DetailItem icon={<MapPin size={14}/>} label="Place of Birth" value={selectedApp.pob} />
+                                <DetailItem icon={<Globe size={14}/>} label="Nationality" value={selectedApp.nationality} />
+                                <DetailItem icon={<Hash size={14}/>} label="Codice Fiscale" value={selectedApp.codiceFiscale} />
+                                <DetailItem icon={<Phone size={14}/>} label="Phone" value={selectedApp.phone} />
+                                <DetailItem icon={<Mail size={14}/>} label="Email" value={selectedApp.email} />
+                                <DetailItem icon={<Home size={14}/>} label="Address" value={selectedApp.address} />
+                             </div>
+                          </div>
+
+                          <div className="space-y-4">
+                             <h3 className="text-[10px] uppercase tracking-widest font-bold text-black/40">Included Services</h3>
+                             <div className="grid gap-2">
+                                {selectedApp.selectedServices.map((s, i) => (
+                                   <div key={i} className="flex justify-between items-center p-5 bg-black/[0.02] border border-black/10 rounded-sm hover:bg-white hover:shadow-xl transition-all group">
+                                      <div className="space-y-1">
+                                          <span className="block font-bold text-xs">{s.name}</span>
+                                          <span className="flex items-center gap-1 text-[8px] uppercase tracking-widest font-bold text-black/40">
+                                              <Clock size={10} /> {s.duration}
+                                          </span>
+                                      </div>
+                                      <span className="text-sm font-space font-bold">€{s.price}</span>
+                                   </div>
+                                ))}
+                             </div>
+                          </div>
+
+                          <div className="pt-4 border-t border-black/5">
+                             <div 
+                                onClick={() => setIsDocsExpanded(!isDocsExpanded)}
+                                className={`flex items-center justify-between border rounded-sm p-4 transition-all cursor-pointer group ${isDocsExpanded ? 'bg-indigo-600 border-indigo-600 shadow-lg shadow-indigo-100' : 'bg-black/[0.02] border-black/5 hover:bg-black/5'}`}
+                             >
+                                <div className="flex items-center gap-4">
+                                   <div className={`w-10 h-10 rounded-sm flex items-center justify-center shadow-sm transition-colors ${isDocsExpanded ? 'bg-white/20 text-white' : 'bg-white border border-black/5 text-black/40'}`}>
+                                      <Lock size={18} />
+                                   </div>
+                                   <div className="flex flex-col">
+                                      <span className={`text-sm font-bold transition-colors ${isDocsExpanded ? 'text-white' : 'text-black/80 group-hover:text-black'}`}>Secure Application Documents</span>
+                                      <span className={`text-[10px] font-medium transition-colors ${isDocsExpanded ? 'text-white/60' : 'text-black/40'}`}>Visible only to Admin & Assigned Agent</span>
+                                   </div>
+                                </div>
+                                <ChevronRight size={18} className={`transition-all ${isDocsExpanded ? 'text-white rotate-90' : 'text-black/20 group-hover:text-black/40'}`} />
+                             </div>
+
+                             <AnimatePresence>
+                                {isDocsExpanded && (
+                                   <motion.div 
+                                      initial={{ height: 0, opacity: 0 }}
+                                      animate={{ height: 'auto', opacity: 1 }}
+                                      exit={{ height: 0, opacity: 0 }}
+                                      className="overflow-hidden"
+                                   >
+                                      <div className="pt-6 space-y-6">
+                                         <div className="flex justify-between items-center">
+                                            <h4 className="text-[10px] uppercase tracking-widest font-bold text-black/40">Secure Workspace</h4>
+                                            {(user?.role === 'admin' || user?.id === selectedApp.reviewerId) && (
+                                               <>
+                                                 <input 
+                                                   type="file" 
+                                                   className="hidden" 
+                                                   ref={fileInputRef} 
+                                                   onChange={async (e) => {
+                                                     const file = e.target.files?.[0];
+                                                     if (!file || !selectedApp) return;
+                                                     setIsDocUploading(true);
+                                                     try {
+                                                       const res = await applicationApi.uploadFinalDocument(selectedApp._id, file);
+                                                       if (res.success) await loadData();
+                                                     } finally {
+                                                       setIsDocUploading(false);
+                                                     }
+                                                   }}
+                                                 />
+                                                 <button 
+                                                   onClick={() => fileInputRef.current?.click()}
+                                                   disabled={isDocUploading}
+                                                   className="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-sm font-bold text-[10px] uppercase tracking-widest hover:scale-105 active:scale-95 transition-all disabled:opacity-20"
+                                                 >
+                                                    {isDocUploading ? <Loader2 size={12} className="animate-spin" /> : <PlusIcon size={12} />}
+                                                    Upload
+                                                 </button>
+                                               </>
+                                            )}
+                                         </div>
+
+                                         {selectedApp.attachments && selectedApp.attachments.length > 0 ? (
+                                            <div className="grid gap-3">
+                                               {selectedApp.attachments.map((doc: any, i: number) => (
+                                                  <div key={i} className="flex items-center justify-between p-4 bg-white border border-black/5 rounded-sm hover:shadow-sm transition-all group">
+                                                     <div className="flex items-center gap-4">
+                                                        <div className="w-10 h-10 bg-black/5 rounded-sm flex items-center justify-center text-black/20 group-hover:bg-indigo-50 group-hover:text-indigo-500 transition-colors">
+                                                           <FileText size={18} />
+                                                        </div>
+                                                        <div className="flex flex-col">
+                                                           <span className="text-xs font-bold text-black/80">{doc.name}</span>
+                                                           <span className="text-[8px] uppercase tracking-widest font-bold text-black/30">
+                                                              {doc.uploadedBy} • {new Date(doc.uploadedAt).toLocaleDateString()}
+                                                           </span>
+                                                        </div>
+                                                     </div>
+                                                     <div className="flex items-center gap-2">
+                                                        <button 
+                                                           onClick={() => handleViewAttachment(doc)}
+                                                           className="p-2 hover:bg-black/5 rounded-sm transition-colors text-black/40 hover:text-black"
+                                                        >
+                                                           <Eye size={14} />
+                                                        </button>
+                                                        <button className="p-2 hover:bg-black/5 rounded-sm transition-colors text-black/40 hover:text-black">
+                                                           <Download size={14} />
+                                                        </button>
+                                                     </div>
+                                                  </div>
+                                               ))}
+                                            </div>
+                                         ) : (
+                                            <div className="py-8 border-2 border-dashed border-black/5 rounded-sm flex flex-col items-center justify-center text-black/10 font-bold uppercase tracking-widest text-[8px] gap-2">
+                                               <Shield size={20} className="opacity-50" />
+                                               Workspace is empty
+                                            </div>
+                                         )}
+                                      </div>
+                                   </motion.div>
+                                )}
+                             </AnimatePresence>
+                          </div>
+                       </div>
+
+                       {/* Audit Trail & Activity Log Card */}
+                       <div className="bg-white border border-black/10 rounded-sm p-8 shadow-sm space-y-10">
+                          <div className="flex items-center justify-between">
+                             <h3 className="font-bold text-[10px] uppercase tracking-widest text-black/40">Audit Trail & Activity Log</h3>
+                          </div>
+                          
+                          <div className="space-y-4">
+                             <div className="flex items-center justify-between">
+                                <span className="text-xs font-bold text-black/60">Lifecycle Overview</span>
+                                <span className="text-[10px] font-bold text-indigo-500">Total Time: 1 Day</span>
+                             </div>
+                             
+                             <div className="max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                                <ActivityTimeline application={selectedApp} />
+                             </div>
+
+                             <button className="w-full flex items-center justify-center gap-2 py-4 rounded-sm border border-black/10 bg-black/[0.02] text-[10px] font-bold uppercase tracking-widest text-black/40 hover:bg-black/5 transition-colors">
+                                View Full Timeline <ChevronRight size={14} className="rotate-90" />
+                             </button>
+                          </div>
+                       </div>
+                    </div>
+
+                    {/* Right Column: Internal Communications */}
+                    <div className="h-full">
+                       <InternalNotes 
+                          application={selectedApp} 
+                          onUpdate={loadData} 
+                       />
+                    </div>
+                 </div>
+
+                 <div className='pt-8 border-t border-black/5'>
+                    <button onClick={() => setSelectedApp(null)} className='w-full bg-black text-white py-6 rounded-sm font-bold text-[10px] tracking-[0.3em] uppercase hover:bg-black/90 transition-all shadow-2xl'>
+                       Close Detail View
+                    </button>
+                 </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      
          <RefundModal 
             isOpen={!!pendingRefundApp}
             onClose={() => setPendingRefundApp(null)}
             application={pendingRefundApp || selectedApp || {} as Application}
             onConfirm={async (refundData) => {
                if (pendingRefundApp) {
-                  await mockApi.updateApplicationStatus((pendingRefundApp._id || pendingRefundApp.id) as string, 'Rejected', false, refundData);
+                  await applicationApi.updateStatus((pendingRefundApp._id || pendingRefundApp.id) as string, 'Rejected');
                   setPendingRefundApp(null);
                   loadData();
                   setSelectedApp(null);

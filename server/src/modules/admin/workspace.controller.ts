@@ -2,9 +2,10 @@ import { Request, Response } from 'express';
 import * as workspaceService from './workspace.service';
 import { handleError } from '../../utils/handleError';
 
-export const listWorkspaces = async (_req: Request, res: Response) => {
+export const listWorkspaces = async (req: Request, res: Response) => {
   try {
-    const workspaces = await workspaceService.listWorkspaces();
+    const user = (req as any).user;
+    const workspaces = await workspaceService.listWorkspaces(user);
     res.json({ success: true, workspaces });
   } catch (error) {
     handleError(error, res);
@@ -52,8 +53,9 @@ export const uploadFile = async (req: Request, res: Response) => {
     if (!req.file) {
       return res.status(400).json({ success: false, message: 'No file uploaded' });
     }
-    const actorName = (req as any).user?.firstName + ' ' + (req as any).user?.lastName;
-    const file = await workspaceService.uploadFileToWorkspace(req.params.id as string, req.file, actorName);
+    const user = (req as any).user;
+    const actorName = user?.firstName + ' ' + user?.lastName;
+    const file = await workspaceService.uploadFileToWorkspace(req.params.id as string, req.file, actorName, user);
     res.json({ success: true, file });
   } catch (error) {
     handleError(error, res);

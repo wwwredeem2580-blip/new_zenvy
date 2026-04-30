@@ -36,9 +36,11 @@ export const getDetails = async (req: Request, res: Response): Promise<void> => 
   }
 };
 
-export const listAll = async (_req: Request, res: Response): Promise<void> => {
+export const listAll = async (req: Request, res: Response): Promise<void> => {
   try {
-    const applications = await applicationService.getAllApplications();
+    const userId = (req as any).user.userId;
+    const role = (req as any).user.role;
+    const applications = await applicationService.getAllApplications(role, userId);
     res.status(200).json({ success: true, applications });
   } catch (error) {
     handleError(error, res);

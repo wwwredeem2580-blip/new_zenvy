@@ -96,9 +96,15 @@ export const getApplicationById = async (
 
 /**
  * getAllApplications — For admin/agent to see all submissions.
+ * Agents only see applications assigned to them.
  */
-export const getAllApplications = async (): Promise<IApplication[]> => {
-  return Application.find({})
+export const getAllApplications = async (userRole: string, userId: string): Promise<IApplication[]> => {
+  const query: any = {};
+  if (userRole === 'agent') {
+    query.reviewerId = new mongoose.Types.ObjectId(userId);
+  }
+
+  return Application.find(query)
     .populate('userId', 'firstName lastName email balance')
     .sort({ createdAt: -1 });
 };

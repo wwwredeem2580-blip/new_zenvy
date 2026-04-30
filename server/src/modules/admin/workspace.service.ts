@@ -34,10 +34,19 @@ export const ensureInvoicesWorkspace = async () => {
   return ws;
 };
 
-export const listWorkspaces = async () => {
+export const listWorkspaces = async (user?: any) => {
   await ensureSystemWorkspace();
   await ensureInvoicesWorkspace();
-  return Workspace.find().sort({ isSystem: -1, name: 1 });
+  
+  const query: any = {};
+  if (user && user.role === 'agent') {
+    query.$or = [
+      { permission: { $in: ['Public', 'Read-only'] } },
+      { permission: 'Restricted', allowedAgents: new mongoose.Types.ObjectId(user.userId) }
+    ];
+  }
+  
+  return Workspace.find(query).sort({ isSystem: -1, name: 1 });
 };
 
 export const createWorkspace = async (data: { name: string; permission: WorkspacePermission; allowedAgents?: string[] }) => {
@@ -121,10 +130,19 @@ export const listFilesInWorkspace = async (id: string) => {
   }));
 };
 
-export const uploadFileToWorkspace = async (id: string, file: Express.Multer.File, uploaderName: string) => {
+export const uploadFileToWorkspace = async (id: string, file: Express.Multer.File, uploaderName: string, user?: any) => {
   const workspace = await Workspace.findById(id);
   if (!workspace) throw new CustomError('Workspace not found', 404);
   if (workspace.isSystem) throw new CustomError('Cannot upload directly to system workspace. Upload via individual applications.', 400);
+
+  if (user && user.role === 'agent') {
+    if (workspace.permission === 'Read-only') {
+      throw new CustomError('Upload denied: Workspace is read-only', 403);
+    }
+    if (workspace.permission === 'Restricted' && !workspace.allowedAgents.some(agentId => agentId.toString() === user.userId)) {
+      throw new CustomError('Upload denied: Access restricted', 403);
+    }
+  }
 
   const timestamp = Date.now();
   const sanitizedFilename = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
