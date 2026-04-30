@@ -54,7 +54,7 @@ export function emailVerificationTemplate(payload: EmailVerificationPayload): st
       </div>
 
       <div class="cta-container">
-        <a href="${verificationLink}" class="cta-button">Verify Email Address →</a>
+        <a href="${verificationLink}" class="cta-button" style="color: #ffffff !important;">Verify Email Address →</a>
       </div>
 
       <div class="fallback">

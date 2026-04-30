@@ -69,7 +69,7 @@ export function invitationTemplate(payload: InvitationPayload): string {
       </div>
 
       <div class="cta-container">
-        <a href="${joinUrl}" class="cta-button">Accept Invitation →</a>
+        <a href="${joinUrl}" class="cta-button" style="color: #ffffff !important;">Accept Invitation →</a>
       </div>
     </div>
     <div class="footer">

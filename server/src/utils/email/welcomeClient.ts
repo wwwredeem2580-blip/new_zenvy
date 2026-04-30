@@ -65,7 +65,7 @@ export function welcomeClientTemplate(payload: WelcomeClientPayload): string {
       </div>
 
       <div class="cta-container">
-        <a href="${portalUrl}" class="cta-button">Open Your Portal →</a>
+        <a href="${portalUrl}" class="cta-button" style="color: #ffffff !important;">Open Your Portal →</a>
       </div>
     </div>
     <div class="footer">

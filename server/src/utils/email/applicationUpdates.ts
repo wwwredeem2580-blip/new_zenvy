@@ -83,7 +83,7 @@ export function applicationUpdateTemplate(payload: ApplicationUpdatePayload): st
       <p class="text">Hi ${displayName},<br><br>${message}</p>
       
       <div class="cta-container">
-        <a href="${process.env.CLIENT_URL || 'https://smartcaf.it'}/profile" class="cta-button">View Details →</a>
+        <a href="${process.env.CLIENT_URL || 'https://smartcaf.it'}/profile" class="cta-button" style="color: #ffffff !important;">View Details →</a>
       </div>
     </div>
     <div class="footer">
