@@ -3,7 +3,7 @@ import { User } from '../../models/User.model';
 import { CreateApplicationInput } from './schema';
 import CustomError from '../../utils/CustomError';
 import mongoose from 'mongoose';
-import { generatePreviewUrl } from '../../lib/backblaze';
+import { generatePreviewUrl, deleteObject } from '../../lib/backblaze';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { addEmailJob } from '../../workers/email.queue';
 import { generateAndUploadInvoice } from '../../utils/invoice.service';
@@ -53,6 +53,30 @@ export const submitApplication = async (
       },
     ],
   });
+
+  if (application.paymentStatus === 'Received' && !application.invoiceGenerated) {
+    try {
+      const invoiceData = await generateAndUploadInvoice(application);
+      application.attachments.push({
+        name: invoiceData.name,
+        url: invoiceData.url,
+        uploadedBy: 'System (Auto-generated)',
+        uploadedById: 'system',
+        uploadedAt: new Date(),
+      });
+      application.invoiceGenerated = true;
+      application.activityLog.push({
+        type: 'document',
+        description: `Invoice ${invoiceData.name} automatically generated and attached.`,
+        actorName: 'System',
+        actorId: 'system',
+        timestamp: new Date(),
+      });
+      await application.save();
+    } catch (err) {
+      console.error('Failed to generate initial invoice:', err);
+    }
+  }
 
   return application;
 };
@@ -199,7 +223,7 @@ export const updatePaymentStatus = async (
     timestamp: new Date(),
   });
 
-  if (status === 'Received') {
+  if (status === 'Received' && !application.invoiceGenerated) {
     try {
       const invoiceData = await generateAndUploadInvoice(application);
       application.attachments.push({
@@ -209,6 +233,7 @@ export const updatePaymentStatus = async (
         uploadedById: 'system',
         uploadedAt: new Date(),
       });
+      application.invoiceGenerated = true;
       application.activityLog.push({
         type: 'document',
         description: `Invoice ${invoiceData.name} automatically generated and attached.`,
@@ -218,6 +243,28 @@ export const updatePaymentStatus = async (
       });
     } catch (err) {
       console.error('Failed to generate invoice:', err);
+    }
+  } else if (status === 'Pending' && application.invoiceGenerated) {
+    // Revoke invoice if toggled back to pending
+    try {
+      const systemInvoices = application.attachments.filter(a => a.uploadedById === 'system');
+      
+      for (const inv of systemInvoices) {
+        await deleteObject(inv.url);
+        application.activityLog.push({
+          type: 'document',
+          description: `Invoice ${inv.name} revoked due to payment status reset.`,
+          actorName: actor.name,
+          actorId: actor.id,
+          timestamp: new Date(),
+        });
+      }
+
+      // Remove from attachments
+      application.attachments = application.attachments.filter(a => a.uploadedById !== 'system');
+      application.invoiceGenerated = false;
+    } catch (err) {
+      console.error('Failed to revoke invoice:', err);
     }
   }
 

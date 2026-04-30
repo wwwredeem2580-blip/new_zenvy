@@ -58,6 +58,7 @@ export interface IApplication extends Document {
   lastActivityAt?: Date;
   refundAmount?: number;
   refundType?: 'Full' | 'Partial';
+  invoiceGenerated: boolean;
   notes: INote[];
   activityLog: IActivityLogEntry[];
   attachments: IAttachment[];
@@ -133,6 +134,7 @@ const ApplicationSchema = new Schema<IApplication>(
     lastActivityAt: { type: Date },
     refundAmount: { type: Number },
     refundType: { type: String, enum: ['Full', 'Partial'] },
+    invoiceGenerated: { type: Boolean, default: false },
     notes: { type: [NoteSchema], default: [] },
     activityLog: { type: [ActivityLogSchema], default: [] },
     attachments: { type: [AttachmentSchema], default: [] },
