@@ -16,127 +16,81 @@ interface ApplicationUpdatePayload {
 export function applicationUpdateTemplate(payload: ApplicationUpdatePayload): string {
   const { email, name, applicationId, updateType, newStatus, agentName, services } = payload;
   const displayName = name ? name.split(' ')[0] : 'there';
+  const logoUrl = 'https://ik.imagekit.io/pinecone/SmartCaf/logo.png?updatedAt=1777569129907';
 
   let title = '';
   let message = '';
-  let icon = '🔔';
-  let accentColor = '#0a0a0a';
+  let accentColor = '#000000';
 
   switch (updateType) {
     case 'PAYMENT_APPROVED':
       title = 'Payment Approved';
-      message = `Great news! Your payment for application <strong style="color: #0a0a0a;">#${applicationId}</strong> has been verified and approved. Our team will now begin the review process.`;
-      icon = '✅';
-      accentColor = '#10b981'; // Emerald
+      message = `Your payment for application <strong style="color: #000000;">#${applicationId}</strong> has been successfully verified. Our team is now moving forward with your request.`;
+      accentColor = '#10B981';
       break;
     case 'PAYMENT_REJECTED':
       title = 'Payment Issue';
-      message = `There was an issue verifying your payment for application <strong style="color: #0a0a0a;">#${applicationId}</strong>. Please log in to the portal to check the details and retry if necessary.`;
-      icon = '⚠️';
-      accentColor = '#ef4444'; // Rose
+      message = `We encountered an issue verifying your payment for application <strong style="color: #000000;">#${applicationId}</strong>. Please visit the portal to resolve this.`;
+      accentColor = '#EF4444';
       break;
     case 'STATUS_UPDATED':
       title = 'Status Update';
-      message = `The status of your application <strong style="color: #0a0a0a;">#${applicationId}</strong> has been updated to <strong style="color: #0a0a0a; text-transform: uppercase;">${newStatus}</strong>.`;
-      icon = '📋';
-      accentColor = '#6366f1'; // Indigo
+      message = `The status of your application <strong style="color: #000000;">#${applicationId}</strong> has been updated to <strong style="color: #000000; text-transform: uppercase;">${newStatus}</strong>.`;
+      accentColor = '#6366F1';
       break;
     case 'AGENT_ASSIGNED':
       title = 'Review Started';
-      message = `Your application <strong style="color: #0a0a0a;">#${applicationId}</strong> is now being reviewed by <strong style="color: #0a0a0a;">${agentName}</strong>. You will be notified of any further updates or if additional documentation is required.`;
-      icon = '🔍';
-      accentColor = '#f59e0b'; // Amber
+      message = `Your application <strong style="color: #000000;">#${applicationId}</strong> is now being processed by <strong style="color: #000000;">${agentName}</strong>. You'll hear from us soon.`;
+      accentColor = '#F59E0B';
       break;
   }
 
   return `
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${title} — Smart CAF</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>${title}</title>
+  <style>
+    @media only screen and (max-width: 600px) {
+      .container { width: 100% !important; padding: 20px !important; }
+      .content { padding: 30px 20px !important; }
+    }
+    body { margin: 0; padding: 0; background-color: #F9FAFB; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+    .container { max-width: 600px; margin: 0 auto; padding: 40px 20px; }
+    .header { text-align: center; padding-bottom: 40px; }
+    .logo { height: 120px; width: auto; }
+    .content { background: #ffffff; border: none; padding: 48px; }
+    .status-badge { display: inline-block; padding: 4px 12px; border-radius: 0; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 16px; color: white; background-color: ${accentColor}; }
+    .title { margin: 0 0 16px; color: #111827; font-size: 24px; font-weight: 700; letter-spacing: -0.025em; }
+    .text { margin: 0 0 32px; color: #4B5563; font-size: 16px; line-height: 1.6; }
+    .cta-container { text-align: center; }
+    .cta-button { display: inline-block; background: #000000; color: #ffffff; padding: 18px 40px; border-radius: 0; text-decoration: none; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.2em; }
+    .footer { padding-top: 32px; text-align: center; }
+    .footer-text { margin: 0; color: #9CA3AF; font-size: 12px; }
+    .footer-link { color: #111827; text-decoration: none; font-weight: 500; }
+  </style>
 </head>
-<body style="margin: 0; padding: 0; background-color: #f4f4f4; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
-
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
-    <tr>
-      <td style="padding: 48px 20px;">
-        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width: 580px; margin: 0 auto;">
-          
-          <!-- Header -->
-          <tr>
-            <td style="background-color: #0a0a0a; padding: 32px 48px; border-radius: 20px 20px 0 0;">
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
-                <tr>
-                  <td>
-                    <p style="margin: 0; color: #ffffff; font-size: 20px; font-weight: 700;">Smart CAF</p>
-                    <p style="margin: 2px 0 0; color: rgba(255,255,255,0.4); font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em;">Notification Center</p>
-                  </td>
-                  <td align="right">
-                    <div style="width: 40px; height: 40px; background-color: ${accentColor}; border-radius: 12px; text-align: center; line-height: 40px; font-size: 20px;">
-                      ${icon}
-                    </div>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-
-          <!-- Body -->
-          <tr>
-            <td style="background-color: #ffffff; padding: 48px; border-left: 1px solid #e8e8e8; border-right: 1px solid #e8e8e8;">
-              <p style="margin: 0 0 12px; color: #0a0a0a; font-size: 24px; font-weight: 700; letter-spacing: -0.5px;">Hi ${displayName},</p>
-              <p style="margin: 0 0 24px; color: #4b5563; font-size: 16px; line-height: 1.6;">${message}</p>
-
-              <!-- Application Summary -->
-              <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 16px; padding: 24px; margin-bottom: 32px;">
-                <p style="margin: 0 0 16px; color: #9ca3af; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Application Snapshot</p>
-                <table width="100%" cellspacing="0" cellpadding="0" border="0">
-                  <tr>
-                    <td style="padding-bottom: 8px; color: #6b7280; font-size: 13px;">ID</td>
-                    <td align="right" style="padding-bottom: 8px; color: #111827; font-size: 13px; font-weight: 600;">#${applicationId}</td>
-                  </tr>
-                  <tr>
-                    <td style="padding-bottom: 8px; color: #6b7280; font-size: 13px;">Update Type</td>
-                    <td align="right" style="padding-bottom: 8px; color: #111827; font-size: 13px; font-weight: 600;">${title}</td>
-                  </tr>
-                  ${newStatus ? `
-                  <tr>
-                    <td style="padding-bottom: 8px; color: #6b7280; font-size: 13px;">Current Status</td>
-                    <td align="right" style="padding-bottom: 8px; color: ${accentColor}; font-size: 13px; font-weight: 700; text-transform: uppercase;">${newStatus}</td>
-                  </tr>
-                  ` : ''}
-                </table>
-              </div>
-
-              <!-- CTA -->
-              <table role="presentation" cellspacing="0" cellpadding="0" border="0">
-                <tr>
-                  <td style="border-radius: 12px; background-color: #0a0a0a;">
-                    <a href="${process.env.CLIENT_URL || 'https://smartcaf.it'}/profile"
-                       style="display: inline-block; padding: 18px 40px; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600; border-radius: 12px;">
-                      View Application Details →
-                    </a>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-
-          <!-- Footer -->
-          <tr>
-            <td style="background-color: #f9fafb; padding: 32px 48px; border-radius: 0 0 20px 20px; border: 1px solid #e8e8e8; border-top: none; text-align: center;">
-              <p style="margin: 0 0 8px; color: #9ca3af; font-size: 12px;">If you have any questions, reply to this email or contact support.</p>
-              <p style="margin: 0; color: #d1d5db; font-size: 11px;">© ${new Date().getFullYear()} Smart CAF Portal. All rights reserved.</p>
-            </td>
-          </tr>
-
-        </table>
-      </td>
-    </tr>
-  </table>
-
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="${logoUrl}" alt="Smart CAF" class="logo">
+    </div>
+    <div class="content">
+      <div class="status-badge">${title}</div>
+      <h1 class="title">Update on #${applicationId}</h1>
+      <p class="text">Hi ${displayName},<br><br>${message}</p>
+      
+      <div class="cta-container">
+        <a href="${process.env.CLIENT_URL || 'https://smartcaf.it'}/profile" class="cta-button">View Details →</a>
+      </div>
+    </div>
+    <div class="footer">
+      <p class="footer-text">Questions? Reply to this email or contact our support team.</p>
+      <p class="footer-text" style="margin-top: 16px;">© ${new Date().getFullYear()} Smart CAF. All rights reserved.</p>
+    </div>
+  </div>
 </body>
 </html>
   `.trim();

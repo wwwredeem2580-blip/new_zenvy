@@ -7,119 +7,72 @@ interface WelcomeClientPayload {
 export function welcomeClientTemplate(payload: WelcomeClientPayload): string {
   const { email, name, portalUrl } = payload;
   const firstName = name.split(' ')[0];
+  const logoUrl = 'https://ik.imagekit.io/pinecone/SmartCaf/logo.png?updatedAt=1777569129907';
 
   return `
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>You're verified — Smart CAF</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Welcome to Smart CAF</title>
+  <style>
+    @media only screen and (max-width: 600px) {
+      .container { width: 100% !important; padding: 20px !important; }
+      .content { padding: 30px 20px !important; }
+      .feature-item { padding: 15px !important; }
+    }
+    body { margin: 0; padding: 0; background-color: #F9FAFB; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+    .container { max-width: 600px; margin: 0 auto; padding: 40px 20px; }
+    .header { text-align: center; padding-bottom: 40px; }
+    .logo { height: 120px; width: auto; }
+    .content { background: #ffffff; border: none; padding: 48px; }
+    .title { margin: 0 0 16px; color: #111827; font-size: 24px; font-weight: 700; letter-spacing: -0.025em; }
+    .text { margin: 0 0 32px; color: #4B5563; font-size: 16px; line-height: 1.6; }
+    .features { margin: 0 0 32px; }
+    .feature-item { background: #F3F4F6; border-radius: 0; padding: 20px; margin-bottom: 12px; display: block; text-decoration: none; }
+    .feature-title { display: block; color: #111827; font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+    .feature-desc { display: block; color: #6B7280; font-size: 12px; line-height: 1.4; }
+    .cta-container { text-align: center; margin-top: 32px; }
+    .cta-button { display: inline-block; background: #000000; color: #ffffff; padding: 18px 40px; border-radius: 0; text-decoration: none; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.2em; transition: transform 0.2s; }
+    .footer { padding-top: 32px; text-align: center; }
+    .footer-text { margin: 0; color: #9CA3AF; font-size: 12px; }
+    .footer-link { color: #111827; text-decoration: none; font-weight: 500; }
+  </style>
 </head>
-<body style="margin: 0; padding: 0; background-color: #f4f4f4; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'DM Sans', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="${logoUrl}" alt="Smart CAF" class="logo">
+    </div>
+    <div class="content">
+      <h1 class="title">You're in, ${firstName}.</h1>
+      <p class="text">Your account is now active. You can now access all Smart CAF digital services directly from your dashboard.</p>
+      
+      <div class="features">
+        <div class="feature-item">
+          <span class="feature-title">Smart Submissions</span>
+          <span class="feature-desc">Submit and track your applications with real-time updates.</span>
+        </div>
+        <div class="feature-item">
+          <span class="feature-title">Secure Vault</span>
+          <span class="feature-desc">Manage all your fiscal documents and attachments in one place.</span>
+        </div>
+        <div class="feature-item">
+          <span class="feature-title">Expert Support</span>
+          <span class="feature-desc">Direct line of communication with your assigned fiscal agent.</span>
+        </div>
+      </div>
 
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
-    <tr>
-      <td style="padding: 48px 20px;">
-
-        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width: 580px; margin: 0 auto;">
-
-          <!-- Header -->
-          <tr>
-            <td style="background-color: #0a0a0a; padding: 36px 48px; border-radius: 16px 16px 0 0;">
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
-                <tr>
-                  <td>
-                    <p style="margin: 0; color: #ffffff; font-size: 22px; font-weight: 700; letter-spacing: -0.5px;">Smart CAF</p>
-                    <p style="margin: 4px 0 0; color: rgba(255,255,255,0.45); font-size: 11px; font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase;">Patronato Digitale</p>
-                  </td>
-                  <td align="right">
-                    <div style="width: 36px; height: 36px; background-color: rgba(255,255,255,0.12); border-radius: 8px; display: inline-block; text-align: center; line-height: 36px;">
-                      <span style="color: #ffffff; font-size: 18px;">✓</span>
-                    </div>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-
-          <!-- Body -->
-          <tr>
-            <td style="background-color: #ffffff; padding: 48px 48px 40px; border-left: 1px solid #e8e8e8; border-right: 1px solid #e8e8e8;">
-
-              <p style="margin: 0 0 8px; color: #0a0a0a; font-size: 24px; font-weight: 700; letter-spacing: -0.5px;">
-                You're in, ${firstName}.
-              </p>
-
-              <p style="margin: 0 0 28px; color: #555555; font-size: 15px; line-height: 1.7;">
-                Your email address has been successfully verified. Your Smart CAF account is now active and ready to use.
-              </p>
-
-              <!-- What's available -->
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin: 0 0 32px; background-color: #f7f7f7; border-radius: 12px; padding: 24px;">
-                <tr>
-                  <td style="padding: 24px;">
-                    <p style="margin: 0 0 16px; color: #888888; font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;">Via the Portal you can</p>
-                    <table role="presentation" cellspacing="0" cellpadding="0" border="0">
-                      <tr>
-                        <td style="padding: 6px 0;">
-                          <p style="margin: 0; color: #0a0a0a; font-size: 14px; line-height: 1.5;">
-                            <span style="color: #0a0a0a; margin-right: 10px;">→</span> Submit and track service applications
-                          </p>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td style="padding: 6px 0;">
-                          <p style="margin: 0; color: #0a0a0a; font-size: 14px; line-height: 1.5;">
-                            <span style="color: #0a0a0a; margin-right: 10px;">→</span> Manage documents and attachments
-                          </p>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td style="padding: 6px 0;">
-                          <p style="margin: 0; color: #0a0a0a; font-size: 14px; line-height: 1.5;">
-                            <span style="color: #0a0a0a; margin-right: 10px;">→</span> Communicate directly with your assigned agent
-                          </p>
-                        </td>
-                      </tr>
-                    </table>
-                  </td>
-                </tr>
-              </table>
-
-              <!-- CTA -->
-              <table role="presentation" cellspacing="0" cellpadding="0" border="0">
-                <tr>
-                  <td style="border-radius: 10px; background-color: #0a0a0a;">
-                    <a href="${portalUrl}"
-                       style="display: inline-block; padding: 16px 36px; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600; letter-spacing: 0.03em; border-radius: 10px;">
-                      Go to Portal →
-                    </a>
-                  </td>
-                </tr>
-              </table>
-
-            </td>
-          </tr>
-
-          <!-- Footer -->
-          <tr>
-            <td style="background-color: #f7f7f7; padding: 24px 48px; border-radius: 0 0 16px 16px; border: 1px solid #e8e8e8; border-top: none;">
-              <p style="margin: 0 0 4px; color: #aaaaaa; font-size: 12px; text-align: center;">
-                Need help? <a href="mailto:support@smartcaf.it" style="color: #0a0a0a; text-decoration: none; font-weight: 600;">support@smartcaf.it</a>
-              </p>
-              <p style="margin: 0; color: #cccccc; font-size: 11px; text-align: center;">
-                © ${new Date().getFullYear()} Smart CAF. All rights reserved.
-              </p>
-            </td>
-          </tr>
-
-        </table>
-      </td>
-    </tr>
-  </table>
-
+      <div class="cta-container">
+        <a href="${portalUrl}" class="cta-button">Open Your Portal →</a>
+      </div>
+    </div>
+    <div class="footer">
+      <p class="footer-text">Need assistance? <a href="mailto:support@smartcaf.it" class="footer-link">support@smartcaf.it</a></p>
+      <p class="footer-text" style="margin-top: 8px;">© ${new Date().getFullYear()} Smart CAF. All rights reserved.</p>
+    </div>
+  </div>
 </body>
 </html>
   `.trim();

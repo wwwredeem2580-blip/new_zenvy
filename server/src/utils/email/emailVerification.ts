@@ -7,118 +7,66 @@ interface EmailVerificationPayload {
 export function emailVerificationTemplate(payload: EmailVerificationPayload): string {
   const { email, verificationLink, name } = payload;
   const displayName = name ? name.split(' ')[0] : null;
+  const logoUrl = 'https://ik.imagekit.io/pinecone/SmartCaf/logo.png?updatedAt=1777569129907';
 
   return `
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>Verify Your Email — Smart CAF</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Verify Your Email</title>
+  <style>
+    @media only screen and (max-width: 600px) {
+      .container { width: 100% !important; padding: 20px !important; }
+      .content { padding: 30px 20px !important; }
+    }
+    body { margin: 0; padding: 0; background-color: #F9FAFB; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+    .container { max-width: 600px; margin: 0 auto; padding: 40px 20px; }
+    .header { text-align: center; padding-bottom: 40px; }
+    .logo { height: 120px; width: auto; }
+    .content { background: #ffffff; border: none; padding: 48px; }
+    .title { margin: 0 0 16px; color: #111827; font-size: 24px; font-weight: 700; letter-spacing: -0.025em; }
+    .text { margin: 0 0 24px; color: #4B5563; font-size: 16px; line-height: 1.6; }
+    .email-box { background: #F3F4F6; border-radius: 0; padding: 16px; margin-bottom: 32px; text-align: center; }
+    .email-text { color: #111827; font-size: 14px; font-weight: 600; }
+    .cta-container { text-align: center; margin-bottom: 32px; }
+    .cta-button { display: inline-block; background: #000000; color: #ffffff; padding: 18px 40px; border-radius: 0; text-decoration: none; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.2em; }
+    .fallback { border-top: 1px solid #E5E7EB; pt-24; margin-top: 32px; padding-top: 24px; }
+    .fallback-text { color: #9CA3AF; font-size: 12px; margin-bottom: 8px; }
+    .fallback-link { color: #6B7280; font-size: 11px; word-break: break-all; }
+    .footer { padding-top: 32px; text-align: center; }
+    .footer-text { margin: 0; color: #9CA3AF; font-size: 12px; }
+    .footer-link { color: #111827; text-decoration: none; font-weight: 500; }
+  </style>
 </head>
-<body style="margin: 0; padding: 0; background-color: #f4f4f4; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'DM Sans', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="${logoUrl}" alt="Smart CAF" class="logo">
+    </div>
+    <div class="content">
+      <h1 class="title">Verify your email.</h1>
+      <p class="text">Hi ${displayName || 'there'}, please verify your email address to activate your Smart CAF account and start your fiscal journey.</p>
+      
+      <div class="email-box">
+        <span class="email-text">${email}</span>
+      </div>
 
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
-    <tr>
-      <td style="padding: 48px 20px;">
+      <div class="cta-container">
+        <a href="${verificationLink}" class="cta-button">Verify Email Address →</a>
+      </div>
 
-        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width: 580px; margin: 0 auto;">
-
-          <!-- Header -->
-          <tr>
-            <td style="background-color: #0a0a0a; padding: 36px 48px; border-radius: 16px 16px 0 0;">
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
-                <tr>
-                  <td>
-                    <p style="margin: 0; color: #ffffff; font-size: 22px; font-weight: 700; letter-spacing: -0.5px;">Smart CAF</p>
-                    <p style="margin: 4px 0 0; color: rgba(255,255,255,0.45); font-size: 11px; font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase;">Patronato Digitale</p>
-                  </td>
-                  <td align="right">
-                    <div style="width: 36px; height: 36px; background-color: rgba(255,255,255,0.08); border-radius: 8px; display: inline-block; text-align: center; line-height: 36px;">
-                      <span style="color: #ffffff; font-size: 18px;">✉</span>
-                    </div>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-
-          <!-- Body -->
-          <tr>
-            <td style="background-color: #ffffff; padding: 48px 48px 40px; border-left: 1px solid #e8e8e8; border-right: 1px solid #e8e8e8;">
-
-              ${displayName ? `
-              <p style="margin: 0 0 8px; color: #0a0a0a; font-size: 24px; font-weight: 700; letter-spacing: -0.5px;">
-                Hi ${displayName}.
-              </p>
-              ` : `
-              <p style="margin: 0 0 8px; color: #0a0a0a; font-size: 24px; font-weight: 700; letter-spacing: -0.5px;">
-                Welcome.
-              </p>
-              `}
-
-              <p style="margin: 0 0 24px; color: #555555; font-size: 15px; line-height: 1.7; font-weight: 400;">
-                You're one step away from accessing the Smart CAF portal. Please verify your email address to activate your account.
-              </p>
-
-              <p style="margin: 0 0 8px; color: #888888; font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;">
-                Registered as
-              </p>
-              <p style="margin: 0 0 32px; color: #0a0a0a; font-size: 14px; font-weight: 600; background-color: #f7f7f7; padding: 12px 16px; border-radius: 8px; border-left: 3px solid #0a0a0a;">
-                ${email}
-              </p>
-
-              <!-- CTA -->
-              <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 0 32px;">
-                <tr>
-                  <td style="border-radius: 10px; background-color: #0a0a0a;">
-                    <a href="${verificationLink}"
-                       style="display: inline-block; padding: 16px 36px; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600; letter-spacing: 0.03em; border-radius: 10px;">
-                      Verify Email Address →
-                    </a>
-                  </td>
-                </tr>
-              </table>
-
-              <p style="margin: 0 0 8px; color: #aaaaaa; font-size: 13px; line-height: 1.6;">
-                Or copy and paste this link into your browser:
-              </p>
-              <p style="margin: 0; color: #555555; font-size: 12px; word-break: break-all; background-color: #f7f7f7; padding: 12px 16px; border-radius: 8px;">
-                ${verificationLink}
-              </p>
-
-              <!-- Divider -->
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin: 32px 0 0;">
-                <tr>
-                  <td style="border-top: 1px solid #eeeeee; padding-top: 24px;">
-                    <p style="margin: 0; color: #aaaaaa; font-size: 12px; line-height: 1.6;">
-                      🔒 This link expires in <strong style="color: #555555;">24 hours</strong>. If you did not create a Smart CAF account, you can safely ignore this email.
-                    </p>
-                  </td>
-                </tr>
-              </table>
-
-            </td>
-          </tr>
-
-          <!-- Footer -->
-          <tr>
-            <td style="background-color: #f7f7f7; padding: 24px 48px; border-radius: 0 0 16px 16px; border: 1px solid #e8e8e8; border-top: none;">
-              <p style="margin: 0 0 4px; color: #aaaaaa; font-size: 12px; text-align: center;">
-                Need help? <a href="mailto:support@smartcaf.it" style="color: #0a0a0a; text-decoration: none; font-weight: 600;">support@smartcaf.it</a>
-              </p>
-              <p style="margin: 0; color: #cccccc; font-size: 11px; text-align: center;">
-                © ${new Date().getFullYear()} Smart CAF. All rights reserved.
-              </p>
-            </td>
-          </tr>
-
-        </table>
-      </td>
-    </tr>
-  </table>
-
+      <div class="fallback">
+        <p class="fallback-text">Or copy and paste this link into your browser:</p>
+        <p class="fallback-link">${verificationLink}</p>
+      </div>
+    </div>
+    <div class="footer">
+      <p class="footer-text">This link expires in 24 hours. Didn't request this? Ignore this email.</p>
+      <p class="footer-text" style="margin-top: 16px;">© ${new Date().getFullYear()} Smart CAF. All rights reserved.</p>
+    </div>
+  </div>
 </body>
 </html>
   `.trim();
