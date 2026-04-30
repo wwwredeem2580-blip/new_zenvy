@@ -16,7 +16,7 @@ interface ApplicationUpdatePayload {
 export function applicationUpdateTemplate(payload: ApplicationUpdatePayload): string {
   const { email, name, applicationId, updateType, newStatus, agentName, services } = payload;
   const displayName = (name && name !== 'undefined' && name !== 'undefined undefined') ? name.split(' ')[0] : 'there';
-  const logoUrl = 'https://ik.imagekit.io/pinecone/SmartCaf/logo.png?updatedAt=1777569129907';
+  const logoUrl = 'https://ik.imagekit.io/pinecone/SmartCaf/smartcaf_dark.png?updatedAt=1777571162166';
 
   let title = '';
   let message = '';
@@ -59,7 +59,7 @@ export function applicationUpdateTemplate(payload: ApplicationUpdatePayload): st
     }
     body { margin: 0; padding: 0; background-color: #F9FAFB; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
     .container { max-width: 600px; margin: 0 auto; padding: 40px 20px; }
-    .header { text-align: center; padding-bottom: 40px; }
+    .header { text-align: center; padding: 48px 0; background: #ffffff; }
     .logo { height: 120px; width: auto; }
     .content { background: #ffffff; border: none; padding: 48px; }
     .status-badge { display: inline-block; padding: 4px 12px; border-radius: 0; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 16px; color: white; background-color: ${accentColor}; }
@@ -74,11 +74,11 @@ export function applicationUpdateTemplate(payload: ApplicationUpdatePayload): st
 </head>
 <body>
   <div class="container">
-    <div class="header">
+    <div class="header" style="background-color: #ffffff;">
       <img src="${logoUrl}" alt="Smart CAF" class="logo">
     </div>
-    <div class="content">
-      <div class="status-badge">${title}</div>
+    <div class="content" style="background-color: #ffffff;">
+      <div class="status-badge" style="background-color: ${accentColor};">${title}</div>
       <h1 class="title">Update on #${applicationId}</h1>
       <p class="text">Hi ${displayName},<br><br>${message}</p>
       

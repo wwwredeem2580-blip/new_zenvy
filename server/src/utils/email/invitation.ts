@@ -12,7 +12,7 @@ interface InvitationPayload {
 
 export function invitationTemplate(payload: InvitationPayload): string {
   const { email, role, token, adminName } = payload;
-  const logoUrl = 'https://ik.imagekit.io/pinecone/SmartCaf/logo.png?updatedAt=1777569129907';
+  const logoUrl = 'https://ik.imagekit.io/pinecone/SmartCaf/smartcaf_dark.png?updatedAt=1777571162166';
   const joinUrl = `${process.env.CLIENT_URL || 'http://localhost:3000'}/auth/onboarding?token=${token}`;
 
   return `
@@ -29,7 +29,7 @@ export function invitationTemplate(payload: InvitationPayload): string {
     }
     body { margin: 0; padding: 0; background-color: #F9FAFB; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
     .container { max-width: 600px; margin: 0 auto; padding: 40px 20px; }
-    .header { text-align: center; padding-bottom: 40px; }
+    .header { text-align: center; padding: 48px 0; background: #ffffff; }
     .logo { height: 120px; width: auto; }
     .content { background: #ffffff; border: none; padding: 48px; }
     .title { margin: 0 0 16px; color: #111827; font-size: 24px; font-weight: 700; letter-spacing: -0.025em; }
@@ -46,14 +46,14 @@ export function invitationTemplate(payload: InvitationPayload): string {
 </head>
 <body>
   <div class="container">
-    <div class="header">
+    <div class="header" style="background-color: #ffffff;">
       <img src="${logoUrl}" alt="Smart CAF" class="logo">
     </div>
-    <div class="content">
-      <h1 class="title">Join the team.</h1>
-      <p class="text">Hi there,<br><br>${adminName} has invited you to join the Smart CAF team. You'll be able to manage applications, coordinate with citizens, and streamline fiscal processes.</p>
+    <div class="content" style="background-color: #ffffff;">
+      <h1 class="title">Join the Smart CAF team.</h1>
+      <p class="text">You have been invited to join the Smart CAF portal. As a member of our team, you will have access to the staff dashboard to manage applications and support our clients.</p>
       
-      <div class="info-grid">
+      <div class="info-grid" style="background-color: #F3F4F6;">
         <div class="info-row">
           <span class="info-label">Email</span>
           <span class="info-value">${email}</span>

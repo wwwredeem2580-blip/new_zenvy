@@ -7,7 +7,7 @@ interface WelcomeClientPayload {
 export function welcomeClientTemplate(payload: WelcomeClientPayload): string {
   const { email, name, portalUrl } = payload;
   const firstName = (name && name !== 'undefined' && name !== 'undefined undefined') ? name.split(' ')[0] : 'there';
-  const logoUrl = 'https://ik.imagekit.io/pinecone/SmartCaf/logo.png?updatedAt=1777569129907';
+  const logoUrl = 'https://ik.imagekit.io/pinecone/SmartCaf/smartcaf_dark.png?updatedAt=1777571162166';
 
   return `
 <!DOCTYPE html>
@@ -24,7 +24,7 @@ export function welcomeClientTemplate(payload: WelcomeClientPayload): string {
     }
     body { margin: 0; padding: 0; background-color: #F9FAFB; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
     .container { max-width: 600px; margin: 0 auto; padding: 40px 20px; }
-    .header { text-align: center; padding-bottom: 40px; }
+    .header { text-align: center; padding: 48px 0; background: #ffffff; }
     .logo { height: 120px; width: auto; }
     .content { background: #ffffff; border: none; padding: 48px; }
     .title { margin: 0 0 16px; color: #111827; font-size: 24px; font-weight: 700; letter-spacing: -0.025em; }
@@ -42,23 +42,23 @@ export function welcomeClientTemplate(payload: WelcomeClientPayload): string {
 </head>
 <body>
   <div class="container">
-    <div class="header">
+    <div class="header" style="background-color: #ffffff;">
       <img src="${logoUrl}" alt="Smart CAF" class="logo">
     </div>
-    <div class="content">
+    <div class="content" style="background-color: #ffffff;">
       <h1 class="title">You're in, ${firstName}.</h1>
       <p class="text">Your account is now active. You can now access all Smart CAF digital services directly from your dashboard.</p>
       
       <div class="features">
-        <div class="feature-item">
+        <div class="feature-item" style="background-color: #F3F4F6;">
           <span class="feature-title">Smart Submissions</span>
           <span class="feature-desc">Submit and track your applications with real-time updates.</span>
         </div>
-        <div class="feature-item">
+        <div class="feature-item" style="background-color: #F3F4F6;">
           <span class="feature-title">Secure Vault</span>
           <span class="feature-desc">Manage all your fiscal documents and attachments in one place.</span>
         </div>
-        <div class="feature-item">
+        <div class="feature-item" style="background-color: #F3F4F6;">
           <span class="feature-title">Expert Support</span>
           <span class="feature-desc">Direct line of communication with your assigned fiscal agent.</span>
         </div>
