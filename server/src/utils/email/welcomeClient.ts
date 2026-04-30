@@ -6,7 +6,7 @@ interface WelcomeClientPayload {
 
 export function welcomeClientTemplate(payload: WelcomeClientPayload): string {
   const { email, name, portalUrl } = payload;
-  const firstName = name.split(' ')[0];
+  const firstName = (name && name !== 'undefined' && name !== 'undefined undefined') ? name.split(' ')[0] : 'there';
   const logoUrl = 'https://ik.imagekit.io/pinecone/SmartCaf/logo.png?updatedAt=1777569129907';
 
   return `

@@ -15,7 +15,7 @@ interface ApplicationUpdatePayload {
 
 export function applicationUpdateTemplate(payload: ApplicationUpdatePayload): string {
   const { email, name, applicationId, updateType, newStatus, agentName, services } = payload;
-  const displayName = name ? name.split(' ')[0] : 'there';
+  const displayName = (name && name !== 'undefined' && name !== 'undefined undefined') ? name.split(' ')[0] : 'there';
   const logoUrl = 'https://ik.imagekit.io/pinecone/SmartCaf/logo.png?updatedAt=1777569129907';
 
   let title = '';

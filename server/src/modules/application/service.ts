@@ -271,10 +271,11 @@ export const updatePaymentStatus = async (
   await application.save();
 
   // Send email notification for payment status
+  const appData = application.toObject();
   await addEmailJob('APPLICATION_UPDATE', {
-    email: (application as any).email,
-    name: (application as any).name,
-    applicationId: application.applicationId,
+    email: appData.email,
+    name: appData.name,
+    applicationId: appData.applicationId,
     updateType: status === 'Received' ? 'PAYMENT_APPROVED' : 'PAYMENT_REJECTED',
     subject: status === 'Received' ? 'Payment Verified — Smart CAF' : 'Action Required: Payment Issue — Smart CAF'
   });
@@ -324,13 +325,14 @@ export const assignApplication = async (
   await application.save();
   
   // Send email notification for agent assignment
+  const appData = application.toObject();
   await addEmailJob('APPLICATION_UPDATE', {
-    email: (application as any).email,
-    name: (application as any).name,
-    applicationId: application.applicationId,
+    email: appData.email,
+    name: appData.name,
+    applicationId: appData.applicationId,
     updateType: 'AGENT_ASSIGNED',
-    agentName: application.reviewerName,
-    subject: `Review started for #${application.applicationId} — Smart CAF`
+    agentName: appData.reviewerName,
+    subject: `Review started for #${appData.applicationId} — Smart CAF`
   });
   
   return application;
@@ -363,10 +365,11 @@ export const updateStatus = async (
   await application.save();
 
   // Send email notification for status update
+  const appData = application.toObject();
   await addEmailJob('APPLICATION_UPDATE', {
-    email: (application as any).email,
-    name: (application as any).name,
-    applicationId: application.applicationId,
+    email: appData.email,
+    name: appData.name,
+    applicationId: appData.applicationId,
     updateType: 'STATUS_UPDATED',
     newStatus: status,
     subject: `Application Status Updated: ${status} — Smart CAF`

@@ -6,7 +6,7 @@ interface EmailVerificationPayload {
 
 export function emailVerificationTemplate(payload: EmailVerificationPayload): string {
   const { email, verificationLink, name } = payload;
-  const displayName = name ? name.split(' ')[0] : null;
+  const displayName = (name && name !== 'undefined' && name !== 'undefined undefined') ? name.split(' ')[0] : 'there';
   const logoUrl = 'https://ik.imagekit.io/pinecone/SmartCaf/logo.png?updatedAt=1777569129907';
 
   return `
