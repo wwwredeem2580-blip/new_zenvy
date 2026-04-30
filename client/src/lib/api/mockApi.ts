@@ -43,6 +43,7 @@ export interface User {
 export type WorkspacePermission = 'Public' | 'Read-only' | 'Restricted';
 
 export interface Workspace {
+  _id?: string;
   id: string;
   name: string;
   permission: WorkspacePermission;
