@@ -45,7 +45,6 @@ export default function ProfilePage() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedApp, setSelectedApp] = useState<Application | null>(null);
-  const [showInvoice, setShowInvoice] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -90,14 +89,38 @@ export default function ProfilePage() {
   const handleViewAttachment = async (attachment: any) => {
     if (!selectedApp) return;
     try {
-      const response = await applicationApi.getAttachmentPreviewUrl(selectedApp.applicationId, attachment.url);
+      const response = await applicationApi.getAttachmentPreviewUrl(selectedApp._id, attachment.url);
       if (response.success && response.previewUrl) {
         window.open(response.previewUrl, '_blank');
       }
     } catch (error) {
       console.error("Failed to get preview URL", error);
-      // alert is a bit crude but works for now to show permission error
       alert("Error: Access denied or file not found.");
+    }
+  };
+
+  const handleDownloadInvoice = async () => {
+    if (!selectedApp) return;
+    const invoice = selectedApp.attachments?.find(a => a.uploadedById === 'system');
+    
+    if (invoice) {
+      try {
+        const response = await applicationApi.getAttachmentPreviewUrl(selectedApp._id, invoice.url);
+        if (response.success && response.previewUrl) {
+          // Trigger direct download
+          const link = document.createElement('a');
+          link.href = response.previewUrl;
+          link.download = invoice.name;
+          link.target = '_blank';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }
+      } catch (error) {
+        console.error("Failed to download invoice", error);
+      }
+    } else {
+      alert("Invoice not yet generated. Payment may still be pending.");
     }
   };
 
@@ -260,7 +283,7 @@ export default function ProfilePage() {
 
       {/* Detail Overlay */}
       <AnimatePresence>
-        {selectedApp && !showInvoice && (
+        {selectedApp && (
           <div className="fixed inset-0 z-[300] flex items-center justify-end">
             <motion.div 
               initial={{ opacity: 0 }}
@@ -280,8 +303,8 @@ export default function ProfilePage() {
                 <h2 className="text-md sm:text-xl md:text-2xl font-space font-bold tracking-tighter uppercase">Document Details.</h2>
                 <div className="flex items-center gap-2">
                    <button 
-                     onClick={() => setShowInvoice(true)}
-                     className="flex items-center gap-2 px-4 py-2 bg-black/5 hover:bg-black hover:text-white transition-all rounded-full text-[10px] font-bold uppercase tracking-widest"
+                     onClick={handleDownloadInvoice}
+                     className="flex items-center gap-2 px-4 py-2 bg-black text-white hover:bg-black/90 transition-all rounded-full text-[10px] font-bold uppercase tracking-widest shadow-lg shadow-black/20"
                    >
                       <Download size={14} /> Download Invoice
                    </button>
@@ -339,11 +362,11 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
-                 <div className="space-y-4">
+                <div className="space-y-4">
                     <h3 className="text-[10px] uppercase tracking-widest font-bold text-black/40">Attached Documents</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                       {selectedApp.attachments && selectedApp.attachments.length > 0 ? (
-                         selectedApp.attachments.map((doc, i) => (
+                       {selectedApp.attachments && selectedApp.attachments.filter(a => a.uploadedById !== 'system').length > 0 ? (
+                         selectedApp.attachments.filter(a => a.uploadedById !== 'system').map((doc, i) => (
                            <div 
                              key={i} 
                              onClick={() => handleViewAttachment(doc)}
@@ -377,163 +400,6 @@ export default function ProfilePage() {
           </div>
         )}
       </AnimatePresence>
-
-      {/* Invoice Overlay - High Fidelity Editorial Workspace */}
-      <AnimatePresence>
-        {showInvoice && selectedApp && (
-          <InvoiceModal 
-            app={selectedApp} 
-            user={localUser} 
-            onClose={() => setShowInvoice(false)} 
-          />
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
-
-function InvoiceModal({ app, user, onClose }: { app: Application, user: User, onClose: () => void }) {
-  const subtotal = app.selectedServices.reduce((sum, s) => sum + s.price, 0);
-  const total = subtotal;
-
-  return (
-    <div className="fixed inset-0 z-[500] bg-[#F5F5F7] overflow-y-auto selection:bg-black selection:text-white">
-       <motion.div 
-         initial={{ opacity: 0 }}
-         animate={{ opacity: 1 }}
-         exit={{ opacity: 0 }}
-         onClick={onClose}
-         className="fixed inset-0 bg-black/5"
-       />
-       
-       {/* Document Viewer Container */}
-       <div className="relative min-h-screen py-12 md:py-24 px-4 flex flex-col items-center">
-          {/* Viewer Toolbar */}
-          <motion.div 
-            initial={{ y: -20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            className="fixed top-6 z-[510] flex items-center gap-2 bg-white/80 backdrop-blur-xl border border-black/5 px-4 py-2 rounded-full shadow-xl shadow-black/5"
-          >
-             <button 
-               onClick={() => window.print()}
-               className="flex items-center gap-2 px-3 py-1.5 hover:bg-black/5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all"
-             >
-                <Printer size={14} /> Print
-             </button>
-             <div className="w-[1px] h-4 bg-black/10" />
-             <button 
-               onClick={onClose}
-               className="p-1.5 hover:bg-black/5 rounded-full transition-all"
-             >
-                <X size={16} />
-             </button>
-          </motion.div>
-
-          <motion.div 
-            initial={{ scale: 0.95, opacity: 0, y: 40 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.95, opacity: 0, y: 40 }}
-            transition={{ type: 'spring', damping: 30, stiffness: 200 }}
-            className="relative w-full max-w-[640px] aspect-[1/1.414] overflow-y-auto hide-scrollbar bg-white shadow-[0_40px_100px_rgba(0,0,0,0.12)] border border-black/5 font-dm print:shadow-none print:m-0 print:border-none print:aspect-auto print:max-w-none"
-          >
-             <div className="p-6 sm:p-10 md:p-12">
-                {/* Invoice Header */}
-                <div className="flex justify-between items-start mb-2">
-                  <span className="text-[10px] font-normal uppercase tracking-wide">
-                    {new Date(app.createdAt || app.submittedAt).toLocaleDateString('en-GB')}
-                  </span>
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-black/20">Official Receipt</span>
-                </div>
-                <div className="flex flex-col md:flex-row justify-between items-baseline mb-4 md:mb-6 gap-8">
-                   <div className="flex-1 h-[1px] bg-black/10 order-2 md:order-1 self-center hidden sm:block" />
-                   <h1 className="text-2xl sm:text-4xl md:text-6xl font-space font-normal tracking-tighter uppercase order-1 md:order-2 sm:ml-8">
-                      Invoice
-                      <span className="block text-lg font-space font-normal tracking-tighter">#{app.applicationId?.replace('CAF-', '') || '000000'}</span>
-                   </h1>
-                </div>
-
-                {/* Meta Info */}
-                <div className="grid md:grid-cols-2 gap-6 mb-6">
-                   <div className="space-y-4">
-                      <div className="space-y-1">
-                         <p className="text-[8px] uppercase tracking-[0.2em] font-bold text-black/40">Issued To:</p>
-                         <div className="space-y-1">
-                            <p className="font-bold text-sm tracking-tight">{user?.firstName} {user?.lastName}</p>
-                            <p className="text-xs text-black/60">{user?.email}</p>
-                         </div>
-                      </div>
-
-                      <div className="space-y-1">
-                         <p className="text-[8px] uppercase tracking-[0.2em] font-bold text-black/40">Payment Status:</p>
-                         <div className="space-y-1">
-                            <p className="font-bold text-sm serif opacity-80">{app.paymentMethod} - {app.paymentStatus}</p>
-                            <p className="text-[10px] text-black/60">Processed via Smart CAF Payment Terminal</p>
-                         </div>
-                      </div>
-                   </div>
-
-                   <div className="space-y-4">
-                      <div className="space-y-1">
-                         <p className="text-[8px] uppercase tracking-[0.2em] font-bold text-black/40">Pay To:</p>
-                         <div className="space-y-1">
-                            <p className="font-bold text-sm serif opacity-80">Smart CAF Solutions S.r.l.</p>
-                            <p className="text-[11px] text-black/60 font-mono tracking-tighter uppercase font-medium">IT 123 4567 8901 2345 6789</p>
-                         </div>
-                      </div>
-                   </div>
-                </div>
-
-                {/* Service Table */}
-                <div className="mb-4 md:mb-4 overflow-x-auto">
-                   <p className="text-[8px] uppercase tracking-[0.2em] font-bold text-black/40">Services Breakdown:</p>
-
-                    <div className="space-y-4 min-w-[280px]">
-                       {app.selectedServices.map((s, i) => (
-                          <div key={i} className="grid grid-cols-[1fr_60px_30px_60px] sm:grid-cols-[1fr_80px_40px_80px] items-start group">
-                             <div className="space-y-0.5 pr-2 sm:pr-8">
-                                <span className="font-light text-xs sm:text-sm block tracking-tight italic truncate">{s.name}</span>
-                                <span className="text-[7px] sm:text-[8px] text-black/60 block font-medium uppercase tracking-tight">Ref: {app.applicationId.slice(-4)}-{i+1}</span>
-                             </div>
-                             <span className="text-[10px] sm:text-xs font-bold text-right py-0.5">€{s.price.toFixed(0)}</span>
-                             <span className="text-[10px] sm:text-xs font-bold text-center py-0.5 opacity-20 text-[10px]">1</span>
-                             <span className="text-[10px] sm:text-xs font-bold text-right py-0.5">€{s.price.toFixed(0)}</span>
-                          </div>
-                       ))}
-                    </div>
-                </div>
-
-                {/* Totals */}
-                <div className="border-t border-black/20 flex flex-col items-end gap-3">
-                   <div className="grid grid-cols-2 mt-2 gap-x-16 w-full max-w-[340px]">
-                      <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-black/80">Subtotal</span>
-                      <span className="text-md font-space font-bold text-right">€{subtotal.toFixed(2)}</span>
-                      
-                      <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-black/80">Tax (0%)</span>
-                      <span className="text-md font-space font-bold text-right">€0.00</span>
-                      
-                      <div className="col-span-2 h-[2px] bg-black mt-0 mb-2" />
-                      
-                      <span className="text-[10px] font-bold uppercase tracking-[0.3em] self-center">Total Balance Due</span>
-                      <span className="text-xl font-space font-bold text-right tracking-tighter">€{total.toFixed(2)}</span>
-                   </div>
-                </div>
-
-                {/* Footer Signature */}
-                <div className="mt-6 flex justify-between items-end">
-                   <div className="space-y-6">
-                      <p className="text-[10px] text-black/60 leading-loose max-w-[220px] font-medium italic">
-                         Thank you for choosing Smart CAF for your official documentation journey.
-                      </p>
-                   </div>
-                   <div className="text-right space-y-1">
-                      <div className="text-[12px] italic serif opacity-80 mb-1 tracking-tighter">Adeline Palmerston.</div>
-                      <div className="h-[1px] w-24 bg-black/60 ml-auto" />
-                      <div className="text-[8px] uppercase font-bold tracking-[0.2em] text-black/60 pr-1">Official's Signature</div>
-                   </div>
-                </div>
-             </div>
-          </motion.div>
-       </div>
     </div>
   );
 }
