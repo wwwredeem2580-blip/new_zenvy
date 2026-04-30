@@ -89,6 +89,7 @@ export default function AgentPage() {
 
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [isDocsExpanded, setIsDocsExpanded] = useState(false);
+  const [isActionLoading, setIsActionLoading] = useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const handleViewAttachment = async (attachment: any) => {
@@ -527,33 +528,50 @@ export default function AgentPage() {
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <button 
                           onClick={async () => {
-                            const res = await applicationApi.updatePaymentStatus(selectedApp._id, 'Received');
-                            if (res.success) loadData();
+                            setIsActionLoading(true);
+                            try {
+                              const res = await applicationApi.updatePaymentStatus(selectedApp._id, 'Received');
+                              if (res.success) await loadData();
+                            } finally {
+                              setIsActionLoading(false);
+                            }
                           }}
-                          disabled={selectedApp.paymentStatus === 'Received'}
-                          className={`flex items-center justify-center gap-3 py-4 rounded-sm font-bold text-[10px] uppercase tracking-widest transition-all ${selectedApp.paymentStatus === 'Received' ? 'bg-indigo-50 text-indigo-200 cursor-default border border-indigo-100' : 'bg-indigo-600 text-white hover:bg-indigo-700'}`}
+                          disabled={selectedApp.paymentStatus === 'Received' || isActionLoading}
+                          className={`flex items-center justify-center gap-3 py-4 rounded-sm font-bold text-[10px] uppercase tracking-widest transition-all ${selectedApp.paymentStatus === 'Received' ? 'bg-indigo-50 text-indigo-200 cursor-default border border-indigo-100' : 'bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50'}`}
                         >
-                           <Shield size={16} /> Verify Payment
+                           {isActionLoading ? <Loader2 size={16} className="animate-spin" /> : <Shield size={16} />}
+                           Verify Payment
                         </button>
                         <button 
                           onClick={async () => {
-                            const res = await applicationApi.updatePaymentStatus(selectedApp._id, 'Received');
-                            if (res.success) loadData();
+                            setIsActionLoading(true);
+                            try {
+                              const res = await applicationApi.updatePaymentStatus(selectedApp._id, 'Received');
+                              if (res.success) await loadData();
+                            } finally {
+                              setIsActionLoading(false);
+                            }
                           }}
-                          disabled={selectedApp.paymentStatus === 'Received'}
-                          className={`flex items-center justify-center gap-3 py-4 rounded-sm font-bold text-[10px] uppercase tracking-widest transition-all ${selectedApp.paymentStatus === 'Received' ? 'bg-black/5 text-black/20 cursor-default border border-black/10' : 'bg-black text-white hover:bg-black/90'}`}
+                          disabled={selectedApp.paymentStatus === 'Received' || isActionLoading}
+                          className={`flex items-center justify-center gap-3 py-4 rounded-sm font-bold text-[10px] uppercase tracking-widest transition-all ${selectedApp.paymentStatus === 'Received' ? 'bg-black/5 text-black/20 cursor-default border border-black/10' : 'bg-black text-white hover:bg-black/90 disabled:opacity-50'}`}
                         >
-                           <Check size={16} /> Approve Payment
+                           {isActionLoading ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
+                           Approve Payment
                         </button>
                         <button 
                           onClick={async () => {
-                            const res = await applicationApi.updatePaymentStatus(selectedApp._id, 'Pending');
-                            if (res.success) loadData();
+                            setIsActionLoading(true);
+                            try {
+                              const res = await applicationApi.updatePaymentStatus(selectedApp._id, 'Pending');
+                              if (res.success) await loadData();
+                            } finally {
+                              setIsActionLoading(false);
+                            }
                           }}
-                          disabled={selectedApp.paymentStatus === 'Pending'}
+                          disabled={selectedApp.paymentStatus === 'Pending' || isActionLoading}
                           className="flex items-center justify-center gap-3 py-4 rounded-sm border border-black/20 bg-white font-bold text-[10px] uppercase tracking-widest hover:bg-black/5 transition-all text-black/60 disabled:opacity-20 disabled:cursor-not-allowed"
                         >
-                           <RefreshCw size={14} />
+                           {isActionLoading ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
                            Reset to Pending
                         </button>
                     </div>
@@ -580,11 +598,19 @@ export default function AgentPage() {
                        <div className="flex items-center gap-3">
                           {!selectedApp.reviewerId && selectedApp.paymentStatus === 'Received' && (
                              <>
-                                <button onClick={async () => {
-                                   if (!user?.id) return;
-                                   const res = await applicationApi.assignAgent(selectedApp._id, user.id);
-                                   if (res.success) loadData();
-                                }} className="px-6 py-2 rounded-sm bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-700 transition-colors shadow-sm">
+                                <button 
+                                  disabled={isActionLoading}
+                                  onClick={async () => {
+                                     if (!user?.id) return;
+                                     setIsActionLoading(true);
+                                     try {
+                                       const res = await applicationApi.assignAgent(selectedApp._id, user.id);
+                                       if (res.success) loadData();
+                                     } finally {
+                                       setIsActionLoading(false);
+                                     }
+                                  }} className="px-6 py-2 rounded-sm bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-700 transition-colors shadow-sm disabled:opacity-50 flex items-center gap-2">
+                                   {isActionLoading && <Loader2 size={12} className="animate-spin" />}
                                    Claim
                                 </button>
                                 <button onClick={() => setIsAssignModalOpen(true)} className="px-6 py-2 rounded-sm border border-black/10 bg-white text-black/60 text-xs font-bold hover:bg-black/5 transition-colors shadow-sm">
@@ -593,10 +619,18 @@ export default function AgentPage() {
                              </>
                           )}
                           {selectedApp.reviewerId && (
-                             <button onClick={async () => {
-                                const res = await applicationApi.unassignAgent(selectedApp._id);
-                                if (res.success) loadData();
-                             }} className="px-6 py-2 rounded-sm border border-black/10 bg-white text-black/60 text-xs font-bold hover:bg-black/5 transition-colors shadow-sm">
+                             <button 
+                                disabled={isActionLoading}
+                                onClick={async () => {
+                                   setIsActionLoading(true);
+                                   try {
+                                     const res = await applicationApi.unassignAgent(selectedApp._id);
+                                     if (res.success) loadData();
+                                   } finally {
+                                     setIsActionLoading(false);
+                                   }
+                                }} className="px-6 py-2 rounded-sm border border-black/10 bg-white text-black/60 text-xs font-bold hover:bg-black/5 transition-colors shadow-sm disabled:opacity-50 flex items-center gap-2">
+                                {isActionLoading && <Loader2 size={12} className="animate-spin" />}
                                 Unassign
                              </button>
                           )}
@@ -606,38 +640,59 @@ export default function AgentPage() {
                     {/* Flowchart Row */}
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 items-center">
                        <button 
+                          disabled={isActionLoading}
                           onClick={async () => {
-                             const res = await applicationApi.updateStatus(selectedApp._id, 'Pending');
-                             if (res.success) loadData();
+                             setIsActionLoading(true);
+                             try {
+                               const res = await applicationApi.updateStatus(selectedApp._id, 'Pending');
+                               if (res.success) loadData();
+                             } finally {
+                               setIsActionLoading(false);
+                             }
                           }}
-                          className={`py-4 text-center rounded-sm text-[10px] uppercase tracking-widest font-bold transition-all border ${selectedApp.status === 'Pending' ? 'bg-black text-white border-black shadow-lg' : 'border-black/10 text-black/40 bg-white hover:border-black/20'}`}>
+                          className={`py-4 flex items-center justify-center gap-2 rounded-sm text-[10px] uppercase tracking-widest font-bold transition-all border ${selectedApp.status === 'Pending' ? 'bg-black text-white border-black shadow-lg' : 'border-black/10 text-black/40 bg-white hover:border-black/20'} disabled:opacity-50`}>
+                          {isActionLoading && selectedApp.status !== 'Pending' && <Loader2 size={12} className="animate-spin" />}
                           Pending
                        </button>
 
                        <button 
-                          disabled={selectedApp.paymentStatus !== 'Received'}
+                          disabled={selectedApp.paymentStatus !== 'Received' || isActionLoading}
                           onClick={async () => {
-                             const res = await applicationApi.updateStatus(selectedApp._id, 'Reviewing');
-                             if (res.success) loadData();
+                             setIsActionLoading(true);
+                             try {
+                               const res = await applicationApi.updateStatus(selectedApp._id, 'Reviewing');
+                               if (res.success) loadData();
+                             } finally {
+                               setIsActionLoading(false);
+                             }
                           }}
-                          className={`py-4 text-center rounded-sm text-[10px] uppercase tracking-widest font-bold border transition-all ${selectedApp.status === 'Reviewing' ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg' : 'border-black/10 text-black/40 bg-white hover:border-black/20 disabled:opacity-20'}`}>
+                          className={`py-4 flex items-center justify-center gap-2 rounded-sm text-[10px] uppercase tracking-widest font-bold border transition-all ${selectedApp.status === 'Reviewing' ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg' : 'border-black/10 text-black/40 bg-white hover:border-black/20 disabled:opacity-20'}`}>
+                          {isActionLoading && selectedApp.status !== 'Reviewing' && <Loader2 size={12} className="animate-spin" />}
                           Reviewing
                        </button>
 
                        <button 
+                          disabled={isActionLoading}
                           onClick={async () => {
-                             const res = await applicationApi.updateStatus(selectedApp._id, 'Approved');
-                             if (res.success) loadData();
+                             setIsActionLoading(true);
+                             try {
+                               const res = await applicationApi.updateStatus(selectedApp._id, 'Approved');
+                               if (res.success) loadData();
+                             } finally {
+                               setIsActionLoading(false);
+                             }
                           }}
-                          className={`py-4 text-center rounded-sm text-[10px] uppercase tracking-widest font-bold border transition-all ${selectedApp.status === 'Approved' ? 'bg-green-600 text-white border-green-600 shadow-lg' : 'border-black/10 text-black/40 bg-white hover:border-black/20'}`}>
+                          className={`py-4 flex items-center justify-center gap-2 rounded-sm text-[10px] uppercase tracking-widest font-bold border transition-all ${selectedApp.status === 'Approved' ? 'bg-green-600 text-white border-green-600 shadow-lg' : 'border-black/10 text-black/40 bg-white hover:border-black/20'} disabled:opacity-50`}>
+                          {isActionLoading && selectedApp.status !== 'Approved' && <Loader2 size={12} className="animate-spin" />}
                           Approved
                        </button>
 
                        <button 
+                          disabled={isActionLoading}
                           onClick={async () => {
                              setPendingRefundApp(selectedApp);
                           }}
-                          className={`py-4 text-center rounded-sm text-[10px] uppercase tracking-widest font-bold border transition-all ${selectedApp.status === 'Rejected' ? 'bg-red-600 text-white border-red-600 shadow-lg' : 'border-black/10 text-black/40 bg-white hover:border-black/20'}`}>
+                          className={`py-4 flex items-center justify-center gap-2 rounded-sm text-[10px] uppercase tracking-widest font-bold border transition-all ${selectedApp.status === 'Rejected' ? 'bg-red-600 text-white border-red-600 shadow-lg' : 'border-black/10 text-black/40 bg-white hover:border-black/20'} disabled:opacity-50`}>
                           Rejected
                        </button>
                     </div>
