@@ -39,7 +39,9 @@ import {
   CreditCard,
   Check,
   FolderPlus,
-  Eye
+  Eye,
+  RefreshCw,
+  Lock
 } from 'lucide-react';
 
 import { OverviewView } from './admin/OverviewView';
@@ -104,6 +106,7 @@ export default function AdminPage() {
   const [isWsModalOpen, setIsWsModalOpen] = useState(false);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [isDocUploading, setIsDocUploading] = useState(false);
+  const [isDocsExpanded, setIsDocsExpanded] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -301,7 +304,7 @@ export default function AdminPage() {
                >
                   <button 
                     onClick={() => setIsWsModalOpen(true)}
-                    className="flex items-center gap-3 px-4 py-2 bg-black/5 border-black/5 text-black rounded-xl font-bold text-sm shadow-xl hover:scale-105 transition-all"
+                    className="flex items-center gap-3 px-4 py-2 bg-black/5 border-black/5 text-black rounded-sm font-bold text-sm shadow-xl hover:scale-105 transition-all"
                   >
                     <FolderPlus size={16} />
                     New Folder
@@ -366,7 +369,7 @@ export default function AdminPage() {
                      <div className="space-y-12 py-12">
                         <section className="space-y-6">
                            <div className="flex items-center gap-4">
-                              <div className="w-12 h-12 bg-black/5 rounded-2xl flex items-center justify-center text-black">
+                              <div className="w-12 h-12 bg-black/5 rounded-sm flex items-center justify-center text-black">
                                  <Clock size={20} />
                               </div>
                               <div>
@@ -391,7 +394,7 @@ export default function AdminPage() {
                                          mockApi.setAutoReleaseHours(h);
                                          loadData(); // Just to trigger a re-render of current config if visible
                                       }}
-                                      className={`px-6 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${mockApi.getAutoReleaseHours() === h ? 'bg-black text-white shadow-xl scale-105' : 'bg-white border border-black/5 text-black/40 hover:border-black/20'}`}
+                                      className={`px-6 py-3 rounded-sm text-[10px] font-bold uppercase tracking-widest transition-all ${mockApi.getAutoReleaseHours() === h ? 'bg-black text-white shadow-xl scale-105' : 'bg-white border border-black/5 text-black/40 hover:border-black/20'}`}
                                     >
                                        {h} Hours {h === 48 && "(Default)"}
                                     </button>
@@ -436,69 +439,85 @@ export default function AdminPage() {
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSelectedApp(null)} className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
             <motion.div 
               initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="relative w-full max-w-2xl h-full bg-white border-l border-black/5 shadow-2xl p-8 overflow-y-auto"
+              className="relative w-full max-w-4xl h-full bg-white border-l border-black/10 shadow-2xl p-6 sm:p-12 overflow-y-auto"
             >
-              <div className="flex justify-between items-center mb-12">
-                 <h2 className="text-2xl font-space font-bold tracking-tighter uppercase">Document Details.</h2>
-                 <button onClick={() => setSelectedApp(null)} className="p-2 hover:bg-black/5 rounded-full transition-colors"><X size={20} /></button>
+              <div className="flex justify-between items-center mb-16">
+                 <h2 className="text-2xl font-space tracking-tight uppercase font-bold">Document Details</h2>
+                 <button onClick={() => setSelectedApp(null)} className="p-3 hover:bg-black/5 rounded-sm transition-colors"><X size={24} /></button>
               </div>
 
-              <div className="space-y-12">
-                 {/* Status Hero - Mirrored from ProfilePage */}
-                 <div className="bg-black/5 p-8 rounded-[40px] flex items-center justify-between">
-                    <div>
-                        <p className="text-[8px] uppercase tracking-[0.3em] font-bold text-black/40 mb-2">Application Status</p>
-                        <p className="text-3xl font-space font-bold tracking-tighter uppercase">{selectedApp.status}</p>
-                    </div>
-                    {selectedApp.status === 'Reviewing' && selectedApp.reviewerId && (
-                       <div className="flex flex-col items-center gap-1 ml-2 sm:gap-2 pr-4 sm:pr-6 border-r border-black/5">
-                          <p className="text-[7px] sm:text-[8px] uppercase tracking-widest font-bold text-black/30">Reviewer</p>
-                          <div className="flex items-center gap-2 sm:gap-3 bg-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl sm:rounded-2xl shadow-sm border border-black/5">
-                             <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl overflow-hidden shadow-inner flex items-center justify-center">
-                                <img 
-                                   src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${selectedApp.reviewerName}${selectedApp.reviewerId}`} 
-                                   alt={selectedApp.reviewerName}
-                                   className="w-full h-full object-cover"
-                                />
-                             </div>
-                             <span className="text-xs sm:text-sm font-bold">{selectedApp.reviewerName}</span>
-                          </div>
+              <div className="space-y-6">
+                 {/* Top Card: Status & Payment Actions */}
+                 <div className="bg-white border border-black/5 rounded-sm p-8 flex flex-col gap-10">
+                    {/* Status Info Row */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 items-start">
+                       {/* Application Status */}
+                       <div className="flex flex-col gap-3 lg:border-r border-black/10 pr-4">
+                           <span className="text-[10px] font-bold text-black/40 uppercase tracking-widest">Application Status</span>
+                           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-sm bg-indigo-50 border border-indigo-100 text-indigo-600 w-max">
+                              <div className="w-1.5 h-1.5 rounded-sm bg-indigo-500" />
+                              <span className="text-xs font-bold">{selectedApp.status}</span>
+                           </div>
                        </div>
-                    )}
-                    <div className="min-w-12 min-h-12 bg-white rounded-[16px] flex items-center justify-center shadow-lg border border-black/5">
-                         {selectedApp.status === "Approved" ? <CheckCircle2 size={24} className="text-green-500" /> : <Clock size={24} className="text-black/20" />}
-                    </div>
-                 </div>
+                       
+                       {/* Reviewer */}
+                       <div className="flex flex-col gap-3 lg:border-r border-black/10 lg:px-4">
+                           <span className="text-[10px] font-bold text-black/40 uppercase tracking-widest">Reviewer</span>
+                           {selectedApp.reviewerId ? (
+                              <div className="flex items-center gap-3">
+                                 <div className="w-8 h-8 rounded-sm bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-sm border border-white/20">
+                                    {selectedApp.reviewerName?.charAt(0)}
+                                 </div>
+                                 <div className="flex flex-col">
+                                    <span className="text-sm font-bold leading-tight">{selectedApp.reviewerName}</span>
+                                    <span className="text-[10px] text-black/40 font-medium">Smart CAF</span>
+                                 </div>
+                              </div>
+                           ) : (
+                              <span className="text-sm font-bold text-black/20 mt-1">Unassigned</span>
+                           )}
+                       </div>
 
-                  {/* Financial Verification & Payment Control */}
-                  <section className="bg-black/5 p-8 rounded-[40px] space-y-6">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 bg-white rounded-2xl flex items-center justify-center text-black shadow-sm">
-                          <CreditCard size={18} />
-                        </div>
-                        <div>
-                          <p className="text-[8px] uppercase tracking-widest font-bold text-black/30">Payment Method</p>
-                          <p className="text-sm font-bold tracking-tight">{selectedApp.paymentMethod || "Not Selected"} • {selectedApp.transactionId || "No TXID"}</p>
-                        </div>
-                      </div>
-                      <div className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest border ${selectedApp.paymentStatus === 'Received' ? 'bg-green-500/10 text-green-600 border-green-500/20' : 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20'}`}>
-                        {selectedApp.paymentStatus}
-                      </div>
+                       {/* Payment Method */}
+                       <div className="flex flex-col gap-3 lg:border-r border-black/10 lg:px-4">
+                           <span className="text-[10px] font-bold text-black/40 uppercase tracking-widest">Payment Method</span>
+                           <span className="text-sm font-bold text-black/80 mt-1">{selectedApp.paymentMethod || "Cash"} • {selectedApp.transactionId || "No TXID"}</span>
+                       </div>
+
+                       {/* Received */}
+                       <div className="flex flex-col gap-3 lg:pl-4">
+                           <span className="text-[10px] font-bold text-black/40 uppercase tracking-widest">Received</span>
+                           <div className="mt-1">
+                              {selectedApp.paymentStatus === 'Received' ? (
+                                 <div className="w-8 h-8 rounded-sm bg-green-50 text-green-500 flex items-center justify-center border border-green-100 shadow-sm">
+                                    <Check size={16} strokeWidth={3} />
+                                 </div>
+                              ) : (
+                                 <div className="w-8 h-8 rounded-sm bg-black/5 flex items-center justify-center">
+                                    <Clock size={16} className="text-black/20" />
+                                 </div>
+                              )}
+                           </div>
+                       </div>
                     </div>
 
-                    <div className="pt-4 border-t border-black/5 flex items-center justify-between">
-                      <p className="text-[10px] uppercase tracking-widest font-bold text-black/40">Verify Payment</p>
-                      <div className="flex gap-2">
+                    {/* Action Buttons Row */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <button 
                           onClick={async () => {
                             const res = await applicationApi.updatePaymentStatus(selectedApp._id, 'Received');
                             if (res.success) loadData();
                           }}
                           disabled={selectedApp.paymentStatus === 'Received'}
-                          className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${selectedApp.paymentStatus === 'Received' ? 'bg-black text-white opacity-50 cursor-default' : 'bg-black text-white hover:scale-105 shadow-lg'}`}
+                          className={`flex items-center justify-center gap-3 py-4 rounded-sm font-bold text-[10px] uppercase tracking-widest transition-all ${selectedApp.paymentStatus === 'Received' ? 'bg-indigo-50 text-indigo-200 cursor-default border border-indigo-100' : 'bg-indigo-600 text-white hover:bg-indigo-700'}`}
                         >
-                          Approve Payment
+                           <Shield size={16} /> Verify Payment
+                        </button>
+                        <button 
+                          disabled={selectedApp.paymentStatus !== 'Received'}
+                          className="flex items-center justify-center gap-3 py-4 rounded-sm bg-black text-white font-bold text-[10px] uppercase tracking-widest hover:bg-black/90 transition-all disabled:opacity-20 disabled:cursor-not-allowed"
+                        >
+                           <Check size={16} /> Approve Payment
                         </button>
                         <button 
                           onClick={async () => {
@@ -506,253 +525,272 @@ export default function AdminPage() {
                             if (res.success) loadData();
                           }}
                           disabled={selectedApp.paymentStatus === 'Pending'}
-                          className="px-4 py-2 bg-white border border-black/5 text-black/40 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:border-black/20 transition-all"
+                          className="flex items-center justify-center gap-3 py-4 rounded-sm border border-black/20 bg-white font-bold text-[10px] uppercase tracking-widest hover:bg-black/5 transition-all text-black/60 disabled:opacity-20 disabled:cursor-not-allowed"
                         >
-                          Reset to Pending
+                           <RefreshCw size={14} />
+                           Reset to Pending
                         </button>
-                      </div>
                     </div>
-                  </section>
+                 </div>
 
-                  {/* Admin Assignment Section */}
-                  <section className="space-y-6">
-                    <div className="flex items-center justify-between">
-                       <p className="text-[10px] uppercase tracking-widest font-bold text-black/40">Task Assignment</p>
+                 {/* Task Assignment Card */}
+                 <div className="bg-white border border-black/10 rounded-sm p-8 flex flex-col gap-10">
+                    <h3 className="font-bold text-sm text-black/80">Task Assignment</h3>
+                    
+                    {/* Assigned To Row */}
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border border-black/10 rounded-sm p-6 bg-black/[0.02] gap-6">
                        <div className="flex items-center gap-4">
-                          {selectedApp.paymentStatus === 'Received' ? (
-                            <>
-                              {selectedApp.reviewerId ? (
-                                <div className="flex items-center gap-4">
-                                  <div className="flex flex-col items-end">
-                                     <span className="text-[8px] uppercase tracking-widest font-bold text-black/20">Assigned To</span>
-                                     <span className="text-[10px] font-bold text-blue-600">{selectedApp.reviewerName}</span>
-                                  </div>
-                                  <button 
-                                     onClick={async () => {
-                                       const res = await applicationApi.unassignAgent(selectedApp._id);
-                                       if (res.success) loadData();
-                                     }}
-                                     className="text-[9px] uppercase tracking-widest font-bold text-red-500 hover:text-red-600 transition-colors"
-                                  >
-                                     Unassign
-                                  </button>
-                                </div>
-                              ) : (
-                                <>
-                                  <button 
-                                    onClick={async () => {
-                                      if (!user?.id) return;
-                                      const res = await applicationApi.assignAgent(selectedApp._id, user.id);
-                                      if (res.success) loadData();
-                                    }}
-                                    className="text-[9px] uppercase tracking-widest font-bold text-green-600 hover:text-green-700 transition-colors flex items-center gap-2"
-                                  >
-                                    <Check size={12} /> Claim Task
-                                  </button>
-                                  <button 
-                                    onClick={() => setIsAssignModalOpen(true)}
-                                    className="text-[9px] uppercase tracking-widest font-bold text-blue-600 hover:text-blue-700 transition-colors flex items-center gap-2"
-                                  >
-                                    <PlusIcon size={12} /> Assign Agent
-                                  </button>
-                                </>
-                              )}
-                            </>
-                          ) : (
-                            <div className="flex items-center gap-2 text-[8px] uppercase tracking-widest font-bold text-black/20 bg-black/5 px-3 py-1.5 rounded-lg">
-                               <Shield size={10} /> Payment Approval Required to Assign
-                            </div>
-                          )}
-                       </div>
-                    </div>
-
-                    <div className="bg-black/5 p-1 rounded-full flex gap-1">
-                       {(['Pending', 'Reviewing', 'Approved', 'Rejected'] as ApplicationStatus[]).map(s => (
-                          <button 
-                            key={s} 
-                            disabled={s === 'Reviewing' && selectedApp.paymentStatus !== 'Received'}
-                            onClick={async () => {
-                               if (s === 'Rejected') {
-                                  setPendingRefundApp(selectedApp);
-                                  return;
-                               }
-                               const res = await applicationApi.updateStatus(selectedApp._id, s);
-                               if (res.success) loadData();
-                            }}
-                            className={`flex-1 py-2 rounded-full text-[9px] font-bold uppercase tracking-widest transition-all ${selectedApp.status === s ? 'bg-white text-black shadow-sm' : 'text-black/40 hover:text-black'}`}
-                          >
-                            {s}
-                          </button>
-                       ))}
-                    </div>
-                  </section>
-
-                 {/* Info Grid - Mirrored from ProfilePage */}
-                 <CollapsibleSection title="Application Details">
-                    <div className="grid grid-cols-2 gap-8 mb-8">
-                       <DetailItem icon={<User size={14}/>} label="Full Name" value={selectedApp.name} />
-                       <DetailItem icon={<Calendar size={14}/>} label="DOB" value={selectedApp.dob} />
-                       <DetailItem icon={<MapPin size={14}/>} label="Place of Birth" value={selectedApp.pob} />
-                       <DetailItem icon={<Globe size={14}/>} label="Nationality" value={selectedApp.nationality} />
-                       <DetailItem icon={<Hash size={14}/>} label="Codice Fiscale" value={selectedApp.codiceFiscale} />
-                       <DetailItem icon={<Phone size={14}/>} label="Phone" value={selectedApp.phone} />
-                       <DetailItem icon={<Mail size={14}/>} label="Email" value={selectedApp.email} />
-                       <DetailItem icon={<Home size={14}/>} label="Address" value={selectedApp.address} />
-                    </div>
-
-                    {/* Services Section - Mirrored from ProfilePage */}
-                    <div className="space-y-4 mb-10">
-                       <h3 className="text-[10px] uppercase tracking-widest font-bold text-black/40">Included Services</h3>
-                       <div className="space-y-2">
-                          {selectedApp.selectedServices.map((s, i) => (
-                             <div key={i} className="flex justify-between items-center p-5 bg-black/[0.02] border border-black/5 rounded-[24px] hover:bg-white hover:shadow-xl hover:shadow-black/5 transition-all">
-                                <div className="space-y-1">
-                                    <span className="block font-bold text-sm">{s.name}</span>
-                                    <span className="flex items-center gap-1 text-[8px] uppercase tracking-widest font-bold text-black/40">
-                                        <Clock size={10} /> {s.duration}
-                                    </span>
-                                </div>
-                                <span className="text-xl font-space font-bold">€{s.price}</span>
+                          <span className="text-xs font-bold text-black/60 uppercase tracking-widest">Assigned To</span>
+                          {selectedApp.reviewerId ? (
+                             <div className="flex items-center gap-2">
+                                <div className="w-6 h-6 rounded-sm bg-indigo-600 text-white flex items-center justify-center text-[10px] font-bold">{selectedApp.reviewerName?.charAt(0)}</div>
+                                <span className="text-sm font-bold text-black/80">{selectedApp.reviewerName}</span>
                              </div>
-                          ))}
-                       </div>
-                    </div>
-
-                    {/* Documents Section - Mirrored from ProfilePage */}
-                    <div className="space-y-4">
-                       <h3 className="text-[10px] uppercase tracking-widest font-bold text-black/40">Attached Documents</h3>
-                       <div className="grid grid-cols-2 gap-4">
-                          {selectedApp.attachments && selectedApp.attachments.length > 0 ? (
-                             selectedApp.attachments.map((doc, i) => (
-                                <div 
-                                   key={i} 
-                                   onClick={() => handleViewAttachment(doc)}
-                                   className="group p-4 bg-black/5 border border-black/5 rounded-2xl flex items-center gap-4 hover:bg-black hover:text-white transition-all cursor-pointer"
-                                >
-                                   <div className="w-10 h-10 bg-white/50 rounded-lg flex items-center justify-center group-hover:bg-white/20 transition-colors">
-                                       <FileText size={18} />
-                                   </div>
-                                   <div className="flex flex-col min-w-0">
-                                     <span className="text-[10px] font-bold uppercase tracking-widest truncate">{doc.name}</span>
-                                     <span className="text-[8px] text-black/40 group-hover:text-white/40 font-medium italic">Click to Preview</span>
-                                   </div>
-                                </div>
-                             ))
                           ) : (
-                            <p className="text-[10px] text-black/30 font-medium uppercase tracking-widest col-span-2 py-8 text-center border border-dashed border-black/10 rounded-2xl">No attachments provided.</p>
+                             <span className="text-sm font-bold text-black/40">Unassigned</span>
+                          )}
+                       </div>
+                       
+                       <div className="flex items-center gap-3">
+                          {!selectedApp.reviewerId && selectedApp.paymentStatus === 'Received' && (
+                             <>
+                                <button onClick={async () => {
+                                   if (!user?.id) return;
+                                   const res = await applicationApi.assignAgent(selectedApp._id, user.id);
+                                   if (res.success) loadData();
+                                }} className="px-6 py-2 rounded-sm bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-700 transition-colors shadow-sm">
+                                   Claim
+                                </button>
+                                <button onClick={() => setIsAssignModalOpen(true)} className="px-6 py-2 rounded-sm border border-black/10 bg-white text-black/60 text-xs font-bold hover:bg-black/5 transition-colors shadow-sm">
+                                   Assign
+                                </button>
+                             </>
+                          )}
+                          {selectedApp.reviewerId && (
+                             <button onClick={async () => {
+                                const res = await applicationApi.unassignAgent(selectedApp._id);
+                                if (res.success) loadData();
+                             }} className="px-6 py-2 rounded-sm border border-black/10 bg-white text-black/60 text-xs font-bold hover:bg-black/5 transition-colors shadow-sm">
+                                Unassign
+                             </button>
                           )}
                        </div>
                     </div>
-                 </CollapsibleSection>
 
-                  {/* Internal Notes Section */}
-                  <div className='pt-8 bg-black/5 -mx-8 px-8 border-t border-black/5 space-y-12 pb-12'>
-                     {/* Secure Application Documents Workspace */}
-                     <CollapsibleSection 
-                        title="Secure Application Documents" 
-                        subtitle="Visible only to Admin & Assigned Agent"
-                      >
-                         <div className="space-y-6">
-                            <div className="flex justify-end">
-                               {(user?.role === 'admin' || user?.id === selectedApp.reviewerId) && (
-                                  <>
-                                    <input 
-                                      type="file" 
-                                      className="hidden" 
-                                      ref={fileInputRef} 
-                                      onChange={async (e) => {
-                                        const file = e.target.files?.[0];
-                                        if (!file || !selectedApp) return;
-                                        setIsDocUploading(true);
-                                        try {
-                                          const res = await applicationApi.uploadFinalDocument(selectedApp._id, file);
-                                          if (res.success) {
-                                            await loadData();
-                                          }
-                                        } catch (err) {
-                                          console.error("Upload failed", err);
-                                          alert("Failed to upload document to storage.");
-                                        } finally {
-                                          setIsDocUploading(false);
-                                        }
-                                      }}
-                                    />
-                                    <button 
-                                      disabled={isDocUploading}
-                                      onClick={() => fileInputRef.current?.click()}
-                                      className="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-xl font-bold text-[9px] uppercase tracking-widest hover:scale-105 transition-all shadow-lg"
-                                    >
-                                       {isDocUploading ? <Loader2 size={12} className="animate-spin" /> : <PlusIcon size={12} />}
-                                       Upload Final Document
-                                    </button>
-                                  </>
-                               )}
-                            </div>
+                    {/* Flowchart Row */}
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 items-center">
+                       <button 
+                          onClick={async () => {
+                             const res = await applicationApi.updateStatus(selectedApp._id, 'Pending');
+                             if (res.success) loadData();
+                          }}
+                          className={`py-4 text-center rounded-sm text-[10px] uppercase tracking-widest font-bold transition-all border ${selectedApp.status === 'Pending' ? 'bg-black text-white border-black shadow-lg' : 'border-black/10 text-black/40 bg-white hover:border-black/20'}`}>
+                          Pending
+                       </button>
 
-                            {selectedApp.attachments && selectedApp.attachments.length > 0 ? (
-                              <div className="grid gap-2">
-                                 {selectedApp.attachments.map((doc: any) => (
-                                    <div key={doc._id || doc.id} className="group p-5 bg-white border border-black/5 rounded-[24px] flex items-center justify-between hover:shadow-xl hover:shadow-black/5 transition-all">
-                                       <div className="flex items-center gap-4">
-                                          <div className="w-12 h-12 bg-black/5 rounded-2xl flex items-center justify-center text-black/20">
-                                             <FileText size={20} />
-                                          </div>
-                                          <div className="flex flex-col">
-                                             <span className="text-sm font-bold">{doc.name}</span>
-                                             <span className="text-[8px] uppercase tracking-widest font-bold text-black/30">
-                                                Uploaded by {doc.uploadedBy} • {new Date(doc.uploadedAt).toLocaleDateString()}
-                                             </span>
-                                          </div>
-                                       </div>
-                                        <div className="flex items-center gap-2">
-                                           <button 
-                                              onClick={async () => {
-                                                 try {
-                                                    const res = await applicationApi.getAttachmentPreviewUrl(selectedApp!._id, doc.url);
-                                                    window.open(res.previewUrl, '_blank');
-                                                 } catch (err) {
-                                                    console.error("Preview failed", err);
-                                                    alert("Failed to generate preview link");
-                                                 }
-                                              }}
-                                              className="p-3 bg-black/5 rounded-full hover:bg-black hover:text-white transition-all"
-                                              title="View Document"
-                                           >
-                                              <Eye size={14} />
-                                           </button>
-                                           <button className="p-3 bg-black/5 rounded-full hover:bg-black hover:text-white transition-all">
-                                              <Download size={14} />
-                                           </button>
-                                        </div>
-                                    </div>
-                                 ))}
-                              </div>
-                            ) : (
-                              <div className="py-12 border-2 border-dashed border-black/10 rounded-[32px] flex flex-col items-center justify-center text-black/10 font-bold uppercase tracking-widest text-[8px] gap-2">
-                                 <Shield size={24} className="opacity-50" />
-                                 Secure document locker is empty
-                              </div>
-                            )}
-                         </div>
-                      </CollapsibleSection>
+                       <button 
+                          disabled={selectedApp.paymentStatus !== 'Received'}
+                          onClick={async () => {
+                             const res = await applicationApi.updateStatus(selectedApp._id, 'Reviewing');
+                             if (res.success) loadData();
+                          }}
+                          className={`py-4 text-center rounded-sm text-[10px] uppercase tracking-widest font-bold border transition-all ${selectedApp.status === 'Reviewing' ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg' : 'border-black/10 text-black/40 bg-white hover:border-black/20 disabled:opacity-20'}`}>
+                          Reviewing
+                       </button>
 
-                     <InternalNotes 
-                        application={selectedApp} 
-                        onUpdate={loadData} 
-                     />
-                     
-                     <div className="pt-8 border-t border-black/5">
-                        <CollapsibleSection title="Audit Trail & Activity Log">
-                           <ActivityTimeline application={selectedApp} />
-                        </CollapsibleSection>
-                     </div>
-                  </div>
+                       <button 
+                          onClick={async () => {
+                             const res = await applicationApi.updateStatus(selectedApp._id, 'Approved');
+                             if (res.success) loadData();
+                          }}
+                          className={`py-4 text-center rounded-sm text-[10px] uppercase tracking-widest font-bold border transition-all ${selectedApp.status === 'Approved' ? 'bg-green-600 text-white border-green-600 shadow-lg' : 'border-black/10 text-black/40 bg-white hover:border-black/20'}`}>
+                          Approved
+                       </button>
 
-                  <div className='pt-8'>
-                     <button onClick={() => setSelectedApp(null)} className='w-full bg-black text-white py-4 rounded-full font-bold text-sm tracking-widest uppercase hover:scale-105 transition-all shadow-2xl shadow-black/20'>
-                        Close Detail View
-                     </button>
-                  </div>
+                       <button 
+                          onClick={async () => {
+                             setPendingRefundApp(selectedApp);
+                          }}
+                          className={`py-4 text-center rounded-sm text-[10px] uppercase tracking-widest font-bold border transition-all ${selectedApp.status === 'Rejected' ? 'bg-red-600 text-white border-red-600 shadow-lg' : 'border-black/10 text-black/40 bg-white hover:border-black/20'}`}>
+                          Rejected
+                       </button>
+                    </div>
+                 </div>
+
+                 {/* 2-Column Grid Layout for Bottom Section */}
+                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
+                    {/* Left Column: Application Details & Audit Trail */}
+                    <div className="space-y-6">
+                       {/* Application Details Summary Card */}
+                       <div className="bg-white border border-black/10 rounded-sm p-8 shadow-sm space-y-12">
+                          <div className="space-y-4">
+                             <h3 className="font-bold text-[10px] uppercase tracking-widest text-black/40">Application Details</h3>
+                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-8 gap-x-6">
+                                <DetailItem icon={<User size={14}/>} label="Full Name" value={selectedApp.name} />
+                                <DetailItem icon={<Calendar size={14}/>} label="DOB" value={selectedApp.dob} />
+                                <DetailItem icon={<MapPin size={14}/>} label="Place of Birth" value={selectedApp.pob} />
+                                <DetailItem icon={<Globe size={14}/>} label="Nationality" value={selectedApp.nationality} />
+                                <DetailItem icon={<Hash size={14}/>} label="Codice Fiscale" value={selectedApp.codiceFiscale} />
+                                <DetailItem icon={<Phone size={14}/>} label="Phone" value={selectedApp.phone} />
+                                <DetailItem icon={<Mail size={14}/>} label="Email" value={selectedApp.email} />
+                                <DetailItem icon={<Home size={14}/>} label="Address" value={selectedApp.address} />
+                             </div>
+                          </div>
+
+                          <div className="space-y-4">
+                             <h3 className="text-[10px] uppercase tracking-widest font-bold text-black/40">Included Services</h3>
+                             <div className="grid gap-2">
+                                {selectedApp.selectedServices.map((s, i) => (
+                                   <div key={i} className="flex justify-between items-center p-5 bg-black/[0.02] border border-black/10 rounded-sm hover:bg-white hover:shadow-xl transition-all group">
+                                      <div className="space-y-1">
+                                          <span className="block font-bold text-xs">{s.name}</span>
+                                          <span className="flex items-center gap-1 text-[8px] uppercase tracking-widest font-bold text-black/40">
+                                              <Clock size={10} /> {s.duration}
+                                          </span>
+                                      </div>
+                                      <span className="text-sm font-space font-bold">€{s.price}</span>
+                                   </div>
+                                ))}
+                             </div>
+                          </div>
+
+                          <div className="pt-4 border-t border-black/5">
+                             <div 
+                                onClick={() => setIsDocsExpanded(!isDocsExpanded)}
+                                className={`flex items-center justify-between border rounded-sm p-4 transition-all cursor-pointer group ${isDocsExpanded ? 'bg-indigo-600 border-indigo-600 shadow-lg shadow-indigo-100' : 'bg-black/[0.02] border-black/5 hover:bg-black/5'}`}
+                             >
+                                <div className="flex items-center gap-4">
+                                   <div className={`w-10 h-10 rounded-sm flex items-center justify-center shadow-sm transition-colors ${isDocsExpanded ? 'bg-white/20 text-white' : 'bg-white border border-black/5 text-black/40'}`}>
+                                      <Lock size={18} />
+                                   </div>
+                                   <div className="flex flex-col">
+                                      <span className={`text-sm font-bold transition-colors ${isDocsExpanded ? 'text-white' : 'text-black/80 group-hover:text-black'}`}>Secure Application Documents</span>
+                                      <span className={`text-[10px] font-medium transition-colors ${isDocsExpanded ? 'text-white/60' : 'text-black/40'}`}>Visible only to Admin & Assigned Agent</span>
+                                   </div>
+                                </div>
+                                <ChevronRight size={18} className={`transition-all ${isDocsExpanded ? 'text-white rotate-90' : 'text-black/20 group-hover:text-black/40'}`} />
+                             </div>
+
+                             <AnimatePresence>
+                                {isDocsExpanded && (
+                                   <motion.div 
+                                      initial={{ height: 0, opacity: 0 }}
+                                      animate={{ height: 'auto', opacity: 1 }}
+                                      exit={{ height: 0, opacity: 0 }}
+                                      className="overflow-hidden"
+                                   >
+                                      <div className="pt-6 space-y-6">
+                                         <div className="flex justify-between items-center">
+                                            <h4 className="text-[10px] uppercase tracking-widest font-bold text-black/40">Secure Workspace</h4>
+                                            {(user?.role === 'admin' || user?.id === selectedApp.reviewerId) && (
+                                               <>
+                                                 <input 
+                                                   type="file" 
+                                                   className="hidden" 
+                                                   ref={fileInputRef} 
+                                                   onChange={async (e) => {
+                                                     const file = e.target.files?.[0];
+                                                     if (!file || !selectedApp) return;
+                                                     setIsDocUploading(true);
+                                                     try {
+                                                       const res = await applicationApi.uploadFinalDocument(selectedApp._id, file);
+                                                       if (res.success) await loadData();
+                                                     } finally {
+                                                       setIsDocUploading(false);
+                                                     }
+                                                   }}
+                                                 />
+                                                 <button 
+                                                   onClick={() => fileInputRef.current?.click()}
+                                                   disabled={isDocUploading}
+                                                   className="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-sm font-bold text-[10px] uppercase tracking-widest hover:scale-105 active:scale-95 transition-all disabled:opacity-20"
+                                                 >
+                                                    {isDocUploading ? <Loader2 size={12} className="animate-spin" /> : <PlusIcon size={12} />}
+                                                    Upload
+                                                 </button>
+                                               </>
+                                            )}
+                                         </div>
+
+                                         {selectedApp.attachments && selectedApp.attachments.length > 0 ? (
+                                            <div className="grid gap-3">
+                                               {selectedApp.attachments.map((doc: any, i: number) => (
+                                                  <div key={i} className="flex items-center justify-between p-4 bg-white border border-black/5 rounded-sm hover:shadow-sm transition-all group">
+                                                     <div className="flex items-center gap-4">
+                                                        <div className="w-10 h-10 bg-black/5 rounded-sm flex items-center justify-center text-black/20 group-hover:bg-indigo-50 group-hover:text-indigo-500 transition-colors">
+                                                           <FileText size={18} />
+                                                        </div>
+                                                        <div className="flex flex-col">
+                                                           <span className="text-xs font-bold text-black/80">{doc.name}</span>
+                                                           <span className="text-[8px] uppercase tracking-widest font-bold text-black/30">
+                                                              {doc.uploadedBy} • {new Date(doc.uploadedAt).toLocaleDateString()}
+                                                           </span>
+                                                        </div>
+                                                     </div>
+                                                     <div className="flex items-center gap-2">
+                                                        <button 
+                                                           onClick={() => handleViewAttachment(doc)}
+                                                           className="p-2 hover:bg-black/5 rounded-sm transition-colors text-black/40 hover:text-black"
+                                                        >
+                                                           <Eye size={14} />
+                                                        </button>
+                                                        <button className="p-2 hover:bg-black/5 rounded-sm transition-colors text-black/40 hover:text-black">
+                                                           <Download size={14} />
+                                                        </button>
+                                                     </div>
+                                                  </div>
+                                               ))}
+                                            </div>
+                                         ) : (
+                                            <div className="py-8 border-2 border-dashed border-black/5 rounded-sm flex flex-col items-center justify-center text-black/10 font-bold uppercase tracking-widest text-[8px] gap-2">
+                                               <Shield size={20} className="opacity-50" />
+                                               Workspace is empty
+                                            </div>
+                                         )}
+                                      </div>
+                                   </motion.div>
+                                )}
+                             </AnimatePresence>
+                          </div>
+                       </div>
+
+                       {/* Audit Trail & Activity Log Card */}
+                       <div className="bg-white border border-black/10 rounded-sm p-8 shadow-sm space-y-10">
+                          <div className="flex items-center justify-between">
+                             <h3 className="font-bold text-[10px] uppercase tracking-widest text-black/40">Audit Trail & Activity Log</h3>
+                          </div>
+                          
+                          <div className="space-y-4">
+                             <div className="flex items-center justify-between">
+                                <span className="text-xs font-bold text-black/60">Lifecycle Overview</span>
+                                <span className="text-[10px] font-bold text-indigo-500">Total Time: 1 Day</span>
+                             </div>
+                             
+                             <div className="max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                                <ActivityTimeline application={selectedApp} />
+                             </div>
+
+                             <button className="w-full flex items-center justify-center gap-2 py-4 rounded-sm border border-black/10 bg-black/[0.02] text-[10px] font-bold uppercase tracking-widest text-black/40 hover:bg-black/5 transition-colors">
+                                View Full Timeline <ChevronRight size={14} className="rotate-90" />
+                             </button>
+                          </div>
+                       </div>
+                    </div>
+
+                    {/* Right Column: Internal Communications */}
+                    <div className="h-full">
+                       <InternalNotes 
+                          application={selectedApp} 
+                          onUpdate={loadData} 
+                       />
+                    </div>
+                 </div>
+
+                 <div className='pt-8 border-t border-black/5'>
+                    <button onClick={() => setSelectedApp(null)} className='w-full bg-black text-white py-6 rounded-sm font-bold text-[10px] tracking-[0.3em] uppercase hover:bg-black/90 transition-all shadow-2xl'>
+                       Close Detail View
+                    </button>
+                 </div>
               </div>
             </motion.div>
           </div>
@@ -767,7 +805,7 @@ export default function AdminPage() {
               initial={{ scale: 0.9, opacity: 0 }} animate={{ opacity: 1, scale: 1 }} exit={{ scale: 0.9, opacity: 0 }}
               className="bg-white rounded-[40px] w-full max-w-xl p-12 space-y-12 shadow-2xl relative"
             >
-               <button onClick={() => setIsCreditModalOpen(false)} className="absolute right-8 top-8 p-2 hover:bg-black/5 rounded-full transition-colors"><X size={20} /></button>
+               <button onClick={() => setIsCreditModalOpen(false)} className="absolute right-8 top-8 p-2 hover:bg-black/5 rounded-sm transition-colors"><X size={20} /></button>
                
                <div className="space-y-2">
                   <p className="text-[10px] uppercase tracking-[0.4em] font-bold text-black/40 text-center">Financial Action</p>
@@ -923,13 +961,13 @@ function WorkspaceBrowser({ workspace, onBack, onEdit }: { workspace: Workspace,
           <h2 className="text-4xl font-space font-bold tracking-tighter uppercase">{workspace.name}.</h2>
         </div>
         <div className="flex items-center gap-4">
-           <button onClick={onEdit} className="p-4 bg-black/5 rounded-2xl hover:bg-black/10 transition-colors">
+           <button onClick={onEdit} className="p-4 bg-black/5 rounded-sm hover:bg-black/10 transition-colors">
               <Settings2 size={20} />
            </button>
            <button 
              onClick={handleUpload}
              disabled={isUploading}
-             className="px-8 py-4 bg-black text-white rounded-2xl font-bold text-sm hover:scale-105 transition-all shadow-xl shadow-black/10 disabled:opacity-20"
+             className="px-8 py-4 bg-black text-white rounded-sm font-bold text-sm hover:scale-105 transition-all shadow-xl shadow-black/10 disabled:opacity-20"
            >
              {isUploading ? "Uploading..." : "Upload File"}
            </button>
@@ -948,7 +986,7 @@ function WorkspaceBrowser({ workspace, onBack, onEdit }: { workspace: Workspace,
           {files.map(file => (
             <div key={file.id} className="group flex items-center justify-between p-6 bg-black/[0.02] border border-black/5 rounded-[24px] hover:bg-white hover:shadow-xl hover:shadow-black/5 transition-all">
               <div className="flex items-center gap-6">
-                <div className="w-12 h-12 bg-white border border-black/5 rounded-xl flex items-center justify-center shadow-sm">
+                <div className="w-12 h-12 bg-white border border-black/5 rounded-sm flex items-center justify-center shadow-sm">
                   <FileText size={20} className="text-black/20" />
                 </div>
                 <div className="flex flex-col">
@@ -959,8 +997,8 @@ function WorkspaceBrowser({ workspace, onBack, onEdit }: { workspace: Workspace,
                 </div>
               </div>
               <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                 <button className="p-3 hover:bg-black/5 rounded-full transition-all"><Download size={16} /></button>
-                 <button onClick={() => handleDeleteFile(file.id)} className="p-3 hover:bg-red-50 text-red-500 rounded-full transition-all"><Trash2 size={16} /></button>
+                 <button className="p-3 hover:bg-black/5 rounded-sm transition-all"><Download size={16} /></button>
+                 <button onClick={() => handleDeleteFile(file.id)} className="p-3 hover:bg-red-50 text-red-500 rounded-sm transition-all"><Trash2 size={16} /></button>
               </div>
             </div>
           ))}
@@ -986,7 +1024,7 @@ function DockItem({ icon, label, isActive, onClick, isExit }: { icon: React.Reac
   return (
     <button 
       onClick={onClick}
-      className={`flex flex-col items-center justify-center p-2 rounded-2xl transition-all min-w-[52px] ${
+      className={`flex flex-col items-center justify-center p-2 rounded-sm transition-all min-w-[52px] ${
         isActive 
           ? 'text-black bg-black/5' 
           : isExit 
@@ -1014,7 +1052,7 @@ function StatusPill({ status }: { status: ApplicationStatus }) {
   };
   return (
     <div className="flex items-center gap-3">
-       <div className={`w-1.5 h-1.5 rounded-full ${colors[status]}`} />
+       <div className={`w-1.5 h-1.5 rounded-sm ${colors[status]}`} />
        <span className="text-[10px] uppercase tracking-widest font-bold text-black/40">{status}</span>
     </div>
   );
@@ -1036,7 +1074,7 @@ function StatusBadge({ status }: { status: ApplicationStatus }) {
     };
   
     return (
-      <div className={`flex items-center gap-2 px-3 py-1 rounded-full border text-[10px] font-bold uppercase tracking-widest ${styles[status]}`}>
+      <div className={`flex items-center gap-2 px-3 py-1 rounded-sm border text-[10px] font-bold uppercase tracking-widest ${styles[status]}`}>
         {icons[status]}
         {status}
       </div>
@@ -1045,11 +1083,11 @@ function StatusBadge({ status }: { status: ApplicationStatus }) {
 
 function DetailItem({ icon, label, value }: any) {
     return (
-      <div className="space-y-1">
-        <p className="text-[10px] uppercase tracking-widest font-bold text-black/40 flex items-center gap-2">
+      <div className="space-y-2">
+        <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-black/30 flex items-center gap-3">
           {icon} {label}
         </p>
-        <p className="text-sm font-bold text-black/80">{value || "N/A"}</p>
+        <p className="text-sm font-bold text-black/90 break-words leading-relaxed">{value || "N/A"}</p>
       </div>
     );
 }

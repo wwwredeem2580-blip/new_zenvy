@@ -108,15 +108,14 @@ export function InternalNotes({ application, onUpdate }: InternalNotesProps) {
   );
 
   return (
-    <div className="flex flex-col h-[500px] bg-white border border-black/5 rounded-[32px] overflow-hidden">
+    <div className="flex flex-col h-[750px] bg-white border border-black/10 rounded-sm shadow-sm overflow-hidden">
       {/* Header */}
-      <div className="px-8 py-4 border-b border-black/5 flex items-center justify-between bg-black/[0.01]">
+      <div className="px-8 py-8 border-b border-black/10 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <MessageSquare size={16} className="text-black/40" />
-          <h3 className="text-[10px] items-center gap-2 uppercase tracking-widest font-bold flex">
+          <h3 className="text-[10px] uppercase tracking-widest font-bold text-black/40 flex items-center gap-4">
             Internal Communications
-            <span className="flex items-center gap-1.5 px-2 py-0.5 bg-blue-500/10 text-blue-600 rounded-full lowercase text-[9px] font-medium tracking-normal">
-              <Lock size={10} /> internal only
+            <span className="flex items-center gap-1.5 px-3 py-1 bg-indigo-50 text-indigo-600 rounded-sm lowercase text-[8px] font-bold tracking-widest border border-indigo-100">
+              internal only
             </span>
           </h3>
         </div>
@@ -132,7 +131,7 @@ export function InternalNotes({ application, onUpdate }: InternalNotesProps) {
         ) : (
           notes.map((note) => (
             <div key={note._id || note.id} className="group flex gap-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-              <div className="w-10 h-10 rounded-2xl bg-black/5 flex items-center justify-center shrink-0 border border-black/5 overflow-hidden">
+              <div className="w-10 h-10 rounded-sm bg-black/5 flex items-center justify-center shrink-0 border border-black/10 overflow-hidden">
                 <img 
                   src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${note.authorName || 'User'}${note.authorId}`} 
                   alt={note.authorName || 'User'}
@@ -173,16 +172,16 @@ export function InternalNotes({ application, onUpdate }: InternalNotesProps) {
       </div>
 
       {/* Input Area */}
-      <div className="p-6 bg-black/[0.01] border-t border-black/5 relative">
+      <div className="p-8 bg-black/[0.01] border-t border-black/10 relative">
         <AnimatePresence>
           {showMentions && filteredAgents.length > 0 && (
             <motion.div 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
-              className="absolute bottom-full left-6 mb-2 w-64 bg-white border border-black/5 rounded-2xl shadow-2xl overflow-hidden z-20"
+              className="absolute bottom-full left-8 mb-4 w-72 bg-white border border-black/10 rounded-sm shadow-2xl overflow-hidden z-20"
             >
-              <div className="p-3 border-b border-black/5 bg-black/[0.02]">
+              <div className="p-4 border-b border-black/10 bg-black/[0.02]">
                 <p className="text-[8px] uppercase tracking-widest font-bold text-black/40">Mention Team Member</p>
               </div>
               <div className="max-h-48 overflow-y-auto">
@@ -190,9 +189,9 @@ export function InternalNotes({ application, onUpdate }: InternalNotesProps) {
                   <button
                     key={agent.id}
                     onClick={() => insertMention(agent)}
-                    className="w-full px-4 py-3 flex items-center gap-3 hover:bg-black/5 transition-colors text-left"
+                    className="w-full px-5 py-4 flex items-center gap-4 hover:bg-black/5 transition-colors text-left"
                   >
-                    <div className="w-6 h-6 rounded-lg bg-black/5 overflow-hidden">
+                    <div className="w-8 h-8 rounded-sm bg-black/5 overflow-hidden">
                       <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${agent.email}`} alt={agent.firstName} />
                     </div>
                     <div className="flex flex-col">
@@ -206,7 +205,7 @@ export function InternalNotes({ application, onUpdate }: InternalNotesProps) {
           )}
         </AnimatePresence>
 
-        <div className="flex items-end gap-3 bg-white p-4 border border-black/5 rounded-[24px] shadow-sm">
+        <div className="flex items-end gap-4 bg-white p-6 border border-black/10 rounded-sm shadow-sm">
           <textarea
             ref={textareaRef}
             value={newNote}
@@ -223,12 +222,12 @@ export function InternalNotes({ application, onUpdate }: InternalNotesProps) {
           <button 
             onClick={handleAddNote}
             disabled={!newNote.trim() || isSubmitting}
-            className="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all disabled:opacity-20 shrink-0 shadow-lg shadow-black/10"
+            className="w-12 h-12 bg-black text-white rounded-sm flex items-center justify-center hover:bg-black/90 transition-all disabled:opacity-20 shrink-0 shadow-lg"
           >
             {isSubmitting ? (
               <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
             ) : (
-              <Send size={16} />
+              <Send size={16} className="rotate-[-10deg]" />
             )}
           </button>
         </div>

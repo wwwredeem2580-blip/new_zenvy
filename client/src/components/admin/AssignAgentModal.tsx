@@ -54,19 +54,19 @@ export function AssignAgentModal({ applicationId, onClose, onAssigned }: AssignA
         initial={{ scale: 0.95, opacity: 0 }} 
         animate={{ opacity: 1, scale: 1 }} 
         exit={{ scale: 0.95, opacity: 0 }}
-        className="bg-white rounded-[40px] w-full max-w-xl p-10 border border-black/5 shadow-2xl relative flex flex-col max-h-[80vh]"
+        className="bg-white rounded-sm w-full max-w-xl p-10 lg:p-16 border border-black/10 shadow-2xl relative flex flex-col max-h-[90vh]"
       >
         <button 
           onClick={onClose} 
-          className="absolute right-8 top-8 p-2 hover:bg-black/5 rounded-full transition-colors"
+          className="absolute right-10 top-10 p-3 hover:bg-black/5 rounded-sm transition-colors"
         >
           <X size={20} />
         </button>
 
         <div className="text-center space-y-2 mb-10">
-          <p className="text-[10px] uppercase tracking-[0.4em] font-bold text-black/40">Delegation Hub</p>
-          <h3 className="text-3xl font-space font-bold tracking-tighter uppercase">Assign Agent.</h3>
-          <p className="text-xs text-black/40">Select an agent to manage this application.</p>
+          <p className="text-[10px] uppercase tracking-[0.4em] font-bold text-black/20">Delegation Hub</p>
+          <h3 className="text-4xl font-space font-bold tracking-tighter uppercase">Assign Agent</h3>
+          <p className="text-[10px] uppercase tracking-widest font-bold text-black/40">Select an agent to manage this application</p>
         </div>
 
         {isLoading ? (
@@ -88,10 +88,10 @@ export function AssignAgentModal({ applicationId, onClose, onAssigned }: AssignA
                  key={agent.id}
                  disabled={!!isProcessing}
                  onClick={() => handleAssign(agent.id)}
-                 className="w-full flex items-center justify-between p-4 bg-black/[0.02] border border-black/5 rounded-2xl hover:bg-white hover:border-black/20 hover:shadow-xl hover:shadow-black/5 transition-all group pointer-events-auto"
+                 className="w-full flex items-center justify-between p-6 bg-black/[0.02] border border-black/10 rounded-sm hover:bg-white hover:border-black/30 hover:shadow-2xl transition-all group pointer-events-auto"
                >
                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-white border border-black/5 overflow-hidden shadow-sm shrink-0 flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-sm bg-white border border-black/10 overflow-hidden shadow-sm shrink-0 flex items-center justify-center">
                        <img 
                           src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${agent.firstName}${agent.id}`} 
                           alt={agent.firstName}
@@ -111,7 +111,7 @@ export function AssignAgentModal({ applicationId, onClose, onAssigned }: AssignA
                        </div>
                        <p className="text-[7px] uppercase font-bold text-black/20">Current Workload</p>
                     </div>
-                    <div className="w-8 h-8 rounded-full bg-black flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="w-10 h-10 rounded-sm bg-black flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-all scale-90 group-hover:scale-100">
                        {isProcessing === agent.id ? <Loader2 size={12} className="animate-spin" /> : <ChevronRight size={14} />}
                     </div>
                  </div>
@@ -120,7 +120,7 @@ export function AssignAgentModal({ applicationId, onClose, onAssigned }: AssignA
           </div>
         )}
 
-        <div className="mt-10 p-6 bg-blue-500/5 border border-blue-500/10 rounded-2xl flex items-start gap-4">
+        <div className="mt-12 p-8 bg-blue-50 border border-blue-100 rounded-sm flex items-start gap-5">
            <AlertCircle size={18} className="text-blue-500 shrink-0 mt-0.5" />
            <p className="text-[10px] leading-relaxed text-blue-800/80">
               <span className="font-bold">Smart Suggestion:</span> Assign to agents marked as <span className="font-bold">"Free"</span> to ensure faster processing times and balanced team distribution.

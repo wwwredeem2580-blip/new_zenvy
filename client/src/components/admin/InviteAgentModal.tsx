@@ -33,13 +33,13 @@ export function InviteAgentModal({ onClose, onInvited }: { onClose: () => void, 
     <div className="fixed inset-0 z-[600] flex items-center justify-center p-6 bg-black/40 backdrop-blur-sm">
        <motion.div 
          initial={{ scale: 0.9, opacity: 0 }} animate={{ opacity: 1, scale: 1 }} exit={{ scale: 0.9, opacity: 0 }}
-         className="bg-white rounded-[40px] w-full max-w-xl p-12 space-y-10 shadow-2xl relative"
+         className="bg-white rounded-sm w-full max-w-xl p-12 lg:p-16 space-y-12 shadow-2xl relative border border-black/10"
        >
-          <button onClick={onClose} className="absolute right-8 top-8 p-2 hover:bg-black/5 rounded-full transition-colors"><X size={20} /></button>
+          <button onClick={onClose} className="absolute right-10 top-10 p-3 hover:bg-black/5 rounded-sm transition-colors"><X size={20} /></button>
           
-          <div className="space-y-2">
-             <p className="text-[10px] uppercase tracking-[0.4em] font-bold text-black/40 text-center">Team Expansion</p>
-             <h3 className="text-2xl font-space font-bold tracking-tighter uppercase text-center">Invite Agent.</h3>
+          <div className="space-y-3 text-center">
+             <p className="text-[10px] uppercase tracking-[0.4em] font-bold text-black/20">Team Expansion</p>
+             <h3 className="text-4xl font-space font-bold tracking-tighter uppercase">Invite Agent</h3>
           </div>
 
           {!isSuccess ? (
@@ -50,7 +50,7 @@ export function InviteAgentModal({ onClose, onInvited }: { onClose: () => void, 
                       <button 
                         type="button" 
                         onClick={() => setRole('agent')}
-                        className={`flex items-center justify-center gap-3 py-4 rounded-2xl border transition-all ${role === 'agent' ? 'bg-black text-white border-black' : 'bg-white text-black/30 border-black/5 hover:border-black/20'}`}
+                        className={`flex items-center justify-center gap-3 py-5 rounded-sm border transition-all ${role === 'agent' ? 'bg-black text-white border-black' : 'bg-white text-black/30 border-black/10 hover:border-black/30'}`}
                       >
                          <UserPlus size={16} />
                          <span className="text-[10px] font-bold uppercase tracking-widest">Agent</span>
@@ -58,7 +58,7 @@ export function InviteAgentModal({ onClose, onInvited }: { onClose: () => void, 
                       <button 
                         type="button" 
                         onClick={() => setRole('admin')}
-                        className={`flex items-center justify-center gap-3 py-4 rounded-2xl border transition-all ${role === 'admin' ? 'bg-black text-white border-black' : 'bg-white text-black/30 border-black/5 hover:border-black/20'}`}
+                        className={`flex items-center justify-center gap-3 py-5 rounded-sm border transition-all ${role === 'admin' ? 'bg-black text-white border-black' : 'bg-white text-black/30 border-black/10 hover:border-black/30'}`}
                       >
                          <ShieldCheck size={16} />
                          <span className="text-[10px] font-bold uppercase tracking-widest">Admin</span>
