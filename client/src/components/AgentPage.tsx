@@ -182,6 +182,22 @@ export default function AgentPage() {
     }
   };
 
+  const handleFilePreview = async (fileId: string) => {
+    if (!selectedWorkspace) return;
+    try {
+      const res = await adminApi.getFilePreviewUrl(
+        selectedWorkspace._id || selectedWorkspace.id!,
+        fileId
+      );
+      if (res.success && res.previewUrl) {
+        window.open(res.previewUrl, '_blank');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Failed to generate preview. Please try again.');
+    }
+  };
+
    const updateAppStatus = async (id: string, status: ApplicationStatus, forceRelease: boolean = false) => {
     if (!permissions.canManageApplications) return;
     try {
@@ -293,7 +309,11 @@ export default function AgentPage() {
                   ) : (
                      <div className="grid gap-3">
                         {workspaceFiles.map(file => (
-                           <div key={file.id} className="group flex items-center justify-between px-4 py-2 bg-black/[0.02] border border-black/5 rounded-[16px] hover:bg-white hover:shadow-xl hover:shadow-black/5 transition-all">
+                           <div
+                             key={file.id}
+                             onClick={() => handleFilePreview(file.id)}
+                             className="group flex items-center justify-between px-4 py-2 bg-black/[0.02] border border-black/5 rounded-[16px] hover:bg-white hover:shadow-xl hover:shadow-black/5 transition-all cursor-pointer"
+                           >
                               <div className="flex items-center gap-6">
                                  <div className="w-8 h-8 rounded-xl flex items-center justify-center">
                                     <span className="text-black/90 text-2xl">📄</span>
@@ -307,12 +327,16 @@ export default function AgentPage() {
                               </div>
                               
                               <div className="flex items-center gap-2 transition-opacity">
-                                 <button className="p-3 hover:bg-black/5 rounded-full transition-all">
+                                 <button
+                                   onClick={(e) => { e.stopPropagation(); handleFilePreview(file.id); }}
+                                   className="p-3 hover:bg-black/5 rounded-full transition-all"
+                                   title="Preview / Download"
+                                 >
                                     <DownloadCloudIcon size={16} />
                                  </button>
                                  {selectedWorkspace.permission !== 'Read-only' && permissions.canDeleteFiles && (
                                     <button 
-                                       onClick={() => handleFileDelete(file.id)}
+                                       onClick={(e) => { e.stopPropagation(); handleFileDelete(file.id); }}
                                        className="p-3 hover:bg-red-50 text-red-500 rounded-full transition-all"
                                     >
                                        <Trash2 size={16} />
@@ -396,31 +420,31 @@ export default function AgentPage() {
                                     </span>
                                  </div>
                               </div>
-                               <div className="flex items-center gap-6">
-                                  <div className="flex items-center gap-4">
-                                     {app.status === 'Reviewing' && app.reviewerId && (
-                                        <div className="flex items-center gap-2 pr-4 border-r border-black/5">
-                                           <div className="flex items-center -space-x-1">
-                                              <div className="w-6 h-6 rounded-full border-2 border-white overflow-hidden shrink-0 shadow-sm relative z-10">
-                                                 <img 
-                                                    src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${app.reviewerName}${app.reviewerId}`} 
-                                                    alt={app.reviewerName}
-                                                    className="w-full h-full object-cover"
-                                                 />
-                                              </div>
-                                              <div className="bg-blue-500/10 text-blue-600 px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-tight pl-3 border border-blue-500/10">
-                                                 {app.reviewerName?.split(' ')[0]}
-                                              </div>
-                                           </div>
-                                           <span className="text-[8px] font-bold text-black/20 hidden lg:block italic">
-                                              {timeAgo(app.lastActivityAt)}
-                                           </span>
-                                        </div>
-                                     )}
-                                     <StatusPill status={app.status} />
-                                  </div>
-                                  <ChevronRight size={12} className="text-black/40 group-hover:text-black transition-all" />
-                               </div>
+                              <div className="flex items-center gap-6">
+                                 <div className="flex items-center gap-4">
+                                    {app.status === 'Reviewing' && app.reviewerId && (
+                                       <div className="flex items-center gap-2 pr-4 border-r border-black/5">
+                                          <div className="flex items-center -space-x-1">
+                                             <div className="w-6 h-6 rounded-full border-2 border-white overflow-hidden shrink-0 shadow-sm relative z-10">
+                                                <img 
+                                                   src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${app.reviewerName}${app.reviewerId}`} 
+                                                   alt={app.reviewerName}
+                                                   className="w-full h-full object-cover"
+                                                />
+                                             </div>
+                                             <div className="bg-blue-500/10 text-blue-600 px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-tight pl-3 border border-blue-500/10">
+                                                {app.reviewerName?.split(' ')[0]}
+                                             </div>
+                                          </div>
+                                          <span className="text-[8px] font-bold text-black/20 hidden lg:block italic">
+                                             {timeAgo(app.lastActivityAt)}
+                                          </span>
+                                       </div>
+                                    )}
+                                    <StatusPill status={app.status} />
+                                 </div>
+                                 <ChevronRight size={12} className="text-black/40 group-hover:text-black transition-all" />
+                              </div>
                            </div>
                         ))}
                      </div>
@@ -429,7 +453,7 @@ export default function AgentPage() {
             </motion.div>
          )}
 
-         {/* Application Detail View Modal for Agent */}
+                  {/* Application Detail View Modal for Agent */}
 {/* Unified Application Detail View (Agent Version) */}
       <AnimatePresence>
         {selectedApp && (
