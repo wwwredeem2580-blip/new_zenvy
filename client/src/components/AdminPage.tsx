@@ -166,8 +166,16 @@ export default function AdminPage() {
         setUsers(mappedUsers);
         setInvitations(inviteRes.invitations);
       } else if (activeTab === 'Workspaces') {
-        const response = await adminApi.listWorkspaces();
-        setWorkspaces(response.workspaces);
+        const [wsResponse, userRes] = await Promise.all([
+          adminApi.listWorkspaces(),
+          adminApi.listUsers()
+        ]);
+        setWorkspaces(wsResponse.workspaces);
+        const mappedUsers = userRes.users.map((u: any) => ({
+           ...u,
+           id: u._id || u.id
+        }));
+        setUsers(mappedUsers);
       }
     } catch (error) {
       console.error("Failed to load data", error);
