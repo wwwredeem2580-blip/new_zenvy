@@ -57,7 +57,7 @@ export function ApplicationsView({ applications, onSelect }: { applications: App
                   <span className="text-[10px] max-w-[20px] sm:max-w-none font-mono font-bold text-black/50">#{app.applicationId}</span>
                   <div className="flex flex-col">
                      <span className="text-sm font-bold">{app.name}</span>
-                     <span className="text-[10px] uppercase tracking-widest font-bold text-black/30">{new Date(app.submittedAt).toLocaleDateString()}</span>
+                     <span className="text-[10px] uppercase tracking-widest font-bold text-black/30">{new Date(app.createdAt || app.submittedAt).toLocaleDateString()}</span>
                   </div>
                </div>
 

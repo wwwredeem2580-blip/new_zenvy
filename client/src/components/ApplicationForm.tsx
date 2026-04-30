@@ -360,7 +360,7 @@ export default function ApplicationForm() {
     return uploadedAttachments;
   };
 
-  const handlePaymentSuccess = async (method: PaymentMethod | 'Credits') => {
+  const handlePaymentSuccess = async (method: PaymentMethod | 'Credits', transactionId?: string) => {
     setIsShowPayment(false);
     setIsLoading(true);
     
@@ -387,6 +387,7 @@ export default function ApplicationForm() {
         permessoExpiry: formData.permessoExpiry,
         selectedServices: formData.selectedServices,
         paymentMethod: method as any,
+        transactionId,
         attachments,
       });
       

@@ -417,7 +417,7 @@ export default function AgentPage() {
                                  <div className="flex flex-col">
                                     <span className="text-sm font-bold">{app.name}</span>
                                     <span className="text-[10px] uppercase tracking-widest font-bold text-black/30">
-                                       {new Date(app.submittedAt).toLocaleDateString()}
+                                       {new Date(app.createdAt || app.submittedAt).toLocaleDateString()}
                                     </span>
                                  </div>
                               </div>
