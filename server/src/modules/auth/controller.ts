@@ -85,9 +85,11 @@ export const googleCallback = async (req: Request, res: Response): Promise<void>
 
     // Redirect back to the client portal after successful Google auth
     const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
+    console.log(`[GoogleAuth] Redirecting to: ${clientUrl}`);
     res.redirect(`${clientUrl}?auth=google&role=${user.role}`);
   } catch (error: any) {
     const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
+    console.error(`[GoogleAuth] Error:`, error);
     const message = encodeURIComponent(error.message || 'Google authentication failed');
     res.redirect(`${clientUrl}?error=${message}`);
   }

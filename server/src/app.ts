@@ -1,12 +1,13 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express from 'express';
 import router from './router';
 import helmet from 'helmet';
 import mongoose from 'mongoose';
-import dotenv from 'dotenv';
 import cors from 'cors';
 import cookieParser from "cookie-parser";
 import compression from 'compression';
-dotenv.config();
 
 export function createServer() {
   const app = express();
