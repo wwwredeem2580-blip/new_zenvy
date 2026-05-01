@@ -5,14 +5,14 @@
 
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'motion/react';
 import { Loader2, ShieldCheck, UserPlus, Lock, Mail, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { authApi } from '@/lib/api/authApi';
 import { useAuth } from '@/context/AuthContext';
 
-export default function OnboardingPage() {
+function OnboardingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
@@ -197,5 +197,17 @@ export default function OnboardingPage() {
         </div>
       </motion.div>
     </div>
+  );
+}
+
+export default function OnboardingPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <Loader2 className="text-white/20 animate-spin" size={48} />
+      </div>
+    }>
+      <OnboardingContent />
+    </Suspense>
   );
 }
