@@ -579,18 +579,9 @@ export default function AdminPage() {
                        
                        <div className="flex items-center gap-3">
                           {!selectedApp.reviewerId && selectedApp.paymentStatus === 'Received' && (
-                             <>
-                                <button onClick={async () => {
-                                   if (!user?.id) return;
-                                   const res = await applicationApi.assignAgent(selectedApp._id, user.id);
-                                   if (res.success) loadData();
-                                }} className="px-6 py-2 rounded-sm bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-700 transition-colors shadow-sm">
-                                   Claim
-                                </button>
                                 <button onClick={() => setIsAssignModalOpen(true)} className="px-6 py-2 rounded-sm border border-black/10 bg-white text-black/60 text-xs font-bold hover:bg-black/5 transition-colors shadow-sm">
                                    Assign
                                 </button>
-                             </>
                           )}
                           {selectedApp.reviewerId && (
                              <button onClick={async () => {
@@ -729,7 +720,7 @@ export default function AdminPage() {
                                       <div className="pt-6 space-y-6">
                                          <div className="flex justify-between items-center">
                                             <h4 className="text-[10px] uppercase tracking-widest font-bold text-black/40">Secure Workspace</h4>
-                                            {(user?.role === 'admin' || user?.id === selectedApp.reviewerId) && (
+                                            {(user?.role === 'admin' || (user?._id || user?.id) === selectedApp.reviewerId) && (
                                                <>
                                                  <input 
                                                    type="file" 

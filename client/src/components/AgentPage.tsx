@@ -763,7 +763,7 @@ export default function AgentPage() {
                                       <div className="pt-6 space-y-6">
                                          <div className="flex justify-between items-center">
                                             <h4 className="text-[10px] uppercase tracking-widest font-bold text-black/40">Secure Workspace</h4>
-                                            {(user?.role === 'admin' || user?.id === selectedApp.reviewerId) && (
+                                            {(user?.role === 'admin' || (user?._id || user?.id) === selectedApp.reviewerId) && (
                                                <>
                                                  <input 
                                                    type="file" 
