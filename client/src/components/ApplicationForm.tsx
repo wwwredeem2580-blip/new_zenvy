@@ -27,7 +27,8 @@ import {
   Building2,
   Plus,
   ArrowDownCircle,
-  AlertCircle
+  AlertCircle,
+  Search
 } from "lucide-react";
 import { useState, useRef, useMemo, useEffect } from "react";
 import React from "react";
@@ -132,6 +133,8 @@ export default function ApplicationForm() {
   const [availableServices, setAvailableServices] = useState<DynamicService[]>([]);
   const [userBalance, setUserBalance] = useState(0);
   const [isUseCredits, setIsUseCredits] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -162,6 +165,32 @@ export default function ApplicationForm() {
     }
     return Array.from(docsMap.values());
   }, [formData.selectedServices]);
+
+  const allSubservices = useMemo(() => {
+    return availableServices.flatMap(service => 
+      service.subservices.map(sub => ({
+        ...sub,
+        categoryId: service.id,
+        categoryName: service.name,
+        icon: service.icon
+      }))
+    );
+  }, [availableServices]);
+
+  const serviceCategories = useMemo(() => {
+    return [
+      { id: "all", name: "All Services" },
+      ...availableServices.map(s => ({ id: s.id, name: s.name }))
+    ];
+  }, [availableServices]);
+
+  const filteredServices = useMemo(() => {
+    return allSubservices.filter(service => {
+      const matchesSearch = service.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesCategory = selectedCategory === "all" || service.categoryId === selectedCategory;
+      return matchesSearch && matchesCategory;
+    });
+  }, [searchQuery, selectedCategory, allSubservices]);
 
   const onClose = () => router.push('/');
   const onComplete = async () => {
@@ -534,82 +563,97 @@ export default function ApplicationForm() {
                 )}
 
                 {step === 3 && (
-                  <div className="space-y-4">
-                    {availableServices.map((service) => (
-                      <div key={service.id} className="border border-border rounded-[24px] overflow-hidden bg-surface/30 backdrop-blur-sm">
-                        <button
-                          type="button"
-                          onClick={() => setExpandedService(expandedService === service.id ? null : service.id)}
-                          className="w-full px-6 py-4 flex items-center justify-between hover:bg-text/5 transition-colors"
-                        >
-                          <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-xl bg-surface border border-border flex items-center justify-center text-text shadow-inner">
-                              {IconMap[service.icon] || <FileText size={20} />}
-                            </div>
-                            <div className="text-left">
-                              <span className="block font-space text-lg font-bold tracking-tight text-text">{service.name}</span>
-                              <span className="text-[8px] text-muted uppercase tracking-widest font-medium">
-                                {service.subservices.length} options available
-                              </span>
-                            </div>
-                          </div>
-                          <ChevronDown 
-                            size={16} 
-                            className={`transition-transform duration-500 ${expandedService === service.id ? 'rotate-180' : ''}`} 
-                          />
-                        </button>
-                        
-                        <AnimatePresence>
-                          {expandedService === service.id && (
-                            <motion.div
-                              initial={{ height: 0, opacity: 0 }}
-                              animate={{ height: "auto", opacity: 1 }}
-                              exit={{ height: 0, opacity: 0 }}
-                              className="overflow-hidden"
-                            >
-                              <div className="px-6 pb-6 pt-1 grid grid-cols-1 gap-3">
-                                {service.subservices.map((sub) => {
-                                  const isSelected = formData.selectedServices.some(s => s.name === sub.name);
-                                  return (
-                                    <button
-                                      key={sub.name}
-                                      type="button"
-                                      onClick={() => toggleService(sub)}
-                                      className={`group flex items-center justify-between p-4 rounded-xl border transition-all duration-500 ${
-                                        isSelected
-                                          ? "bg-text text-bg border-text shadow-lg scale-[1.01]"
-                                          : "bg-surface border-border hover:border-text/30 hover:bg-text/5"
-                                      }`}
-                                    >
-                                      <div className="flex items-center gap-3">
-                                        <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${isSelected ? 'border-bg bg-bg' : 'border-muted'}`}>
-                                          {isSelected && <Check size={12} className="text-text" />}
-                                        </div>
-                                        <div className="text-left">
-                                          <span className={`block font-bold text-sm ${isSelected ? 'text-bg' : 'text-text'}`}>{sub.name}</span>
-                                          <div className="flex items-center gap-2 mt-0.5">
-                                            <span className={`flex items-center gap-1 text-[8px] uppercase tracking-widest font-bold ${isSelected ? 'text-bg/60' : 'text-muted'}`}>
-                                              <Timer size={10} /> {sub.duration}
-                                            </span>
-                                          </div>
-                                        </div>
-                                      </div>
-                                      <div className="text-right">
-                                        <span className={`block font-space text-xl font-bold ${isSelected ? 'text-bg' : 'text-text'}`}>
-                                          €{sub.price}
-                                        </span>
-                                      </div>
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
+                  <div className="space-y-8">
+                    {/* Search and Filter Controls */}
+                    <div className="space-y-6">
+                      <div className="relative group">
+                        <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-text/20 group-focus-within:text-text transition-colors" size={20} />
+                        <input 
+                          type="text"
+                          placeholder="Search for a service..."
+                          className="w-full pl-16 pr-6 py-4 bg-surface border border-border rounded-[24px] focus:outline-none focus:border-text/30 shadow-xl shadow-text/5 transition-all text-text placeholder:text-text/20 font-medium"
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                        />
                       </div>
-                    ))}
 
-                    {/* Cost Summary Sticky Bar */}
+                      <div className="flex flex-wrap gap-2">
+                        {serviceCategories.map((cat) => (
+                          <button
+                            key={cat.id}
+                            type="button"
+                            onClick={() => setSelectedCategory(cat.id)}
+                            className={`px-6 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${
+                              selectedCategory === cat.id 
+                                ? "bg-text text-bg shadow-lg shadow-text/20 scale-105" 
+                                : "bg-surface text-text/40 hover:bg-text/5 hover:text-text border border-border"
+                            }`}
+                          >
+                            {cat.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="grid gap-4">
+                      {filteredServices.length > 0 ? (
+                        filteredServices.map((sub, i) => {
+                          const isSelected = formData.selectedServices.some(s => s.name === sub.name);
+                          return (
+                            <button
+                              key={i}
+                              type="button"
+                              onClick={() => toggleService(sub)}
+                              className={`group flex flex-col md:flex-row md:items-center justify-between gap-6 p-6 rounded-[24px] border transition-all duration-300 text-left ${
+                                isSelected
+                                  ? "bg-text text-bg border-text shadow-lg scale-[1.01]"
+                                  : "bg-surface border-border hover:border-text/30 hover:shadow-xl hover:shadow-text/5"
+                              }`}
+                            >
+                              <div className="flex items-center gap-5 flex-1">
+                                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-colors ${
+                                  isSelected ? "bg-bg/10 text-bg" : "bg-text/5 text-text"
+                                }`}>
+                                  {IconMap[sub.icon] || <FileText size={20} />}
+                                </div>
+                                <div className="space-y-1.5">
+                                  <div className="flex items-center gap-2">
+                                    <span className={`text-[9px] font-black uppercase tracking-[0.2em] px-2 py-0.5 rounded-sm ${
+                                      isSelected ? "text-bg/60 bg-bg/10" : "text-text/40 bg-text/5"
+                                    }`}>
+                                      {sub.categoryName}
+                                    </span>
+                                  </div>
+                                  <h4 className={`font-bold text-lg leading-tight ${isSelected ? "text-bg" : "text-text"}`}>{sub.name}</h4>
+                                  <div className={`flex items-center gap-2 text-[10px] uppercase tracking-widest font-bold ${
+                                    isSelected ? "text-bg/60" : "text-muted"
+                                  }`}>
+                                    <Clock size={12} /> {sub.duration}
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-4 shrink-0">
+                                <div className="text-right">
+                                  <span className={`block font-space text-2xl font-bold ${isSelected ? "text-bg" : "text-text"}`}>
+                                    €{sub.price}
+                                  </span>
+                                </div>
+                                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                                  isSelected ? "border-bg bg-bg" : "border-border bg-surface group-hover:border-text/30"
+                                }`}>
+                                  {isSelected && <Check size={14} className="text-text" />}
+                                </div>
+                              </div>
+                            </button>
+                          );
+                        })
+                      ) : (
+                        <div className="text-center py-12 bg-surface/50 rounded-xl border border-dashed border-border">
+                          <p className="text-text/40 font-bold uppercase tracking-widest text-[10px]">No services found</p>
+                        </div>
+                      )}
+                    </div>
+
                     {formData.selectedServices.length > 0 && (
                       <motion.div
                         ref={checkoutRef}
