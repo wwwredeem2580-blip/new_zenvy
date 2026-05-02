@@ -36,6 +36,13 @@ export interface Attachment {
   uploadedAt: string;
 }
 
+export interface RequestedFile {
+  name: string;
+  note?: string;
+  status: 'Pending' | 'Fulfilled';
+  requestedAt: string;
+}
+
 export interface Application {
   _id: string;
   applicationId: string;
@@ -68,6 +75,7 @@ export interface Application {
   notes?: Note[];
   activityLog?: ActivityLogEntry[];
   attachments?: Attachment[];
+  requestedFiles?: RequestedFile[];
 }
 
 export const mockApplications: Application[] = [

@@ -31,7 +31,7 @@ import {
 import { User } from "../types/user";
 import { applicationApi } from "../lib/api/applicationApi";
 import { authApi } from "../lib/api/authApi";
-import { Application, ApplicationStatus } from "../data/applications";
+import { Application, ApplicationStatus, RequestedFile } from "../data/applications";
 
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
@@ -401,6 +401,37 @@ export default function ProfilePage() {
                 </div>
 
                 <div className="space-y-4">
+                    {/* File Requests Section */}
+                    {selectedApp.requestedFiles?.some(rf => rf.status === 'Pending') && (
+                      <div className="space-y-3">
+                        <h3 className="text-[10px] uppercase tracking-widest font-bold text-red-500 flex items-center gap-2">
+                          <AlertCircle size={12} />
+                          Action Required: Missing Documents
+                        </h3>
+                        <div className="grid gap-3">
+                          {selectedApp.requestedFiles.filter(rf => rf.status === 'Pending').map((rf: RequestedFile, i: number) => (
+                            <div key={i} className="p-6 bg-red-50 border border-red-100 rounded-[32px] space-y-4 shadow-sm shadow-red-500/5">
+                              <div className="flex items-start justify-between gap-4">
+                                <div className="space-y-1">
+                                  <p className="text-sm font-bold text-red-900 uppercase tracking-tight">{rf.name}</p>
+                                  {rf.note && <p className="text-xs text-red-700/60 leading-relaxed font-medium">"{rf.note}"</p>}
+                                </div>
+                                <div className="w-10 h-10 bg-red-500 text-white rounded-2xl flex items-center justify-center animate-pulse">
+                                  <Upload size={18} />
+                                </div>
+                              </div>
+                              <button 
+                                onClick={() => fileInputRef.current?.click()}
+                                className="w-full bg-red-500 text-white py-3 rounded-2xl text-[10px] font-bold uppercase tracking-widest hover:bg-red-600 transition-colors shadow-lg shadow-red-500/20 flex items-center justify-center gap-2"
+                              >
+                                Upload {rf.name} <ArrowUpRight size={14} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     <h3 className="text-[10px] uppercase tracking-widest font-bold text-black/40">Attached Documents</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                        {selectedApp.attachments && selectedApp.attachments.filter(a => a.uploadedById !== 'system').length > 0 ? (

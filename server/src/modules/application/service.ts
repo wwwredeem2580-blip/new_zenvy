@@ -483,7 +483,6 @@ export const addAttachment = async (
 
   application.lastActivityAt = new Date();
   
-  // Add to activity log
   application.activityLog.push({
     type: 'upload',
     description: `Document "${file.originalname}" uploaded by ${uploaderName}.`,
@@ -492,6 +491,61 @@ export const addAttachment = async (
     timestamp: new Date()
   });
 
+  // Mark pending requests as fulfilled if any
+  if (userRole === 'client') {
+    application.requestedFiles.forEach(rf => {
+      if (rf.status === 'Pending') rf.status = 'Fulfilled';
+    });
+  }
+
   await application.save();
+  return application;
+};
+
+/**
+ * requestFile - Agents/Admins request a specific document from the client.
+ */
+export const requestFile = async (
+  applicationId: string,
+  data: { name: string; note?: string },
+  actor: { name: string; id: string }
+) => {
+  const query = mongoose.Types.ObjectId.isValid(applicationId) 
+    ? { _id: applicationId } 
+    : { applicationId };
+
+  const application = await Application.findOne(query);
+  if (!application) throw new CustomError('Application not found', 404);
+
+  application.requestedFiles.push({
+    name: data.name,
+    note: data.note,
+    status: 'Pending',
+    requestedAt: new Date()
+  });
+
+  application.activityLog.push({
+    type: 'document_request',
+    description: `Agent requested document: "${data.name}".${data.note ? ` Note: ${data.note}` : ''}`,
+    actorName: actor.name,
+    actorId: actor.id,
+    timestamp: new Date()
+  });
+
+  application.lastActivityAt = new Date();
+  await application.save();
+
+  // Notify user via email
+  const appData = application.toObject();
+  await addEmailJob('APPLICATION_UPDATE', {
+    email: appData.email,
+    name: appData.name,
+    applicationId: appData.applicationId,
+    updateType: 'DOCUMENT_REQUESTED',
+    documentName: data.name,
+    requestNote: data.note,
+    subject: `Action Required: Document Requested for #${appData.applicationId} — Smart CAF`
+  });
+
   return application;
 };

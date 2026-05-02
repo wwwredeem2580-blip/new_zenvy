@@ -174,4 +174,15 @@ export const applicationApi = {
     );
     return response.data;
   },
+
+  /**
+   * requestFile — (Admin/Agent) Requests a specific file from the user.
+   */
+  requestFile: async (applicationId: string, name: string, note?: string) => {
+    const response = await api.post<{ success: boolean; application: Application }>(
+      `/applications/${applicationId}/request-file`,
+      { name, note }
+    );
+    return response.data;
+  },
 };

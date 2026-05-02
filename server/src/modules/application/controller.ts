@@ -168,3 +168,19 @@ export const addAttachment = async (req: Request, res: Response): Promise<void> 
     handleError(error, res);
   }
 };
+
+export const requestFile = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { name, note } = req.body;
+    const actor = {
+      name: `${(req as any).user.firstName} ${(req as any).user.lastName}`,
+      id: (req as any).user.userId,
+    };
+
+    const application = await applicationService.requestFile(id as string, { name, note }, actor);
+    res.status(200).json({ success: true, application });
+  } catch (error) {
+    handleError(error, res);
+  }
+};

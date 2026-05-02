@@ -32,6 +32,13 @@ export interface IAttachment {
   uploadedAt: Date;
 }
 
+export interface IRequestedFile {
+  name: string;
+  note?: string;
+  status: 'Pending' | 'Fulfilled';
+  requestedAt: Date;
+}
+
 export interface IApplication extends Document {
   applicationId: string; // e.g., CAF-123456
   userId: mongoose.Types.ObjectId;
@@ -62,6 +69,7 @@ export interface IApplication extends Document {
   notes: INote[];
   activityLog: IActivityLogEntry[];
   attachments: IAttachment[];
+  requestedFiles: IRequestedFile[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -94,6 +102,13 @@ const AttachmentSchema = new Schema<IAttachment>({
   uploadedBy: { type: String, required: true },
   uploadedById: { type: String, required: true },
   uploadedAt: { type: Date, default: Date.now },
+});
+
+const RequestedFileSchema = new Schema<IRequestedFile>({
+  name: { type: String, required: true },
+  note: { type: String },
+  status: { type: String, enum: ['Pending', 'Fulfilled'], default: 'Pending' },
+  requestedAt: { type: Date, default: Date.now },
 });
 
 const ApplicationSchema = new Schema<IApplication>(
@@ -138,6 +153,7 @@ const ApplicationSchema = new Schema<IApplication>(
     notes: { type: [NoteSchema], default: [] },
     activityLog: { type: [ActivityLogSchema], default: [] },
     attachments: { type: [AttachmentSchema], default: [] },
+    requestedFiles: { type: [RequestedFileSchema], default: [] },
   },
   { timestamps: true }
 );
