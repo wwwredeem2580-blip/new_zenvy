@@ -385,6 +385,7 @@ export const mockApi = {
         id: 'doc-' + Math.random().toString(36).substr(2, 5),
         name,
         url: '#',
+        label: name, // Default label for mock uploads
         uploadedBy: `${currentUser.firstName} ${currentUser.lastName}`,
         uploadedById: currentUser.id,
         uploadedAt: new Date().toISOString(),

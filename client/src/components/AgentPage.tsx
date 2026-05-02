@@ -101,6 +101,8 @@ export default function AgentPage() {
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
   const [isDocsExpanded, setIsDocsExpanded] = useState(false);
   const [isActionLoading, setIsActionLoading] = useState(false);
+  const [requestFileName, setRequestFileName] = useState("");
+  const [requestFileNote, setRequestFileNote] = useState("");
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const handleViewAttachment = async (attachment: any) => {
@@ -769,127 +771,205 @@ export default function AgentPage() {
 
                              <AnimatePresence>
                                 {isDocsExpanded && (
-                                   <motion.div 
-                                      initial={{ height: 0, opacity: 0 }}
-                                      animate={{ height: 'auto', opacity: 1 }}
-                                      exit={{ height: 0, opacity: 0 }}
-                                      className="overflow-hidden"
-                                   >
-                                      <div className="pt-6 space-y-6">
-                                         <div className="flex justify-between items-center">
-                                            <h4 className="text-[10px] uppercase tracking-widest font-bold text-black/40">Secure Workspace</h4>
-                                            {(user?.role === 'admin' || (user?._id || user?.id) === selectedApp.reviewerId) && (
-                                               <>
-                                                 <input 
-                                                   type="file" 
-                                                   className="hidden" 
-                                                   ref={fileInputRef} 
-                                                   onChange={async (e) => {
-                                                     const file = e.target.files?.[0];
-                                                     if (!file || !selectedApp) return;
+                                    <motion.div 
+                                       initial={{ height: 0, opacity: 0 }}
+                                       animate={{ height: 'auto', opacity: 1 }}
+                                       exit={{ height: 0, opacity: 0 }}
+                                       className="overflow-hidden"
+                                    >
+                                       <div className="pt-6 space-y-6">
+                                          <div className="flex justify-between items-center">
+                                             <h4 className="text-[10px] uppercase tracking-widest font-bold text-black/40">Secure Workspace</h4>
+                                             {(user?.role === 'admin' || (user?._id || user?.id) === selectedApp.reviewerId) && (
+                                                <>
+                                                  <input 
+                                                    type="file" 
+                                                    className="hidden" 
+                                                    ref={fileInputRef} 
+                                                    onChange={async (e) => {
+                                                      const file = e.target.files?.[0];
+                                                      if (!file || !selectedApp) return;
 
-                                                     const validation = validateFile(file);
-                                                     if (!validation.valid) {
-                                                       toast.error(validation.error);
-                                                       return;
-                                                     }
+                                                      const validation = validateFile(file);
+                                                      if (!validation.valid) {
+                                                        toast.error(validation.error);
+                                                        return;
+                                                      }
 
-                                                     setIsDocUploading(true);
-                                                     try {
-                                                       const res = await applicationApi.uploadFinalDocument(selectedApp._id, file);
-                                                       if (res.success) {
-                                                         toast.success("Document uploaded successfully");
-                                                         await loadData();
-                                                       }
-                                                     } catch (err: any) {
-                                                       toast.error(err?.message || 'Upload failed. Please try again.');
-                                                     } finally {
-                                                       setIsDocUploading(false);
-                                                     }
-                                                   }}
-                                                 />
-                                                 <div className="flex items-center gap-2">
-                                                   <button 
-                                                     onClick={() => fileInputRef.current?.click()}
-                                                     disabled={isDocUploading}
-                                                     className="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-sm font-bold text-[10px] uppercase tracking-widest hover:scale-105 active:scale-95 transition-all disabled:opacity-20"
-                                                   >
-                                                      {isDocUploading ? <Loader2 size={12} className="animate-spin" /> : <PlusIcon size={12} />}
-                                                      Upload
-                                                   </button>
-                                                   <button 
-                                                     onClick={() => setIsRequestModalOpen(true)}
-                                                     className="flex items-center gap-2 px-4 py-2 bg-indigo-500 text-white rounded-sm font-bold text-[10px] uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg shadow-indigo-500/20"
-                                                   >
-                                                      <MessageSquare size={12} />
-                                                      Request File
-                                                   </button>
-                                                 </div>
-                                               </>
-                                            )}
-                                         </div>
-
-                                         <div className="grid gap-3">
-                                            {/* Pending Requests */}
-                                            {selectedApp.requestedFiles?.filter((rf: RequestedFile) => rf.status === 'Pending').map((rf: RequestedFile, i: number) => (
-                                              <div key={`req-${i}`} className="flex items-center justify-between p-4 bg-indigo-50/50 border border-indigo-100 rounded-sm group">
-                                                <div className="flex items-center gap-4">
-                                                  <div className="w-10 h-10 bg-indigo-500 text-white rounded-sm flex items-center justify-center animate-pulse">
-                                                    <Clock size={18} />
+                                                      setIsDocUploading(true);
+                                                      try {
+                                                        const res = await applicationApi.uploadFinalDocument(selectedApp._id, file);
+                                                        if (res.success) {
+                                                          toast.success("Document uploaded successfully");
+                                                          await loadData();
+                                                        }
+                                                      } catch (err: any) {
+                                                        toast.error(err?.message || 'Upload failed. Please try again.');
+                                                      } finally {
+                                                        setIsDocUploading(false);
+                                                      }
+                                                    }}
+                                                  />
+                                                  <div className="flex items-center gap-2">
+                                                    <button 
+                                                      onClick={() => fileInputRef.current?.click()}
+                                                      disabled={isDocUploading}
+                                                      className="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-sm font-bold text-[10px] uppercase tracking-widest hover:scale-105 active:scale-95 transition-all disabled:opacity-20"
+                                                    >
+                                                       {isDocUploading ? <Loader2 size={12} className="animate-spin" /> : <PlusIcon size={12} />}
+                                                       Upload
+                                                    </button>
+                                                    <button 
+                                                      onClick={() => setIsRequestModalOpen(true)}
+                                                      className="flex items-center gap-2 px-4 py-2 bg-indigo-500 text-white rounded-sm font-bold text-[10px] uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg shadow-indigo-500/20"
+                                                    >
+                                                       <MessageSquare size={12} />
+                                                       Request File
+                                                    </button>
                                                   </div>
-                                                  <div className="flex flex-col">
-                                                    <span className="text-xs font-bold text-indigo-900">Awaiting: {rf.name}</span>
-                                                    <span className="text-[8px] uppercase tracking-widest font-bold text-indigo-400">
-                                                      Requested on {new Date(rf.requestedAt).toLocaleDateString()}
-                                                    </span>
-                                                  </div>
-                                                </div>
-                                                <div className="flex items-center gap-2 text-[8px] font-black uppercase tracking-tighter text-indigo-300">
-                                                  Pending Client Action
-                                                </div>
-                                              </div>
-                                            ))}
+                                                </>
+                                             )}
+                                          </div>
 
-                                            {selectedApp.attachments && selectedApp.attachments.length > 0 ? (
-                                               <>
-                                                  {selectedApp.attachments.map((doc: any, i: number) => (
-                                                     <div key={i} className="flex items-center justify-between p-4 bg-white border border-black/5 rounded-sm hover:shadow-sm transition-all group">
-                                                        <div className="flex items-center gap-4">
-                                                           <div className="w-10 h-10 bg-black/5 rounded-sm flex items-center justify-center text-black/20 group-hover:bg-indigo-50 group-hover:text-indigo-500 transition-colors">
-                                                              <FileText size={18} />
-                                                           </div>
-                                                           <div className="flex flex-col">
-                                                              <span className="text-xs font-bold text-black/80">{doc.name}</span>
-                                                              <span className="text-[8px] uppercase tracking-widest font-bold text-black/30">
-                                                                 {doc.uploadedBy} • {new Date(doc.uploadedAt).toLocaleDateString()}
+                                          <div className="grid gap-3">
+                                             {(() => {
+                                                const requirements = new Map<string, { label: string, required: boolean, instruction?: string }>();
+                                                selectedApp.selectedServices.forEach(s => {
+                                                   s.requiredDocuments?.forEach(rd => {
+                                                      if (!requirements.has(rd.label) || (!requirements.get(rd.label)!.required && rd.required)) {
+                                                         requirements.set(rd.label, rd);
+                                                      }
+                                                   });
+                                                });
+                                                
+                                                const reqList = Array.from(requirements.values());
+                                                const attachments = selectedApp.attachments || [];
+                                                const requests = selectedApp.requestedFiles || [];
+
+                                                return (
+                                                  <>
+                                                    {reqList.map((req, i) => {
+                                                      const attachment = attachments.find(a => a.label === req.label);
+                                                      const request = requests.find(rf => rf.name === req.label && rf.status === 'Pending');
+
+                                                      if (attachment) {
+                                                        return (
+                                                          <div key={`req-slot-${i}`} className="flex items-center justify-between p-4 bg-white border border-black/5 rounded-sm hover:shadow-sm transition-all group">
+                                                            <div className="flex items-center gap-4">
+                                                              <div className="w-10 h-10 bg-black/5 rounded-sm flex items-center justify-center text-black/20 group-hover:bg-green-50 group-hover:text-green-500 transition-colors">
+                                                                <FileText size={18} />
+                                                              </div>
+                                                              <div className="flex flex-col">
+                                                                <span className="text-xs font-bold text-black/80">{req.label}</span>
+                                                                <span className="text-[8px] uppercase tracking-widest font-bold text-black/30">
+                                                                  {attachment.uploadedBy} • {new Date(attachment.uploadedAt).toLocaleDateString()}
+                                                                </span>
+                                                              </div>
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                              <button 
+                                                                onClick={() => handleViewAttachment(attachment)}
+                                                                className="p-2 hover:bg-black/5 rounded-sm transition-colors text-black/40 hover:text-black"
+                                                              >
+                                                                <Eye size={14} />
+                                                              </button>
+                                                              <button className="p-2 hover:bg-black/5 rounded-sm transition-colors text-black/40 hover:text-black">
+                                                                <Download size={14} />
+                                                              </button>
+                                                            </div>
+                                                          </div>
+                                                        );
+                                                      }
+
+                                                      return (
+                                                        <div key={`req-slot-${i}`} className={`flex items-center justify-between p-4 border rounded-sm group ${request ? 'bg-indigo-50/30 border-indigo-100' : 'bg-black/[0.01] border-black/5 border-dashed'}`}>
+                                                          <div className="flex items-center gap-4">
+                                                            <div className={`w-10 h-10 rounded-sm flex items-center justify-center ${request ? 'bg-indigo-500 text-white animate-pulse' : 'bg-black/5 text-black/20'}`}>
+                                                              <Clock size={18} />
+                                                            </div>
+                                                            <div className="flex flex-col">
+                                                              <span className={`text-xs font-bold ${request ? 'text-indigo-900' : 'text-black/40'}`}>
+                                                                {request ? `Awaiting: ${req.label}` : `Missing: ${req.label}`}
                                                               </span>
-                                                           </div>
+                                                              <span className="text-[8px] uppercase tracking-widest font-bold text-black/20">
+                                                                {req.required ? 'Mandatory Requirement' : 'Optional Requirement'}
+                                                              </span>
+                                                            </div>
+                                                          </div>
+                                                          {!request && (
+                                                            <button 
+                                                              onClick={() => {
+                                                                setRequestFileName(req.label);
+                                                                setRequestFileNote(req.instruction || "");
+                                                                setIsRequestModalOpen(true);
+                                                              }}
+                                                              className="px-3 py-1 bg-black/[0.02] hover:bg-black text-black/40 hover:text-white rounded-sm text-[8px] font-bold uppercase tracking-widest transition-all"
+                                                            >
+                                                              Request
+                                                            </button>
+                                                          )}
+                                                          {request && (
+                                                            <div className="text-[8px] font-black uppercase tracking-tighter text-indigo-300">
+                                                              Req. {new Date(request.requestedAt).toLocaleDateString()}
+                                                            </div>
+                                                          )}
                                                         </div>
-                                                        <div className="flex items-center gap-2">
-                                                           <button 
-                                                              onClick={() => handleViewAttachment(doc)}
-                                                              className="p-2 hover:bg-black/5 rounded-sm transition-colors text-black/40 hover:text-black"
-                                                           >
-                                                              <Eye size={14} />
-                                                           </button>
-                                                           <button className="p-2 hover:bg-black/5 rounded-sm transition-colors text-black/40 hover:text-black">
-                                                              <Download size={14} />
-                                                           </button>
+                                                      );
+                                                    })}
+
+                                                    {/* Other/Legacy Attachments */}
+                                                    {attachments.filter(a => !reqList.some(r => r.label === a.label)).map((doc, i) => (
+                                                      <div key={`extra-doc-${i}`} className="flex items-center justify-between p-4 bg-white border border-black/5 rounded-sm hover:shadow-sm transition-all group">
+                                                         <div className="flex items-center gap-4">
+                                                            <div className="w-10 h-10 bg-black/5 rounded-sm flex items-center justify-center text-black/20 group-hover:bg-indigo-50 group-hover:text-indigo-500 transition-colors">
+                                                               <FileText size={18} />
+                                                            </div>
+                                                            <div className="flex flex-col">
+                                                               <span className="text-xs font-bold text-black/80">{doc.label || doc.name}</span>
+                                                               <span className="text-[8px] uppercase tracking-widest font-bold text-black/30">
+                                                                  {doc.uploadedBy} • {new Date(doc.uploadedAt).toLocaleDateString()}
+                                                               </span>
+                                                            </div>
+                                                         </div>
+                                                         <div className="flex items-center gap-2">
+                                                            <button 
+                                                               onClick={() => handleViewAttachment(doc)}
+                                                               className="p-2 hover:bg-black/5 rounded-sm transition-colors text-black/40 hover:text-black"
+                                                            >
+                                                               <Eye size={14} />
+                                                            </button>
+                                                            <button className="p-2 hover:bg-black/5 rounded-sm transition-colors text-black/40 hover:text-black">
+                                                               <Download size={14} />
+                                                            </button>
+                                                         </div>
+                                                      </div>
+                                                    ))}
+
+                                                    {/* Extra Pending Requests */}
+                                                    {requests.filter(rf => rf.status === 'Pending' && !reqList.some(r => r.label === rf.name)).map((rf, i) => (
+                                                      <div key={`extra-req-${i}`} className="flex items-center justify-between p-4 bg-indigo-50/50 border border-indigo-100 rounded-sm group">
+                                                        <div className="flex items-center gap-4">
+                                                          <div className="w-10 h-10 bg-indigo-500 text-white rounded-sm flex items-center justify-center animate-pulse">
+                                                            <Clock size={18} />
+                                                          </div>
+                                                          <div className="flex flex-col">
+                                                            <span className="text-xs font-bold text-indigo-900">Awaiting: {rf.name}</span>
+                                                            <span className="text-[8px] uppercase tracking-widest font-bold text-indigo-400">
+                                                              Requested on {new Date(rf.requestedAt).toLocaleDateString()}
+                                                            </span>
+                                                          </div>
                                                         </div>
-                                                     </div>
-                                                  ))}
-                                               </>
-                                            ) : (
-                                               selectedApp.requestedFiles?.some((rf: any) => rf.status === 'Pending') ? null : (
-                                                 <div className="py-8 border-2 border-dashed border-black/5 rounded-sm flex flex-col items-center justify-center text-black/10 font-bold uppercase tracking-widest text-[8px] gap-2">
-                                                    <Shield size={20} className="opacity-50" />
-                                                    Workspace is empty
-                                                 </div>
-                                               )
-                                            )}
-                                         </div>
-                                      </div>
-                                   </motion.div>
+                                                        <div className="text-[8px] font-black uppercase tracking-tighter text-indigo-300">
+                                                          Custom Request
+                                                        </div>
+                                                      </div>
+                                                    ))}
+                                                  </>
+                                                );
+                                             })()}
+                                          </div>
+                                       </div>
+                                    </motion.div>
                                 )}
                              </AnimatePresence>
                           </div>
@@ -957,7 +1037,13 @@ export default function AgentPage() {
             {isRequestModalOpen && selectedApp && (
                <RequestFileModal 
                  applicationId={selectedApp._id}
-                 onClose={() => setIsRequestModalOpen(false)}
+                 initialName={requestFileName}
+                 initialNote={requestFileNote}
+                 onClose={() => {
+                    setIsRequestModalOpen(false);
+                    setRequestFileName("");
+                    setRequestFileNote("");
+                 }}
                  onRequested={async () => {
                     await loadData();
                     const refreshed = await applicationApi.getApplicationById(selectedApp._id);

@@ -156,13 +156,14 @@ export const addNote = async (req: Request, res: Response): Promise<void> => {
 export const addAttachment = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
+    const { label } = req.body;
     const userId = (req as any).user.userId;
     const userRole = (req as any).user.role;
     const uploaderName = `${(req as any).user.firstName} ${(req as any).user.lastName}`;
     const file = req.file as Express.Multer.File;
     if (!file) throw new Error('No file uploaded');
 
-    const application = await applicationService.addAttachment(id as string, userId, userRole, file, uploaderName);
+    const application = await applicationService.addAttachment(id as string, userId, userRole, file, uploaderName, label || 'General Document');
     res.status(200).json({ success: true, application });
   } catch (error) {
     handleError(error, res);

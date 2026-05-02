@@ -185,4 +185,14 @@ export const applicationApi = {
     );
     return response.data;
   },
+
+  /**
+   * listServices — Fetches all services and their requirements from the backend.
+   */
+  listServices: async () => {
+    const response = await api.get<{ success: boolean; services: any[] }>(
+      '/services'
+    );
+    return response.data;
+  },
 };

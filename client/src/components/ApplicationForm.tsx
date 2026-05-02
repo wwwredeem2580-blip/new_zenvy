@@ -12,6 +12,7 @@ import {
   Home, 
   FileText, 
   Clock, 
+  FileCheck,
   ChevronRight, 
   ChevronLeft, 
   Check, 
@@ -23,10 +24,10 @@ import {
   Timer,
   BookOpen,
   IdCard,
-  FileCheck,
   Building2,
   Plus,
-  ArrowDownCircle
+  ArrowDownCircle,
+  AlertCircle
 } from "lucide-react";
 import { useState, useRef, useMemo, useEffect } from "react";
 import React from "react";
@@ -36,8 +37,35 @@ import PaymentSelection, { PaymentMethod } from "./ui/PaymentSelection";
 import DateDropdownField from "./ui/DateDropdownField";
 import { toast } from "sonner";
 import { validateFile } from "../lib/utils";
-import { Service, SubService, services } from "../data/services";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
+
+const IconMap: Record<string, React.ReactNode> = {
+  FileText: <FileText size={20} />,
+  Building2: <Building2 size={20} />,
+  Globe: <Globe size={20} />,
+  IdCard: <IdCard size={20} />,
+};
+
+interface RequiredDocument {
+  label: string;
+  required: boolean;
+  instruction?: string;
+}
+
+interface DynamicSubService {
+  name: string;
+  price: number;
+  duration: string;
+  requiredDocuments: RequiredDocument[];
+}
+
+interface DynamicService {
+  id: string;
+  name: string;
+  icon: string;
+  subservices: DynamicSubService[];
+}
 
 type Step = 1 | 2 | 3 | 4;
 
@@ -55,7 +83,7 @@ interface FormData {
   province: string;
   permessoType: string;
   permessoExpiry: string;
-  selectedServices: SubService[];
+  selectedServices: DynamicSubService[];
   documents: { [key: string]: File | null };
 }
 
@@ -74,15 +102,8 @@ const initialData: FormData = {
   permessoType: "",
   permessoExpiry: "",
   selectedServices: [],
-  documents: {
-    passport: null,
-    permesso: null,
-    codiceFiscaleDoc: null,
-    contratto: null,
-    other: null,
-  },
+  documents: {},
 };
-
 
 const permessoTypes = [
   "Lavoro Subordinato",
@@ -94,15 +115,53 @@ const permessoTypes = [
   "Altro",
 ];
 
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
-
 export default function ApplicationForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, setUser } = useAuth();
   const checkoutRef = useRef<HTMLDivElement>(null);
   const [showBouncingArrow, setShowBouncingArrow] = useState(false);
+  const [step, setStep] = useState<Step>(1);
+  const [formData, setFormData] = useState<FormData>(initialData);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [submittedAppId, setSubmittedAppId] = useState<string | null>(null);
+  const [isShowPayment, setIsShowPayment] = useState(false);
+  const [expandedService, setExpandedService] = useState<string | null>(null);
+  const [availableServices, setAvailableServices] = useState<DynamicService[]>([]);
+  const [userBalance, setUserBalance] = useState(0);
+  const [isUseCredits, setIsUseCredits] = useState(false);
+
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const res = await applicationApi.listServices();
+        if (res.success) {
+          setAvailableServices(res.services);
+        }
+      } catch (err) {
+        console.error("Failed to load services", err);
+      }
+    };
+    fetchServices();
+  }, []);
+
+  const requiredDocs = useMemo(() => {
+    const docsMap = new Map<string, RequiredDocument>();
+    formData.selectedServices.forEach(sub => {
+      sub.requiredDocuments.forEach(doc => {
+        const existing = docsMap.get(doc.label);
+        if (!existing || (!existing.required && doc.required)) {
+          docsMap.set(doc.label, doc);
+        }
+      });
+    });
+    if (!docsMap.has("Other Documents") && formData.selectedServices.length > 0) {
+      docsMap.set("Other Documents", { label: "Other Documents", required: false, instruction: "Any additional certifications" });
+    }
+    return Array.from(docsMap.values());
+  }, [formData.selectedServices]);
 
   const onClose = () => router.push('/');
   const onComplete = async () => {
@@ -115,17 +174,7 @@ export default function ApplicationForm() {
       console.error("Failed to refresh user after completion", error);
     }
   };
-  const [step, setStep] = useState<Step>(1);
-  const [formData, setFormData] = useState<FormData>(initialData);
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isShowPayment, setIsShowPayment] = useState(false);
-  const [expandedService, setExpandedService] = useState<string | null>(null);
-  const [userBalance, setUserBalance] = useState(0);
-  const [isUseCredits, setIsUseCredits] = useState(true);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  
-  // Pre-populate data if user is logged in
+
   useEffect(() => {
     if (user) {
       setFormData(prev => ({
@@ -139,9 +188,9 @@ export default function ApplicationForm() {
 
   useEffect(() => {
     const serviceParam = searchParams.get('subservice');
-    if (serviceParam) {
-      let foundSubService: SubService | undefined;
-      for (const service of services) {
+    if (serviceParam && availableServices.length > 0) {
+      let foundSubService: DynamicSubService | undefined;
+      for (const service of availableServices) {
         foundSubService = service.subservices.find(s => s.name === serviceParam || encodeURIComponent(s.name) === serviceParam);
         if (foundSubService) break;
       }
@@ -156,7 +205,7 @@ export default function ApplicationForm() {
         });
       }
     }
-  }, [searchParams]);
+  }, [searchParams, availableServices]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -167,7 +216,7 @@ export default function ApplicationForm() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const toggleService = (subservice: SubService) => {
+  const toggleService = (subservice: DynamicSubService) => {
     setFormData((prev) => {
       const isSelected = prev.selectedServices.some(s => s.name === subservice.name);
       const newSelection = isSelected 
@@ -186,7 +235,6 @@ export default function ApplicationForm() {
 
   const scrollToCheckout = () => {
     checkoutRef.current?.scrollIntoView({ behavior: 'smooth' });
-    setShowBouncingArrow(false);
   };
 
   const totalCost = useMemo(() => {
@@ -226,7 +274,7 @@ export default function ApplicationForm() {
     }
     
     if (step === 2) {
-      if (formData.codiceFiscale.length !== 16) newErrors.codiceFiscale = "Codice Fiscale must be exactly 16 characters";
+      if (formData.codiceFiscale.length !== 16) newErrors.codiceFiscale = "Codice Fiscale must be 16 characters";
       if (formData.phone.length < 5) newErrors.phone = "Valid phone number is required";
       if (!formData.email.includes('@')) newErrors.email = "Valid email address is required";
       if (!formData.streetAddress) newErrors.streetAddress = "Street address is required";
@@ -235,7 +283,22 @@ export default function ApplicationForm() {
     }
     
     if (step === 3) {
-      if (formData.selectedServices.length === 0) newErrors.services = "Please select at least one service";
+      if (formData.selectedServices.length === 0) {
+        toast.error("Please select at least one service");
+        return false;
+      }
+    }
+
+    if (step === 4) {
+      const missingDocs = requiredDocs.filter(rd => rd.required && !formData.documents[rd.label]);
+      if (missingDocs.length > 0) {
+        missingDocs.forEach(rd => {
+          newErrors[rd.label] = "Required";
+        });
+        setErrors(newErrors);
+        toast.error("Please upload all required documents");
+        return false;
+      }
     }
     
     setErrors(newErrors);
@@ -250,39 +313,26 @@ export default function ApplicationForm() {
   };
   const prevStep = () => setStep((prev) => (prev - 1) as Step);
 
-  const [submittedAppId, setSubmittedAppId] = useState<string | null>(null);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (finalAmount === 0) {
-      handlePaymentSuccess('Credits');
-    } else {
-      setIsShowPayment(true);
-    }
-  };
-
   const uploadFiles = async () => {
     const uploadedAttachments = [];
     const documentEntries = Object.entries(formData.documents).filter(([_, file]) => file !== null);
 
-    for (const [key, file] of documentEntries) {
+    for (const [label, file] of documentEntries) {
       if (!file) continue;
       
       try {
-        // 1. Upload to our server (which proxies to Backblaze)
-        const { objectKey } = await applicationApi.uploadAttachment(file);
-        
-        // 2. Add to attachments list
+        const { objectKey, filename } = await applicationApi.uploadAttachment(file);
         uploadedAttachments.push({
-          name: key, // e.g., 'passport'
+          name: filename,
+          label: label,
           url: objectKey,
-          uploadedBy: `${user?.firstName} ${user?.lastName}`,
-          uploadedById: (user as any)?._id || user?.id || 'unknown',
+          uploadedBy: formData.name,
+          uploadedById: user?.id || 'guest',
           uploadedAt: new Date().toISOString()
         });
       } catch (err) {
-        console.error(`Error uploading ${key}:`, err);
-        throw err; // Re-throw to handle in main submit
+        console.error(`Error uploading ${label}:`, err);
+        throw err;
       }
     }
     
@@ -294,11 +344,7 @@ export default function ApplicationForm() {
     setIsLoading(true);
     
     try {
-      // 1. Upload files first
       const attachments = await uploadFiles();
-      // Credits are handled by the backend during submission now
-      // Or we can deduct them here if we have an endpoint for it.
-      // For now, let's assume the backend will handle the balance if paymentMethod is 'Credits'
 
       const applicationResponse = await applicationApi.submitApplication({
         name: formData.name,
@@ -323,8 +369,9 @@ export default function ApplicationForm() {
       setSubmittedAppId(applicationResponse.application.applicationId);
       setIsSubmitted(true);
       if (onComplete) onComplete();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Submission error:", error);
+      toast.error(error?.message || "Failed to submit application");
     } finally {
       setIsLoading(false);
     }
@@ -357,7 +404,7 @@ export default function ApplicationForm() {
                 </p>
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-8">
+              <form onSubmit={(e) => e.preventDefault()} className="space-y-8">
                 {step === 1 && (
                   <div className="grid md:grid-cols-2 gap-6">
                     <InputField
@@ -388,7 +435,7 @@ export default function ApplicationForm() {
                       error={errors.pob}
                     />
                     <InputField
-                      label="Nationality"
+                      label="Nationality *"
                       name="nationality"
                       value={formData.nationality}
                       onChange={handleInputChange}
@@ -478,25 +525,17 @@ export default function ApplicationForm() {
                         name="province"
                         value={formData.province}
                         onChange={handleInputChange}
-                        icon={<Globe size={14} />}
+                        icon={<Home size={14} />}
                         placeholder="Rome"
                         error={errors.province}
                       />
                     </div>
-
-                    <DateDropdownField
-                      label="Permesso Expiry"
-                      icon={<Clock size={14} />}
-                      value={formData.permessoExpiry}
-                      onChange={(val) => setFormData(p => ({ ...p, permessoExpiry: val }))}
-                      disablePast
-                    />
                   </div>
                 )}
 
                 {step === 3 && (
                   <div className="space-y-4">
-                    {services.map((service) => (
+                    {availableServices.map((service) => (
                       <div key={service.id} className="border border-border rounded-[24px] overflow-hidden bg-surface/30 backdrop-blur-sm">
                         <button
                           type="button"
@@ -505,7 +544,7 @@ export default function ApplicationForm() {
                         >
                           <div className="flex items-center gap-4">
                             <div className="w-10 h-10 rounded-xl bg-surface border border-border flex items-center justify-center text-text shadow-inner">
-                              {service.icon}
+                              {IconMap[service.icon] || <FileText size={20} />}
                             </div>
                             <div className="text-left">
                               <span className="block font-space text-lg font-bold tracking-tight text-text">{service.name}</span>
@@ -598,13 +637,8 @@ export default function ApplicationForm() {
                         </div>
                         <div className="flex items-center gap-6 relative z-10">
                           <div className="text-right">
-                            <span className="block text-[8px] uppercase tracking-widest font-bold opacity-40">Amount to Pay</span>
-                            <span className="text-3xl font-space font-bold">€{finalAmount}</span>
-                            {(discountAmount > 0 || (!isUseCredits && userBalance > 0)) && (
-                               <span className="block text-[8px] opacity-20">
-                                  {isUseCredits ? `Selected Total €${totalCost}` : `€${userBalance} Credits Available`}
-                               </span>
-                            )}
+                            <span className="block text-[8px] uppercase tracking-[0.2em] opacity-40 font-bold mb-1">Total Due</span>
+                            <span className="block text-4xl font-space font-bold">€{finalAmount}</span>
                           </div>
                         </div>
                       </motion.div>
@@ -614,41 +648,17 @@ export default function ApplicationForm() {
 
                 {step === 4 && (
                   <div className="grid sm:grid-cols-2 gap-6">
-                    <FileUploadSlot
-                      label="Passport"
-                      icon={<BookOpen size={24} />}
-                      onFileSelect={(file) => handleFileUpload("passport", file)}
-                      file={formData.documents.passport}
-                      description="Main page with photo"
-                    />
-                    <FileUploadSlot
-                      label="Permesso di Soggiorno"
-                      icon={<IdCard size={24} />}
-                      onFileSelect={(file) => handleFileUpload("permesso", file)}
-                      file={formData.documents.permesso}
-                      description="Front and back scan"
-                    />
-                    <FileUploadSlot
-                      label="Codice Fiscale"
-                      icon={<FileCheck size={24} />}
-                      onFileSelect={(file) => handleFileUpload("codiceFiscaleDoc", file)}
-                      file={formData.documents.codiceFiscaleDoc}
-                      description="Official document or card"
-                    />
-                    <FileUploadSlot
-                      label="Contratto Affitto"
-                      icon={<Building2 size={24} />}
-                      onFileSelect={(file) => handleFileUpload("contratto", file)}
-                      file={formData.documents.contratto}
-                      description="Signed lease agreement"
-                    />
-                    <FileUploadSlot
-                      label="Other Documents"
-                      icon={<Plus size={24} />}
-                      onFileSelect={(file) => handleFileUpload("other", file)}
-                      file={formData.documents.other}
-                      description="Any additional certifications"
-                    />
+                    {requiredDocs.map((rd, idx) => (
+                      <FileUploadSlot
+                        key={rd.label}
+                        label={`${rd.label}${rd.required ? " *" : ""}`}
+                        icon={rd.label.toLowerCase().includes("passport") ? <BookOpen size={24} /> : rd.label.toLowerCase().includes("nid") ? <IdCard size={24} /> : <FileCheck size={24} />}
+                        onFileSelect={(file) => handleFileUpload(rd.label, file)}
+                        file={formData.documents[rd.label]}
+                        description={rd.instruction || (rd.required ? "Required document" : "Optional document")}
+                        error={errors[rd.label]}
+                      />
+                    ))}
                   </div>
                 )}
 
@@ -667,7 +677,6 @@ export default function ApplicationForm() {
                     <button
                       type="button"
                       onClick={nextStep}
-                      disabled={false}
                       className="w-full sm:w-auto flex items-center justify-center gap-2 bg-text text-bg px-10 py-3 rounded-full text-xs font-bold hover:scale-105 active:scale-95 transition-all shadow-xl shadow-text/10"
                     >
                       Continue to {step === 1 ? "Contact" : step === 2 ? "Services" : "Documents"}
@@ -677,11 +686,13 @@ export default function ApplicationForm() {
                     <button
                       type="button"
                       onClick={() => {
-                         if (finalAmount === 0) {
+                        if (validateStep()) {
+                          if (finalAmount === 0) {
                             handlePaymentSuccess('Credits');
-                         } else {
+                          } else {
                             setIsShowPayment(true);
-                         }
+                          }
+                        }
                       }}
                       className="w-full sm:w-auto flex items-center justify-center gap-2 bg-text text-bg px-10 py-3 rounded-full text-xs font-bold hover:scale-105 active:scale-95 transition-all shadow-xl shadow-text/10"
                     >
@@ -697,7 +708,6 @@ export default function ApplicationForm() {
           )}
         </AnimatePresence>
 
-        {/* Smart Bouncing Arrow */}
         <AnimatePresence>
           {showBouncingArrow && step === 3 && (
             <motion.button
@@ -758,24 +768,30 @@ function InputField({ label, icon, error, ...props }: any) {
   );
 }
 
-function FileUploadSlot({ label, icon, description, onFileSelect, file }: { 
+function FileUploadSlot({ label, icon, description, onFileSelect, file, error }: { 
   label: string; 
   icon: React.ReactNode;
   description: string;
   onFileSelect: (f: File | null) => void; 
-  file: File | null 
+  file: File | null;
+  error?: string;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   return (
     <div className="space-y-2">
-      <label className="text-[10px] font-bold uppercase tracking-widest text-muted">{label}</label>
+      <div className="flex items-center justify-between">
+        <label className={`text-[10px] font-bold uppercase tracking-widest ${error ? 'text-red-500' : 'text-muted'}`}>{label}</label>
+        {error && <span className="text-[8px] text-red-500 font-bold uppercase tracking-widest flex items-center gap-1"><AlertCircle size={10} /> {error}</span>}
+      </div>
       <div 
         onClick={() => inputRef.current?.click()}
         className={`group relative h-40 border-2 border-dashed rounded-[24px] flex flex-col items-center justify-center cursor-pointer transition-all duration-500 ${
           file 
             ? "border-text bg-text/5 shadow-inner" 
-            : "border-border hover:border-text/30 hover:bg-text/5 bg-surface/30"
+            : error 
+              ? "border-red-200 bg-red-50/30 hover:border-red-300"
+              : "border-border hover:border-text/30 hover:bg-text/5 bg-surface/30"
         }`}
       >
         <input
@@ -848,13 +864,13 @@ function SuccessState({ onClose, appId }: { onClose: () => void, appId: string |
             onClick={() => window.location.href = '/profile'}
             className="w-full flex items-center justify-center bg-bg text-text border border-border px-8 py-4 rounded-3xl font-bold text-xs hover:bg-bg/50 transition-all shadow-xl"
           >
-            My Applications
+            My Profile
           </button>
           <button 
             onClick={onClose}
-            className="w-full flex items-center justify-center bg-text text-bg px-8 py-4 rounded-3xl font-bold text-xs hover:scale-105 transition-all shadow-2xl shadow-text/10"
+            className="w-full bg-text text-bg px-8 py-4 rounded-3xl font-bold text-xs hover:scale-105 transition-all shadow-xl"
           >
-            Return Home
+            Back to Home
           </button>
         </div>
       </div>

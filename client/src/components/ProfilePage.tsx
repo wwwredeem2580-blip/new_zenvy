@@ -26,7 +26,10 @@ import {
   Download,
   Printer,
   Receipt,
-  Upload
+  Upload,
+  Lock,
+  Eye,
+  Plus as PlusIcon
 } from "lucide-react";
 import { User } from "../types/user";
 import { applicationApi } from "../lib/api/applicationApi";
@@ -400,93 +403,144 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
-                <div className="space-y-4">
-                    {/* File Requests Section */}
-                    {selectedApp.requestedFiles?.some(rf => rf.status === 'Pending') && (
-                      <div className="space-y-3">
-                        <h3 className="text-[10px] uppercase tracking-widest font-bold text-red-500 flex items-center gap-2">
-                          <AlertCircle size={12} />
-                          Action Required: Missing Documents
-                        </h3>
-                        <div className="grid gap-3">
-                          {selectedApp.requestedFiles.filter(rf => rf.status === 'Pending').map((rf: RequestedFile, i: number) => (
-                            <div key={i} className="p-6 bg-red-50 border border-red-100 rounded-[32px] space-y-4 shadow-sm shadow-red-500/5">
-                              <div className="flex items-start justify-between gap-4">
-                                <div className="space-y-1">
-                                  <p className="text-sm font-bold text-red-900 uppercase tracking-tight">{rf.name}</p>
-                                  {rf.note && <p className="text-xs text-red-700/60 leading-relaxed font-medium">"{rf.note}"</p>}
-                                </div>
-                                <div className="w-10 h-10 bg-red-500 text-white rounded-2xl flex items-center justify-center animate-pulse">
-                                  <Upload size={18} />
-                                </div>
-                              </div>
-                              <button 
-                                onClick={() => fileInputRef.current?.click()}
-                                className="w-full bg-red-500 text-white py-3 rounded-2xl text-[10px] font-bold uppercase tracking-widest hover:bg-red-600 transition-colors shadow-lg shadow-red-500/20 flex items-center justify-center gap-2"
-                              >
-                                Upload {rf.name} <ArrowUpRight size={14} />
-                              </button>
-                            </div>
-                          ))}
+                <div className="space-y-6">
+                    <div className="flex justify-between items-center">
+                        <h3 className="text-[10px] uppercase tracking-widest font-bold text-black/40">Secure Application Documents</h3>
+                        <div className="flex items-center gap-2">
+                            <Lock size={12} className="text-black/20" />
+                            <span className="text-[8px] font-black uppercase tracking-tighter text-black/30">End-to-End Encrypted</span>
                         </div>
-                      </div>
-                    )}
-
-                    <h3 className="text-[10px] uppercase tracking-widest font-bold text-black/40">Attached Documents</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                       {selectedApp.attachments && selectedApp.attachments.filter(a => a.uploadedById !== 'system').length > 0 ? (
-                         selectedApp.attachments.filter(a => a.uploadedById !== 'system').map((doc, i) => (
-                           <div 
-                             key={i} 
-                             onClick={() => handleViewAttachment(doc)}
-                             className="group p-4 bg-black/5 border border-black/5 rounded-2xl flex items-center gap-4 hover:bg-black hover:text-white transition-all cursor-pointer"
-                           >
-                              <div className="w-10 h-10 bg-white/50 rounded-lg flex items-center justify-center group-hover:bg-white/20 transition-colors">
-                                  <FileText size={18} />
-                              </div>
-                              <div className="flex flex-col min-w-0">
-                                <span className="text-[10px] font-bold uppercase tracking-widest truncate">{doc.name}</span>
-                                <span className="text-[8px] text-black/40 group-hover:text-white/40 font-medium">Uploaded by {doc.uploadedBy}</span>
-                              </div>
-                           </div>
-                         ))
-                       ) : (
-                         <p className="text-[10px] text-black/30 font-medium uppercase tracking-widest col-span-2 py-4 text-center border border-dashed border-black/10 rounded-2xl">No attachments provided.</p>
-                       )}
-
-                       {/* Supplemental Upload Slot */}
-                       {(selectedApp.status === "Pending" || selectedApp.status === "Reviewing") && (
-                         <>
-                           <input 
-                             type="file" 
-                             className="hidden" 
-                             ref={fileInputRef}
-                             onChange={handleUploadAdditionalDoc}
-                             accept=".jpg,.jpeg,.png,.pdf"
-                           />
-                           <button
-                             disabled={isUploadingDoc}
-                             onClick={() => fileInputRef.current?.click()}
-                             className="group p-4 bg-white border-2 border-dashed border-black/10 rounded-2xl flex items-center justify-center gap-4 hover:border-black/20 hover:bg-black/5 transition-all cursor-pointer disabled:opacity-50"
-                           >
-                             {isUploadingDoc ? (
-                               <Loader2 size={18} className="animate-spin text-black/40" />
-                             ) : (
-                               <div className="w-10 h-10 bg-black/5 rounded-lg flex items-center justify-center group-hover:bg-black group-hover:text-white transition-colors">
-                                 <Upload size={18} />
-                               </div>
-                             )}
-                             <div className="flex flex-col items-start text-left">
-                               <span className="text-[10px] font-bold uppercase tracking-widest">
-                                 {isUploadingDoc ? "Uploading..." : "Add Document"}
-                               </span>
-                               <span className="text-[8px] text-black/40 font-medium">Extra file support</span>
-                             </div>
-                           </button>
-                         </>
-                       )}
                     </div>
-                 </div>
+
+                    <div className="grid grid-cols-1 gap-3">
+                        {(() => {
+                            const requirements = new Map<string, { label: string, required: boolean, instruction?: string }>();
+                            selectedApp.selectedServices.forEach(s => {
+                                s.requiredDocuments?.forEach(rd => {
+                                    if (!requirements.has(rd.label) || (!requirements.get(rd.label)!.required && rd.required)) {
+                                        requirements.set(rd.label, rd);
+                                    }
+                                });
+                            });
+
+                            const reqList = Array.from(requirements.values());
+                            const attachments = selectedApp.attachments || [];
+                            const requests = selectedApp.requestedFiles || [];
+
+                            return (
+                                <>
+                                    {reqList.map((req, i) => {
+                                        const attachment = attachments.find(a => a.label === req.label);
+                                        const request = requests.find(rf => rf.name === req.label && rf.status === 'Pending');
+
+                                        if (attachment) {
+                                            return (
+                                                <div key={`req-slot-${i}`} className="flex items-center justify-between p-4 bg-white border border-black/5 rounded-[20px] hover:shadow-xl hover:shadow-black/5 transition-all group">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="w-10 h-10 bg-green-500/10 text-green-600 rounded-xl flex items-center justify-center">
+                                                            <CheckCircle2 size={18} />
+                                                        </div>
+                                                        <div className="flex flex-col">
+                                                            <span className="text-xs font-bold text-black/80">{req.label}</span>
+                                                            <span className="text-[8px] uppercase tracking-widest font-bold text-black/30">
+                                                                Verified Document • {new Date(attachment.uploadedAt).toLocaleDateString()}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <button 
+                                                        onClick={() => handleViewAttachment(attachment)}
+                                                        className="p-2 hover:bg-black/5 rounded-full transition-colors text-black/40 hover:text-black"
+                                                    >
+                                                        <Eye size={16} />
+                                                    </button>
+                                                </div>
+                                            );
+                                        }
+
+                                        return (
+                                            <div key={`req-slot-${i}`} className={`p-5 rounded-[24px] border-2 border-dashed transition-all ${request ? 'bg-red-50 border-red-200 shadow-sm shadow-red-500/5' : 'bg-black/[0.01] border-black/5'}`}>
+                                                <div className="flex items-start justify-between gap-4">
+                                                    <div className="space-y-1">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className={`text-xs font-bold uppercase tracking-tight ${request ? 'text-red-900' : 'text-black/40'}`}>
+                                                                {request ? `Action Required: ${req.label}` : `Missing: ${req.label}`}
+                                                            </span>
+                                                            {req.required && !request && <span className="px-1.5 py-0.5 rounded-md bg-black/5 text-[8px] font-bold text-black/40">MANDATORY</span>}
+                                                        </div>
+                                                        {(request?.note || req.instruction) && (
+                                                            <p className={`text-[10px] font-medium leading-relaxed ${request ? 'text-red-700/60' : 'text-black/30'}`}>
+                                                                "{request?.note || req.instruction}"
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${request ? 'bg-red-500 text-white animate-pulse' : 'bg-black/5 text-black/20'}`}>
+                                                        <Upload size={18} />
+                                                    </div>
+                                                </div>
+                                                <button 
+                                                    onClick={() => {
+                                                        // We could pass the label to the input somehow, but for now generic upload
+                                                        fileInputRef.current?.click();
+                                                    }}
+                                                    className={`mt-4 w-full py-2.5 rounded-xl text-[9px] font-bold uppercase tracking-widest transition-all ${request ? 'bg-red-500 text-white hover:bg-red-600 shadow-lg shadow-red-500/20' : 'bg-black text-white hover:bg-black/90'}`}
+                                                >
+                                                    Upload {req.label}
+                                                </button>
+                                            </div>
+                                        );
+                                    })}
+
+                                    {/* Additional/Legacy documents not matching labels */}
+                                    {attachments.filter(a => !reqList.some(r => r.label === a.label)).map((doc, i) => (
+                                        <div key={`extra-${i}`} className="flex items-center justify-between p-4 bg-black/5 border border-black/5 rounded-[20px] hover:bg-white hover:shadow-xl hover:shadow-black/5 transition-all group">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-10 h-10 bg-white/50 rounded-xl flex items-center justify-center">
+                                                    <FileText size={18} />
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <span className="text-xs font-bold text-black/80">{doc.label || doc.name}</span>
+                                                    <span className="text-[8px] uppercase tracking-widest font-bold text-black/30">Supplemental Document</span>
+                                                </div>
+                                            </div>
+                                            <button 
+                                                onClick={() => handleViewAttachment(doc)}
+                                                className="p-2 hover:bg-black/5 rounded-full transition-colors text-black/40 hover:text-black"
+                                            >
+                                                <Eye size={16} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                    
+                                    {/* Generic Upload for supplemental docs */}
+                                    {(selectedApp.status === "Pending" || selectedApp.status === "Reviewing") && (
+                                        <>
+                                            <input 
+                                                type="file" 
+                                                className="hidden" 
+                                                ref={fileInputRef}
+                                                onChange={handleUploadAdditionalDoc}
+                                                accept=".jpg,.jpeg,.png,.pdf"
+                                            />
+                                            <button
+                                                disabled={isUploadingDoc}
+                                                onClick={() => fileInputRef.current?.click()}
+                                                className="mt-2 group p-4 border-2 border-dashed border-black/10 rounded-[24px] flex items-center justify-center gap-4 hover:border-black/20 hover:bg-black/5 transition-all cursor-pointer disabled:opacity-50"
+                                            >
+                                                <div className="w-10 h-10 bg-black/5 rounded-xl flex items-center justify-center group-hover:bg-black group-hover:text-white transition-colors">
+                                                    {isUploadingDoc ? <Loader2 size={18} className="animate-spin" /> : <PlusIcon size={18} />}
+                                                </div>
+                                                <div className="flex flex-col items-start text-left">
+                                                    <span className="text-[10px] font-bold uppercase tracking-widest">Add Other Document</span>
+                                                    <span className="text-[8px] text-black/40 font-medium">Extra file support</span>
+                                                </div>
+                                            </button>
+                                        </>
+                                    )}
+                                </>
+                            );
+                        })()}
+                    </div>
+                </div>
 
                 <div className="pt-8 block">
                     <button 

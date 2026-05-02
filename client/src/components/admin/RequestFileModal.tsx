@@ -8,11 +8,13 @@ interface RequestFileModalProps {
   applicationId: string;
   onClose: () => void;
   onRequested: () => void;
+  initialName?: string;
+  initialNote?: string;
 }
 
-export const RequestFileModal: React.FC<RequestFileModalProps> = ({ applicationId, onClose, onRequested }) => {
-  const [name, setName] = useState('');
-  const [note, setNote] = useState('');
+export const RequestFileModal: React.FC<RequestFileModalProps> = ({ applicationId, onClose, onRequested, initialName = '', initialNote = '' }) => {
+  const [name, setName] = useState(initialName);
+  const [note, setNote] = useState(initialNote);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {

@@ -4,6 +4,11 @@ export interface SubService {
   name: string;
   price: number;
   duration: string;
+  requiredDocuments?: {
+    label: string;
+    required: boolean;
+    instruction?: string;
+  }[];
 }
 
 export type ActivityType = 'status' | 'financial' | 'document' | 'note' | 'system' | 'reassignment';
@@ -30,6 +35,7 @@ export interface Attachment {
   id?: string;
   _id?: string;
   name: string;
+  label: string; // The requirement label
   url: string;
   uploadedBy: string;
   uploadedById: string;

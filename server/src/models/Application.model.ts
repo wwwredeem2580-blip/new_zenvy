@@ -26,6 +26,7 @@ export interface INote {
 
 export interface IAttachment {
   name: string;
+  label: string; // The requirement label (e.g., "Passport Copy")
   url: string;
   uploadedBy: string;
   uploadedById: string;
@@ -98,6 +99,7 @@ const NoteSchema = new Schema<INote>({
 
 const AttachmentSchema = new Schema<IAttachment>({
   name: { type: String, required: true },
+  label: { type: String, required: true },
   url: { type: String, required: true },
   uploadedBy: { type: String, required: true },
   uploadedById: { type: String, required: true },

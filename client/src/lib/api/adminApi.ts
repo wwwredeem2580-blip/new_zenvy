@@ -159,4 +159,28 @@ export const adminApi = {
     const response = await api.delete<{ success: boolean; message: string }>(`/admin/invitations/${id}`);
     return response.data;
   },
+
+  /**
+   * listServices — Fetches all available services.
+   */
+  listServices: async () => {
+    const response = await api.get<{ success: boolean; services: any[] }>('/services');
+    return response.data;
+  },
+
+  /**
+   * createUpdateService — Creates a new service or updates an existing one.
+   */
+  createUpdateService: async (data: any) => {
+    const response = await api.post<{ success: boolean; service: any }>('/services', data);
+    return response.data;
+  },
+
+  /**
+   * deleteService — Removes a service from the catalog.
+   */
+  deleteService: async (id: string) => {
+    const response = await api.delete<{ success: boolean; message: string }>(`/services/${id}`);
+    return response.data;
+  },
 };

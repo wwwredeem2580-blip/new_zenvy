@@ -59,6 +59,7 @@ export const submitApplication = async (
       const invoiceData = await generateAndUploadInvoice(application);
       application.attachments.push({
         name: invoiceData.name,
+        label: 'Invoice',
         url: invoiceData.url,
         uploadedBy: 'System (Auto-generated)',
         uploadedById: 'system',
@@ -228,6 +229,7 @@ export const updatePaymentStatus = async (
       const invoiceData = await generateAndUploadInvoice(application);
       application.attachments.push({
         name: invoiceData.name,
+        label: 'Invoice',
         url: invoiceData.url,
         uploadedBy: 'System (Auto-generated)',
         uploadedById: 'system',
@@ -442,7 +444,8 @@ export const addAttachment = async (
   userId: string,
   userRole: string,
   file: Express.Multer.File,
-  uploaderName: string
+  uploaderName: string,
+  label: string
 ) => {
   // 1. Upload to storage
   const uploadResult = await uploadAttachment(userId, file);
@@ -475,6 +478,7 @@ export const addAttachment = async (
   // 5. Add to attachments
   application.attachments.push({
     name: file.originalname,
+    label,
     url: uploadResult.objectKey,
     uploadedBy: uploaderName,
     uploadedById: userId,
