@@ -67,12 +67,11 @@ export default function Home() {
           
           <h1 className="text-5xl sm:text-6xl md:text-8xl font-space font-bold tracking-tighter leading-[0.9] text-black">
             Simplify Your <br />
-            <span className="text-black/40">Smart CAF Journey.</span>
+            <span className="text-black/40">CAF Journey.</span>
           </h1>
           
           <p className="text-lg text-black/60 max-w-[500px] font-light leading-relaxed">
-            The most efficient way to manage your administrative files in Italy. 
-            Fast, secure, and completely digital.
+            We specialize in providing essential services for immigrants and residents in Italy. Our platform offers expert assistance with CAF (Fiscal Assistance Centers), Patronato (Social Welfare Services), and Immigration-related processes.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 pt-4">
@@ -104,7 +103,7 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="relative mt-8 lg:mt-0 overflow-hidden rounded-[40px]">
+        <div className="relative hidden md:flex mt-8 lg:mt-0 overflow-hidden rounded-[40px]">
           <div className="absolute inset-0 bg-black/5 blur-[80px] pointer-events-none" />
           <div className="relative grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FeatureCard 
