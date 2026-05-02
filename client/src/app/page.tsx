@@ -6,13 +6,46 @@ import {
   Search, 
   ShieldCheck, 
   ChevronRight, 
-  ClipboardList 
+  ClipboardList,
+  MapPin,
+  Clock,
+  ArrowRight
 } from "lucide-react";
+import { useState, useMemo } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { services } from "@/data/services";
 
 export default function Home() {
   const router = useRouter();
   const { user, setIsAuthOpen } = useAuth();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+
+  const allSubservices = useMemo(() => {
+    return services.flatMap(service => 
+      service.subservices.map(sub => ({
+        ...sub,
+        categoryId: service.id,
+        categoryName: service.name,
+        icon: service.icon
+      }))
+    );
+  }, []);
+
+  const categories = useMemo(() => {
+    return [
+      { id: "all", name: "All Services" },
+      ...services.map(s => ({ id: s.id, name: s.name }))
+    ];
+  }, []);
+
+  const filteredServices = useMemo(() => {
+    return allSubservices.filter(service => {
+      const matchesSearch = service.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesCategory = selectedCategory === "all" || service.categoryId === selectedCategory;
+      return matchesSearch && matchesCategory;
+    });
+  }, [searchQuery, selectedCategory, allSubservices]);
 
   const handleStartApply = () => {
     if (!user) {
@@ -23,7 +56,8 @@ export default function Home() {
   };
 
   return (
-    <div className="px-6 py-12 md:py-24 max-w-[1280px] mx-auto">
+    <div className="px-6 py-12 md:py-24 max-w-[1280px] mx-auto space-y-24">
+      {/* Hero Section */}
       <div className="grid lg:grid-cols-2 gap-16 items-center">
         <div className="space-y-8">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-black/5 border border-black/10 text-[10px] font-bold uppercase tracking-widest text-black/60">
@@ -94,6 +128,119 @@ export default function Home() {
               desc="End-to-end encryption for your sensitive info."
             />
           </div>
+        </div>
+      </div>
+
+      {/* Services Section */}
+      <div className="space-y-12">
+        <div className="text-center space-y-4">
+          <h2 className="text-4xl md:text-5xl font-space font-bold tracking-tighter text-black">
+            Our Services
+          </h2>
+          <p className="text-black/60 font-light max-w-xl mx-auto">
+            Find the right service for your needs and start your application in seconds.
+          </p>
+        </div>
+
+        {/* Search and Filter Controls */}
+        <div className="max-w-4xl mx-auto space-y-6">
+          <div className="relative group">
+            <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-black/20 group-focus-within:text-black transition-colors" size={20} />
+            <input 
+              type="text"
+              placeholder="Search for a service (e.g. ISEE, Visa, NASPI...)"
+              className="w-full pl-16 pr-6 py-5 bg-white border border-black/10 rounded-[24px] focus:outline-none focus:border-black/30 shadow-xl shadow-black/5 transition-all text-black placeholder:text-black/20 font-medium"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            {categories.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setSelectedCategory(cat.id)}
+                className={`px-6 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${
+                  selectedCategory === cat.id 
+                    ? "bg-black text-white shadow-lg shadow-black/20 scale-105" 
+                    : "bg-black/5 text-black/40 hover:bg-black/10 hover:text-black"
+                }`}
+              >
+                {cat.name}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="grid gap-4 max-w-5xl mx-auto">
+          {filteredServices.length > 0 ? (
+            filteredServices.map((sub, i) => (
+              <div 
+                key={i} 
+                className="bg-white border-b border-black/10 p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 hover:border-black/30 hover:shadow-2xl hover:shadow-black/5 transition-all group animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both"
+                style={{ animationDelay: `${i * 50}ms` }}
+              >
+                <div className="flex items-center gap-5 flex-1">
+                  <div className="w-14 h-14 bg-black/5 rounded-2xl flex items-center justify-center text-black shrink-0 group-hover:scale-110 transition-transform">
+                    {sub.icon}
+                  </div>
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[9px] font-black uppercase tracking-[0.2em] text-black/20 bg-black/[0.03] px-2 py-0.5 rounded-sm">
+                        {sub.categoryName}
+                      </span>
+                    </div>
+                    <h4 className="font-bold text-xl text-black leading-tight">{sub.name}</h4>
+                    <div className="flex flex-wrap items-center gap-4 text-[10px] font-bold text-black/40 uppercase tracking-widest">
+                      <div className="flex items-center gap-1.5">
+                        <MapPin size={14} className="text-black/20" /> Rome, Italy
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <Clock size={14} className="text-black/20" /> {sub.duration}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex flex-row md:flex-col items-center md:items-end justify-between md:justify-center gap-4 shrink-0 border-t md:border-t-0 border-black/5 pt-4 md:pt-0">
+                  <div className="text-right">
+                    <div className="text-[10px] uppercase tracking-widest text-black/40 font-bold">Standard Fee</div>
+                    <div className="text-2xl font-space font-bold text-black">
+                      {sub.price === 0 ? "FREE" : `€${sub.price}`}
+                    </div>
+                  </div>
+                  
+                  <button 
+                    onClick={() => {
+                      if (!user) {
+                        setIsAuthOpen(true);
+                      } else {
+                        router.push(`/apply?subservice=${encodeURIComponent(sub.name)}`);
+                      }
+                    }}
+                    className="flex items-center gap-2 bg-black text-white px-4 py-2 sm:px-6 md:px-8 sm:py-3 md:py-4 rounded-[20px] text-[9px] sm:text-xs md:text-xs font-bold uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl shadow-black/20"
+                  >
+                    Apply Now
+                    <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                  </button>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="text-center py-20 bg-black/5 rounded-[40px] border border-dashed border-black/10">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-black/5 text-black/20 mb-4">
+                <Search size={32} />
+              </div>
+              <p className="text-black font-bold">No services found</p>
+              <p className="text-black/40 text-sm">Try adjusting your search or category filter</p>
+              <button 
+                onClick={() => {setSearchQuery(""); setSelectedCategory("all");}}
+                className="mt-6 text-xs font-bold uppercase tracking-widest underline underline-offset-4 hover:text-black transition-colors"
+              >
+                Clear all filters
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
