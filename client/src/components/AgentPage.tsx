@@ -831,7 +831,7 @@ export default function AgentPage() {
 
                                          <div className="grid gap-3">
                                             {/* Pending Requests */}
-                                            {selectedApp.requestedFiles?.filter((rf: any) => rf.status === 'Pending').map((rf: any, i: number) => (
+                                            {selectedApp.requestedFiles?.filter((rf: RequestedFile) => rf.status === 'Pending').map((rf: RequestedFile, i: number) => (
                                               <div key={`req-${i}`} className="flex items-center justify-between p-4 bg-indigo-50/50 border border-indigo-100 rounded-sm group">
                                                 <div className="flex items-center gap-4">
                                                   <div className="w-10 h-10 bg-indigo-500 text-white rounded-sm flex items-center justify-center animate-pulse">

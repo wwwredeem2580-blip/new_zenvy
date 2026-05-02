@@ -491,11 +491,17 @@ export const addAttachment = async (
     timestamp: new Date()
   });
 
-  // Mark pending requests as fulfilled if any
-  if (userRole === 'client') {
-    application.requestedFiles.forEach(rf => {
-      if (rf.status === 'Pending') rf.status = 'Fulfilled';
-    });
+  // Mark pending requests as fulfilled if any are found
+  let wasModified = false;
+  application.requestedFiles.forEach((rf) => {
+    if (rf.status === 'Pending') {
+      rf.status = 'Fulfilled';
+      wasModified = true;
+    }
+  });
+
+  if (wasModified) {
+    application.markModified('requestedFiles');
   }
 
   await application.save();
