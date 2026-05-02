@@ -34,6 +34,8 @@ import { applicationApi } from "../lib/api/applicationApi";
 import { authApi } from "../lib/api/authApi";
 import PaymentSelection, { PaymentMethod } from "./ui/PaymentSelection";
 import DateDropdownField from "./ui/DateDropdownField";
+import { toast } from "sonner";
+import { validateFile } from "../lib/utils";
 
 type Step = 1 | 2 | 3 | 4;
 
@@ -280,6 +282,13 @@ export default function ApplicationForm() {
   }, [totalCost, discountAmount]);
 
   const handleFileUpload = (key: string, file: File | null) => {
+    if (file) {
+      const validation = validateFile(file);
+      if (!validation.valid) {
+        toast.error(validation.error);
+        return;
+      }
+    }
     setFormData((prev) => ({
       ...prev,
       documents: { ...prev.documents, [key]: file },

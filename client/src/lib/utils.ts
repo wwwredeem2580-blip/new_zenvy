@@ -41,3 +41,22 @@ export function formatTime(date: string | Date | undefined): string {
     minute: "2-digit",
   })
 }
+
+export const ALLOWED_EXTENSIONS_DISPLAY = "JPG, PNG, PDF";
+
+const ALLOWED_MIME_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/jpg",
+  "application/pdf",
+];
+
+export function validateFile(file: File): { valid: boolean; error?: string } {
+  if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+    return {
+      valid: false,
+      error: `Unsupported file format. Please select only ${ALLOWED_EXTENSIONS_DISPLAY} files.`,
+    };
+  }
+  return { valid: true };
+}

@@ -52,6 +52,8 @@ import { CollapsibleSection } from './ui/CollapsibleSection';
 
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { toast } from 'sonner';
+import { validateFile } from '@/lib/utils';
 
 export default function AgentPage() {
   const router = useRouter();
@@ -772,10 +774,22 @@ export default function AgentPage() {
                                                    onChange={async (e) => {
                                                      const file = e.target.files?.[0];
                                                      if (!file || !selectedApp) return;
+
+                                                     const validation = validateFile(file);
+                                                     if (!validation.valid) {
+                                                       toast.error(validation.error);
+                                                       return;
+                                                     }
+
                                                      setIsDocUploading(true);
                                                      try {
                                                        const res = await applicationApi.uploadFinalDocument(selectedApp._id, file);
-                                                       if (res.success) await loadData();
+                                                       if (res.success) {
+                                                         toast.success("Document uploaded successfully");
+                                                         await loadData();
+                                                       }
+                                                     } catch (err: any) {
+                                                       toast.error(err?.message || 'Upload failed. Please try again.');
                                                      } finally {
                                                        setIsDocUploading(false);
                                                      }
