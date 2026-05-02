@@ -440,6 +440,7 @@ export const addNote = async (
 export const addAttachment = async (
   applicationId: string,
   userId: string,
+  userRole: string,
   file: Express.Multer.File,
   uploaderName: string
 ) => {
@@ -454,7 +455,24 @@ export const addAttachment = async (
   const application = await Application.findOne(query);
   if (!application) throw new CustomError('Application not found', 404);
 
-  // 3. Add to attachments
+  // 3. Security check
+  const isAdmin = userRole === 'admin';
+  const isAgent = userRole === 'agent';
+  const isOwner = application.userId.toString() === userId.toString();
+
+  if (!isAdmin && !isAgent && !isOwner) {
+    throw new CustomError('Access denied', 403);
+  }
+
+  // 4. Status check for clients
+  if (isOwner && !isAdmin && !isAgent) {
+    const allowedStatuses: ApplicationStatus[] = ['Pending', 'Reviewing'];
+    if (!allowedStatuses.includes(application.status)) {
+      throw new CustomError(`Cannot upload documents to an application with status: ${application.status}`, 400);
+    }
+  }
+
+  // 5. Add to attachments
   application.attachments.push({
     name: file.originalname,
     url: uploadResult.objectKey,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { 
   User as UserIcon, 
@@ -25,7 +25,8 @@ import {
   ArrowUpRight,
   Download,
   Printer,
-  Receipt
+  Receipt,
+  Upload
 } from "lucide-react";
 import { User } from "../types/user";
 import { applicationApi } from "../lib/api/applicationApi";
@@ -45,6 +46,8 @@ export default function ProfilePage() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedApp, setSelectedApp] = useState<Application | null>(null);
+  const [isUploadingDoc, setIsUploadingDoc] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -121,6 +124,41 @@ export default function ProfilePage() {
       }
     } else {
       alert("Invoice not yet generated. Payment may still be pending.");
+    }
+  };
+
+  const handleUploadAdditionalDoc = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !selectedApp) return;
+
+    // Optional: client-side type check
+    const allowed = ['image/jpeg', 'image/png', 'application/pdf'];
+    if (!allowed.includes(file.type)) {
+      alert("Invalid file type. Only JPG, PNG, and PDF are allowed.");
+      return;
+    }
+
+    setIsUploadingDoc(true);
+    try {
+      const response = await applicationApi.uploadFinalDocument(selectedApp._id, file);
+      if (response.success) {
+        // Refresh the applications list to get the updated document list
+        const updatedApps = await applicationApi.getMyApplications();
+        setApplications(updatedApps.applications);
+        
+        // Update the currently selected app view
+        const refreshedApp = updatedApps.applications.find(a => a._id === selectedApp._id);
+        if (refreshedApp) setSelectedApp(refreshedApp);
+        
+        alert("Document uploaded successfully!");
+      }
+    } catch (error: any) {
+      console.error("Upload failed", error);
+      alert(error.response?.data?.message || "Failed to upload document. Please try again.");
+    } finally {
+      setIsUploadingDoc(false);
+      // Reset input
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
@@ -383,6 +421,38 @@ export default function ProfilePage() {
                          ))
                        ) : (
                          <p className="text-[10px] text-black/30 font-medium uppercase tracking-widest col-span-2 py-4 text-center border border-dashed border-black/10 rounded-2xl">No attachments provided.</p>
+                       )}
+
+                       {/* Supplemental Upload Slot */}
+                       {(selectedApp.status === "Pending" || selectedApp.status === "Reviewing") && (
+                         <>
+                           <input 
+                             type="file" 
+                             className="hidden" 
+                             ref={fileInputRef}
+                             onChange={handleUploadAdditionalDoc}
+                             accept=".jpg,.jpeg,.png,.pdf"
+                           />
+                           <button
+                             disabled={isUploadingDoc}
+                             onClick={() => fileInputRef.current?.click()}
+                             className="group p-4 bg-white border-2 border-dashed border-black/10 rounded-2xl flex items-center justify-center gap-4 hover:border-black/20 hover:bg-black/5 transition-all cursor-pointer disabled:opacity-50"
+                           >
+                             {isUploadingDoc ? (
+                               <Loader2 size={18} className="animate-spin text-black/40" />
+                             ) : (
+                               <div className="w-10 h-10 bg-black/5 rounded-lg flex items-center justify-center group-hover:bg-black group-hover:text-white transition-colors">
+                                 <Upload size={18} />
+                               </div>
+                             )}
+                             <div className="flex flex-col items-start text-left">
+                               <span className="text-[10px] font-bold uppercase tracking-widest">
+                                 {isUploadingDoc ? "Uploading..." : "Add Document"}
+                               </span>
+                               <span className="text-[8px] text-black/40 font-medium">Extra file support</span>
+                             </div>
+                           </button>
+                         </>
                        )}
                     </div>
                  </div>
