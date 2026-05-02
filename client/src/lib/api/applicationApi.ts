@@ -24,6 +24,7 @@ export interface CreateApplicationData {
   transactionId?: string;
   attachments?: {
     name: string;
+    label: string;
     url: string; // The objectKey from Backblaze
     uploadedBy: string;
     uploadedById: string;

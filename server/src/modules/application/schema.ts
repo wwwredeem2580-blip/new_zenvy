@@ -25,6 +25,7 @@ export const CreateApplicationSchema = z.object({
   transactionId: z.string().optional(),
   attachments: z.array(z.object({
     name: z.string(),
+    label: z.string(),
     url: z.string(),
     uploadedBy: z.string(),
     uploadedById: z.string(),
