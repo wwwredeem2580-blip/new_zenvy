@@ -9,35 +9,52 @@ import {
   ClipboardList,
   MapPin,
   Clock,
-  ArrowRight
+  ArrowRight,
+  Archive,
+  FileSliders
 } from "lucide-react";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { services } from "@/data/services";
+import { applicationApi } from "@/lib/api/applicationApi";
 
 export default function Home() {
   const router = useRouter();
   const { user, setIsAuthOpen } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [services, setServices] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const res = await applicationApi.listServices();
+        if (res.success) {
+          setServices(res.services);
+        }
+      } catch (err) {
+        console.error("Failed to load services", err);
+      }
+    };
+    fetchServices();
+  }, []);
 
   const allSubservices = useMemo(() => {
     return services.flatMap(service => 
-      service.subservices.map(sub => ({
+      service.subservices.map((sub: any) => ({
         ...sub,
         categoryId: service.id,
         categoryName: service.name,
         icon: service.icon
       }))
     );
-  }, []);
+  }, [services]);
 
   const categories = useMemo(() => {
     return [
       { id: "all", name: "All Services" },
       ...services.map(s => ({ id: s.id, name: s.name }))
     ];
-  }, []);
+  }, [services]);
 
   const filteredServices = useMemo(() => {
     return allSubservices.filter(service => {
@@ -181,7 +198,7 @@ export default function Home() {
               >
                 <div className="flex items-center gap-5 flex-1">
                   <div className="w-14 h-14 bg-black/5 rounded-2xl flex items-center justify-center text-black shrink-0 group-hover:scale-110 transition-transform">
-                    {sub.icon}
+                    <FileSliders className="text-black" />
                   </div>
                   <div className="space-y-1.5">
                     <div className="flex items-center gap-2">
