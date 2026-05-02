@@ -57,7 +57,14 @@ import { validateFile } from '@/lib/utils';
 
 export default function AgentPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, isLoading: isAuthLoading } = useAuth();
+
+  useEffect(() => {
+    if (!isAuthLoading && (!user || (user.role !== 'agent' && user.role !== 'admin'))) {
+      toast.error('Permission denied: Agent access required');
+      router.push('/');
+    }
+  }, [user, isAuthLoading, router]);
   
   const timeAgo = (date?: string) => {
     if (!date) return "";
@@ -76,7 +83,6 @@ export default function AgentPage() {
 
   const onBack = () => router.push('/');
   
-  if (!user) return null;
   const [activeTab, setActiveTab] = useState<'workspaces' | 'applications'>('workspaces');
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [applications, setApplications] = useState<Application[]>([]);
@@ -117,8 +123,10 @@ export default function AgentPage() {
   };
 
   useEffect(() => {
-    loadData();
-  }, [activeTab]);
+    if (!isAuthLoading && user && (user.role === 'agent' || user.role === 'admin')) {
+      loadData();
+    }
+  }, [isAuthLoading, user, activeTab]);
 
   const loadData = async () => {
     setIsLoading(true);
@@ -214,6 +222,8 @@ export default function AgentPage() {
   const filteredWorkspaces = workspaces.filter(ws => 
     ws.name.toLowerCase().includes(search.toLowerCase())
   );
+
+  if (!user || (user.role !== 'agent' && user.role !== 'admin')) return null;
 
   return (
     <div className="min-h-screen bg-black/5 text-black font-dm selection:bg-black selection:text-white pb-24 px-8 md:px-16">

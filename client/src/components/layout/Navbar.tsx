@@ -52,7 +52,9 @@ export default function Navbar() {
         {/* Desktop Nav */}
         <div className="hidden md:flex items-center bg-black/5 rounded-full px-6 py-2 space-x-8 border border-black/5">
           <NavLink href="/" label="Home" active={pathname === '/'} />
-          <NavLink href="/admin" label="Admin" active={pathname === '/admin'} />
+          {user && user.role === 'admin' && (
+            <NavLink href="/admin" label="Admin" active={pathname === '/admin'} />
+          )}
           {user && (user.role === 'agent' || user.role === 'admin') && (
             <NavLink href="/agent" label="Agent Hub" active={pathname === '/agent'} />
           )}
@@ -145,12 +147,14 @@ export default function Navbar() {
                 href="/"
                 onClick={() => setIsMenuOpen(false)} 
               />
-              <MobileNavLink 
-                icon={<LayoutDashboard size={20} />} 
-                label="Admin Dashboard" 
-                href="/admin"
-                onClick={() => setIsMenuOpen(false)} 
-              />
+              {user && user.role === 'admin' && (
+                <MobileNavLink 
+                  icon={<LayoutDashboard size={20} />} 
+                  label="Admin Dashboard" 
+                  href="/admin"
+                  onClick={() => setIsMenuOpen(false)} 
+                />
+              )}
               {user && (user.role === 'agent' || user.role === 'admin') && (
                 <MobileNavLink 
                   icon={<Shield size={20} />} 

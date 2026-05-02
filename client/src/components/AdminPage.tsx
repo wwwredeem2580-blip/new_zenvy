@@ -69,8 +69,15 @@ type AdminTab = 'Overview' | 'Applications' | 'Users' | 'Workspaces' | 'Analytic
 
 export default function AdminPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, isLoading: isAuthLoading } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!isAuthLoading && (!user || user.role !== 'admin')) {
+      toast.error('Permission denied: Admin access required');
+      router.push('/');
+    }
+  }, [user, isAuthLoading, router]);
   
   const onBack = () => router.push('/');
   const [activeTab, setActiveTab] = useState<AdminTab>('Applications');
@@ -112,8 +119,10 @@ export default function AdminPage() {
   const [isActionLoading, setIsActionLoading] = useState(false);
 
   useEffect(() => {
-    loadData();
-  }, [activeTab]);
+    if (!isAuthLoading && user && user.role === 'admin') {
+      loadData();
+    }
+  }, [isAuthLoading, user, activeTab]);
 
   useEffect(() => {
     if (selectedWorkspace) {
@@ -216,6 +225,8 @@ export default function AdminPage() {
       setIsProcessing(false);
     }
   };
+
+  if (!user || user.role !== 'admin') return null;
 
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-white text-black font-dm selection:bg-black selection:text-white -mt-24">
