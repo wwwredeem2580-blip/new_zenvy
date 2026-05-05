@@ -19,11 +19,13 @@ import {
   Receipt,
   AlertCircle
 } from "lucide-react";
+import { PaymentSettings } from "../../lib/api/paymentSettingsApi";
 
 export type PaymentMethod = 'Cash' | 'Revolut' | 'PostPay' | 'Card';
 
 interface PaymentSelectionProps {
   amount: number;
+  paymentSettings?: PaymentSettings;
   onSuccess: (method: PaymentMethod, transactionId?: string) => void;
   onCancel: () => void;
 }
@@ -53,7 +55,7 @@ function CopyButton({ text, label }: { text: string, label?: string }) {
   );
 }
 
-export default function PaymentSelection({ amount, onSuccess, onCancel }: PaymentSelectionProps) {
+export default function PaymentSelection({ amount, paymentSettings = {}, onSuccess, onCancel }: PaymentSelectionProps) {
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [transactionId, setTransactionId] = useState("");
@@ -215,7 +217,7 @@ export default function PaymentSelection({ amount, onSuccess, onCancel }: Paymen
                         <div className="space-y-2">
                           <span className="font-bold text-lg block">Agent Call-back</span>
                           <p className="text-xs leading-relaxed opacity-60">
-                            An agent will call you at your provided number shortly to finalize the cash collection.
+                            {paymentSettings.cashNote || 'An agent will call you at your provided number shortly to finalize the cash collection.'}
                           </p>
                         </div>
                       </div>
@@ -223,19 +225,29 @@ export default function PaymentSelection({ amount, onSuccess, onCancel }: Paymen
                    {selectedMethod === 'Revolut' && (
                       <div className="space-y-8">
                         <div className="flex justify-center flex-col items-center gap-4 text-center">
-                           <div className="w-28 h-28 bg-white p-4 rounded-3xl shadow-inner border border-border flex items-center justify-center">
-                              <QrCode size={70} strokeWidth={1} />
-                           </div>
+                           {paymentSettings.revolutQrUrl ? (
+                             <img
+                               src={paymentSettings.revolutQrUrl}
+                               alt="Revolut QR Code"
+                               className="w-28 h-28 object-contain bg-white p-4 rounded-3xl shadow-inner border border-border"
+                             />
+                           ) : (
+                             <div className="w-28 h-28 bg-white p-4 rounded-3xl shadow-inner border border-border flex items-center justify-center">
+                               <QrCode size={70} strokeWidth={1} />
+                             </div>
+                           )}
                            <p className="text-[8px] font-bold uppercase tracking-widest opacity-40">Scan to pay €{amount.toFixed(2)}</p>
                         </div>
 
-                        <div className="space-y-3">
-                           <p className="text-[10px] font-bold uppercase tracking-widest text-muted">Recipient RevTag</p>
-                           <div className="flex items-center justify-between p-4 bg-white rounded-2xl border border-border group hover:border-blue-500/30 transition-colors">
-                              <span className="font-bold text-sm tracking-tight text-blue-600">@smartcaf_biz</span>
-                              <CopyButton text="@smartcaf_biz" label="Copy Tag" />
-                           </div>
-                        </div>
+                        {paymentSettings.revolutTag && (
+                          <div className="space-y-3">
+                             <p className="text-[10px] font-bold uppercase tracking-widest text-muted">Recipient RevTag</p>
+                             <div className="flex items-center justify-between p-4 bg-white rounded-2xl border border-border group hover:border-blue-500/30 transition-colors">
+                               <span className="font-bold text-sm tracking-tight text-blue-600">{paymentSettings.revolutTag}</span>
+                               <CopyButton text={paymentSettings.revolutTag} label="Copy Tag" />
+                             </div>
+                          </div>
+                        )}
                       </div>
                    )}
                    {selectedMethod === 'PostPay' && (
@@ -246,35 +258,37 @@ export default function PaymentSelection({ amount, onSuccess, onCancel }: Paymen
                         <div className="space-y-2">
                           <span className="font-bold text-lg block">PostPay Processing</span>
                           <p className="text-xs leading-relaxed opacity-60">
-                            Your application will be locked until payment is confirmed via our physical terminal (within 48 hours).
+                            {paymentSettings.postpayNote || 'Your application will be locked until payment is confirmed via our physical terminal (within 48 hours).'}
                           </p>
                         </div>
                       </div>
                    )}
                    {selectedMethod === 'Card' && (
                       <div className="space-y-4">
-                        <div className="space-y-2">
-                           <p className="text-[10px] font-bold uppercase tracking-widest text-muted">Recipient IBAN</p>
-                           <div className="flex items-center justify-between p-4 bg-white rounded-2xl border border-border">
-                              <span className="font-mono text-xs font-bold truncate pr-2">IT60 X 05034 01234 0000 1234</span>
-                              <div className="shrink-0"><CopyButton text="IT60 X 05034 01234 0000 1234" /></div>
-                           </div>
-                        </div>
-                        <div className="space-y-2">
-                           <p className="text-[10px] font-bold uppercase tracking-widest text-muted">Recipient Name</p>
-                           <div className="flex items-center justify-between p-4 bg-white rounded-2xl border border-border">
-                              <span className="font-bold text-xs">Smart CAF Solutions S.r.l.</span>
-                              <CopyButton text="Smart CAF Solutions S.r.l." />
-                           </div>
-                        </div>
-                        <div className="space-y-2">
-                           <p className="text-[10px] font-bold uppercase tracking-widest text-muted">Payment Reference</p>
-                           <p className="text-[8px] text-orange-500 font-bold uppercase mb-1">Important: Include this in transfer note</p>
-                           <div className="flex items-center justify-between p-4 bg-white rounded-2xl border border-border">
-                              <span className="font-bold text-xs opacity-60 tracking-wider">CAF_{Math.random().toString(36).substr(2, 6).toUpperCase()}</span>
-                              <CopyButton text="CAF_GENERIC_REF" />
-                           </div>
-                        </div>
+                        {paymentSettings.iban && (
+                          <div className="space-y-2">
+                             <p className="text-[10px] font-bold uppercase tracking-widest text-muted">Recipient IBAN</p>
+                             <div className="flex items-center justify-between p-4 bg-white rounded-2xl border border-border">
+                               <span className="font-mono text-xs font-bold truncate pr-2">{paymentSettings.iban}</span>
+                               <div className="shrink-0"><CopyButton text={paymentSettings.iban} /></div>
+                             </div>
+                          </div>
+                        )}
+                        {paymentSettings.ibanRecipientName && (
+                          <div className="space-y-2">
+                             <p className="text-[10px] font-bold uppercase tracking-widest text-muted">Recipient Name</p>
+                             <div className="flex items-center justify-between p-4 bg-white rounded-2xl border border-border">
+                               <span className="font-bold text-xs">{paymentSettings.ibanRecipientName}</span>
+                               <CopyButton text={paymentSettings.ibanRecipientName} />
+                             </div>
+                          </div>
+                        )}
+                        {!paymentSettings.iban && !paymentSettings.ibanRecipientName && (
+                          <div className="text-center py-8 opacity-40">
+                            <p className="text-xs font-bold uppercase tracking-widest">Bank transfer details not yet configured.</p>
+                            <p className="text-[10px] mt-1">Please contact us directly.</p>
+                          </div>
+                        )}
                       </div>
                    )}
                  </div>

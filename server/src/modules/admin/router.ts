@@ -5,6 +5,7 @@ import * as adminController from './controller';
 import * as workspaceController from './workspace.controller';
 import * as invitationController from './invitation.controller';
 import * as branchController from '../branch/controller';
+import * as paymentSettingsController from './paymentSettings.controller';
 import multer from 'multer';
 
 const router = Router();
@@ -41,6 +42,10 @@ router.get('/workspaces/:id/files', requireAuth, requireRole('admin', 'agent'), 
 router.post('/workspaces/:id/files', requireAuth, requireRole('admin', 'agent'), upload.single('file'), workspaceController.uploadFile);
 router.delete('/workspaces/:id/files', requireAuth, requireRole('admin', 'agent'), workspaceController.deleteFile);
 router.get('/workspaces/:id/preview', requireAuth, requireRole('admin', 'agent'), workspaceController.getPreviewUrl);
+
+// Payment Settings
+router.get('/payment-settings', requireAuth, requireRole('admin'), paymentSettingsController.getPaymentSettings);
+router.put('/payment-settings', requireAuth, requireRole('admin'), paymentSettingsController.updatePaymentSettings);
 
 router.get('/health', requireAuth, requireRole('admin'), (_req, res) => {
   res.json({ success: true, message: 'Admin router is active' });

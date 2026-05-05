@@ -41,6 +41,7 @@ import { validateFile } from "../lib/utils";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { branchApi, Branch } from "../lib/api/branchApi";
+import { paymentSettingsApi, PaymentSettings } from "../lib/api/paymentSettingsApi";
 
 const IconMap: Record<string, React.ReactNode> = {
   FileText: <FileText size={20} />,
@@ -138,6 +139,11 @@ export default function ApplicationForm() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [branches, setBranches] = useState<Branch[]>([]);
   const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
+  const [paymentSettings, setPaymentSettings] = useState<PaymentSettings>({});
+
+  useEffect(() => {
+    paymentSettingsApi.getPublic().then(setPaymentSettings).catch(() => {});
+  }, []);
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -874,6 +880,7 @@ export default function ApplicationForm() {
         {isShowPayment && (
           <PaymentSelection
             amount={finalAmount}
+            paymentSettings={paymentSettings}
             onSuccess={handlePaymentSuccess}
             onCancel={() => setIsShowPayment(false)}
           />

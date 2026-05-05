@@ -58,6 +58,7 @@ import { ActivityTimeline } from './admin/ActivityTimeline';
 import { RequestFileModal } from './admin/RequestFileModal';
 import { ServicesView } from './admin/ServicesView';
 import BranchesManager from './admin/BranchesManager';
+import PaymentSettingsManager from './admin/PaymentSettingsManager';
 import { Application, ApplicationStatus, RequestedFile } from '../data/applications';
 import { Workspace, WorkspacePermission, FileRecord, AgentPermissions } from '../types/user';
 import { User as UserType } from '../types/user';
@@ -71,7 +72,7 @@ import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 import { validateFile } from '@/lib/utils';
 
-type AdminTab = 'Overview' | 'Applications' | 'Users' | 'Workspaces' | 'Analytics' | 'Services' | 'Branches' | 'Settings';
+type AdminTab = 'Overview' | 'Applications' | 'Users' | 'Workspaces' | 'Analytics' | 'Services' | 'Branches' | 'Payment' | 'Settings';
 
 export default function AdminPage() {
   const router = useRouter();
@@ -242,6 +243,7 @@ export default function AdminPage() {
                <div className="text-[10px] uppercase tracking-widest font-bold text-black/20 mb-1">System</div>
                <SidebarLink label="Services" isActive={activeTab === 'Services'} onClick={() => setActiveTab('Services')} />
                <SidebarLink label="Branches" isActive={activeTab === 'Branches'} onClick={() => setActiveTab('Branches')} />
+               <SidebarLink label="Payment" isActive={activeTab === 'Payment'} onClick={() => setActiveTab('Payment')} />
                <SidebarLink label="Analytics" isActive={activeTab === 'Analytics'} onClick={() => setActiveTab('Analytics')} />
                <SidebarLink label="Settings" isActive={activeTab === 'Settings'} onClick={() => setActiveTab('Settings')} />
             </div>
@@ -378,7 +380,10 @@ export default function AdminPage() {
                    {activeTab === 'Branches' && (
                         <BranchesManager />
                    )}
-                  {activeTab === 'Settings' && (
+                   {activeTab === 'Payment' && (
+                        <PaymentSettingsManager />
+                   )}
+                   {activeTab === 'Settings' && (
                      <div className="space-y-12 py-12">
                         <section className="space-y-6">
                            <div className="flex items-center gap-4">

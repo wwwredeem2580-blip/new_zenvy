@@ -119,8 +119,8 @@ const ApplicationSchema = new Schema<IApplication>(
   {
     applicationId: { type: String, required: true, unique: true },
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-    branchId: { type: Schema.Types.ObjectId, ref: 'Branch', required: true },
-    branchName: { type: String, required: true },
+    branchId: { type: Schema.Types.ObjectId, ref: 'Branch' },
+    branchName: { type: String },
     name: { type: String, required: true },
     dob: { type: String, required: true },
     pob: { type: String, required: true },

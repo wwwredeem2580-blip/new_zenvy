@@ -490,41 +490,45 @@ export const addAttachment = async (
     }
   }
 
-  // 5. Add to attachments
-  application.attachments.push({
+  // 5. Build the new attachment subdocument
+  const newAttachment = {
     name: file.originalname,
     label,
     url: uploadResult.objectKey,
     uploadedBy: uploaderName,
     uploadedById: userId,
-    uploadedAt: new Date()
-  });
+    uploadedAt: new Date(),
+  };
 
-  application.lastActivityAt = new Date();
-  
-  application.activityLog.push({
+  const newActivity = {
     type: 'upload',
     description: `Document "${file.originalname}" uploaded by ${uploaderName}.`,
     actorName: uploaderName,
     actorId: userId,
-    timestamp: new Date()
-  });
+    timestamp: new Date(),
+  };
 
-  // Mark pending requests as fulfilled if any are found
-  let wasModified = false;
-  application.requestedFiles.forEach((rf) => {
-    if (rf.status === 'Pending') {
-      rf.status = 'Fulfilled';
-      wasModified = true;
+  // Use $push to avoid full-document re-validation (legacy apps may lack branchId etc.)
+  const updated = await Application.findByIdAndUpdate(
+    application._id,
+    {
+      $push: {
+        attachments: newAttachment,
+        activityLog: newActivity,
+      },
+      $set: {
+        lastActivityAt: new Date(),
+        // Mark any pending requestedFiles as fulfilled
+        'requestedFiles.$[elem].status': 'Fulfilled',
+      },
+    },
+    {
+      new: true,
+      arrayFilters: [{ 'elem.status': 'Pending' }],
     }
-  });
+  );
 
-  if (wasModified) {
-    application.markModified('requestedFiles');
-  }
-
-  await application.save();
-  return application;
+  return updated;
 };
 
 /**

@@ -57,40 +57,42 @@ const sendTransactionalEmail = async ({
   subject: string;
   html: string;
 }) => {
-  const fromEmail = process.env.SMTP_USER || 'support@smartcaf.it';
+  const FROM_NAME = 'Smart CAF';
+  const FROM_EMAIL = 'support@smartcaf.tech';
 
-  // 1️⃣ Try SMTP first (as requested to skip Brevo for now)
-  if (process.env.SMTP_HOST) {
+  // 1️⃣ Brevo (primary)
+  if (process.env.BREVO_API_KEY) {
+    try {
+      await brevoTransactional.sendTransacEmail({
+        subject,
+        htmlContent: html,
+        sender: { name: FROM_NAME, email: FROM_EMAIL },
+        to: [{ email: to }],
+      });
+      console.log(`📧 Email sent via Brevo → ${to}`);
+      return;
+    } catch (brevoError: any) {
+      console.error('❌ Brevo failed, falling back to SMTP', brevoError?.message || brevoError);
+    }
+  }
+
+  // 2️⃣ SMTP (fallback)
+  if (process.env.SMTP_HOST && transporter) {
     try {
       const info = await transporter.sendMail({
-        from: `"Smart CAF" <${fromEmail}>`,
+        from: `"${FROM_NAME}" <${FROM_EMAIL}>`,
         to,
         subject,
         html,
       });
-      console.log(`📧 Email sent via SMTP → ${info.messageId}`);
+      console.log(`📧 Email sent via SMTP fallback → ${info.messageId}`);
       return;
     } catch (smtpError) {
-      console.error('❌ SMTP failed, falling back to Brevo', smtpError);
+      console.error('❌ SMTP fallback also failed', smtpError);
     }
   }
 
-  // 2️⃣ Try Brevo fallback
-  try {
-    await brevoTransactional.sendTransacEmail({
-      subject,
-      htmlContent: html,
-      sender: {
-        name: 'Smart CAF',
-        email: 'support@smartcaf.it', // Note: Brevo requires authenticated domain
-      },
-      to: [{ email: to }],
-    });
-    console.log(`📧 Email sent via Brevo → ${to}`);
-    return;
-  } catch (brevoError: any) {
-    console.error('❌ Brevo failed', brevoError);
-  }
+  console.error(`❌ All email transports failed for ${to} — subject: ${subject}`);
 };
 
 // ─── Error Classifier ─────────────────────────────────────────────────────────
