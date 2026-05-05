@@ -1,6 +1,7 @@
 import { ZodError } from 'zod';
 import { Response } from 'express';
 import { MongooseError } from 'mongoose';
+import CustomError from './CustomError';
 
 export const handleError = (error: any, res: Response) => {
     if(error instanceof ZodError){
@@ -17,7 +18,7 @@ export const handleError = (error: any, res: Response) => {
       })
     }
 
-    if(error.status && error.status !== 500){
+    if(error instanceof CustomError){
       return res.status(error.status).json({
         success: false,
         message: error.message

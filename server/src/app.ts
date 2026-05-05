@@ -1,6 +1,9 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
+import { validateEnv } from './utils/env';
+validateEnv();
+
 import express from 'express';
 import router from './router';
 import helmet from 'helmet';
@@ -8,6 +11,7 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import cookieParser from "cookie-parser";
 import compression from 'compression';
+import { authLimiter, uploadLimiter, generalLimiter } from './middlewares/rateLimiter';
 
 export function createServer() {
   const app = express();
@@ -47,8 +51,15 @@ export function createServer() {
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
   }));
+
   app.use(helmet());
   app.use(cookieParser());
+  
+  // Rate limiting
+  app.use('/auth', authLimiter);
+  app.use('/media', uploadLimiter);
+  app.use(generalLimiter);
+
   app.use(router);
 
   app.get("/", (req, res) => {

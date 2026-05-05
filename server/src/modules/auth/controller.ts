@@ -11,7 +11,7 @@ import {
   resendVerificationEmail,
 } from './service';
 import * as authService from './service';
-import { RegisterSchema, LoginSchema } from './schema';
+import { RegisterSchema, LoginSchema, RegisterAgentSchema } from './schema';
 
 // ─── POST /auth/resend-verification ──────────────────────────────────────────
 export const resendVerification = async (req: Request, res: Response): Promise<void> => {
@@ -137,7 +137,8 @@ export const verifyInvitationController = async (req: Request, res: Response) =>
 
 export const registerAgentController = async (req: Request, res: Response) => {
   try {
-    const result = await authService.registerAgent(req.body);
+    const parsed = RegisterAgentSchema.parse(req.body);
+    const result = await authService.registerAgent(parsed);
     res.status(201).json({ success: true, ...result });
   } catch (error) {
     handleError(error, res);

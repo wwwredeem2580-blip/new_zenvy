@@ -1,9 +1,4 @@
 import { createServer } from 'http';
-import { validateEnv } from './utils/env';
-
-// Validate environment variables before doing anything else
-validateEnv();
-
 import app from './app';
 import mongoose from 'mongoose';
 import { initEmailWorker } from './workers/email.worker';

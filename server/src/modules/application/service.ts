@@ -11,30 +11,38 @@ import { generateAndUploadInvoice } from '../../utils/invoice.service';
  * submitApplication — Creates a new application in the system.
  * Generates a unique CAF-XXXXXX ID.
  */
+async function generateUniqueApplicationId(maxAttempts = 5): Promise<string> {
+  for (let i = 0; i < maxAttempts; i++) {
+    const randomId = Math.floor(100000 + Math.random() * 900000);
+    const id = `CAF-${randomId}`;
+    const exists = await Application.exists({ applicationId: id });
+    if (!exists) return id;
+  }
+  throw new CustomError('Failed to generate unique application ID', 500);
+}
+
 export const submitApplication = async (
   userId: string,
   data: CreateApplicationInput
 ): Promise<IApplication> => {
-  // Generate unique ID: CAF-XXXXXX
-  const randomId = Math.floor(100000 + Math.random() * 900000);
-  const applicationId = `CAF-${randomId}`;
+  const applicationId = await generateUniqueApplicationId();
 
-  // Check if ID exists (rare but possible)
-  const existing = await Application.findOne({ applicationId });
-  if (existing) return submitApplication(userId, data); // Recursive retry
+  // Handle Credits payment atomically
+  const totalCost = data.selectedServices.reduce((sum, s) => sum + s.price, 0);
+  let user;
 
-  // Fetch user for balance check and activity log
-  const user = await User.findById(userId);
-  if (!user) throw new CustomError('User not found', 404);
-
-  // Handle Credits payment
   if (data.paymentMethod === 'Credits') {
-    const totalCost = data.selectedServices.reduce((sum, s) => sum + s.price, 0);
-    if (user.balance < totalCost) {
+    user = await User.findOneAndUpdate(
+      { _id: userId, balance: { $gte: totalCost } },
+      { $inc: { balance: -totalCost } },
+      { new: true }
+    );
+    if (!user) {
       throw new CustomError('Insufficient credit balance', 400);
     }
-    user.balance -= totalCost;
-    await user.save();
+  } else {
+    user = await User.findById(userId);
+    if (!user) throw new CustomError('User not found', 404);
   }
 
   const application = await Application.create({
@@ -195,6 +203,13 @@ export const getSignedPreviewUrl = async (
   const hasAttachment = application.attachments.some(a => a.url === objectKey);
   if (!hasAttachment && !isAdmin) {
     throw new CustomError('Document not found in this application', 404);
+  }
+
+  // Prevent Directory Traversal and ensure valid namespace
+  const ALLOWED_PREFIXES = [`users/`, `workspaces/`];
+  const isAllowed = ALLOWED_PREFIXES.some(p => objectKey.startsWith(p));
+  if (!isAllowed || objectKey.includes('..')) {
+    throw new CustomError('Invalid document key', 400);
   }
 
   return generatePreviewUrl(objectKey);

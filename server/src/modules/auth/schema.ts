@@ -24,3 +24,15 @@ export const LoginSchema = z.object({
 
 export type RegisterInput = z.infer<typeof RegisterSchema>;
 export type LoginInput = z.infer<typeof LoginSchema>;
+
+export const RegisterAgentSchema = z.object({
+  token: z.string().min(1, 'Token is required'),
+  firstName: sanitizedString({ min: 1, max: 50 }),
+  lastName: sanitizedString({ min: 1, max: 50 }),
+  password: z
+    .string()
+    .min(8, 'Password must be at least 8 characters')
+    .max(100, 'Password is too long'),
+});
+
+export type RegisterAgentInput = z.infer<typeof RegisterAgentSchema>;

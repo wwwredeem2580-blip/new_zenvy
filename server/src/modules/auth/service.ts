@@ -5,7 +5,7 @@ import { generateAccessToken } from '../../utils/auth/token';
 import { GoogleClient } from '../../utils/auth/google';
 import { addEmailJob } from '../../workers/email.queue';
 import CustomError from '../../utils/CustomError';
-import { RegisterInput, LoginInput } from './schema';
+import { RegisterInput, LoginInput, RegisterAgentInput } from './schema';
 
 // ─── Manual Registration ──────────────────────────────────────────────────────
 export const registerManual = async (data: RegisterInput) => {
@@ -298,7 +298,7 @@ export const verifyAgentInvitation = async (token: string) => {
   return invitation;
 };
 
-export const registerAgent = async (data: RegisterInput & { token: string }) => {
+export const registerAgent = async (data: RegisterAgentInput) => {
   const { firstName, lastName, password, token } = data;
 
   // 1. Verify invitation

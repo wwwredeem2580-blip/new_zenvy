@@ -1,5 +1,6 @@
 import { User } from '../../models/User.model';
 import { Application } from '../../models/Application.model';
+import CustomError from '../../utils/CustomError';
 
 /**
  * listAgentsWithWorkload - Retrieves all agents and admins along with their current reviewing count.
@@ -40,10 +41,15 @@ export const listAllUsers = async () => {
  * updateUserRole - Promotes or changes a user's role.
  */
 export const updateUserRole = async (userId: string, role: string) => {
+  const VALID_ROLES = ['admin', 'agent', 'client'] as const;
+  if (!VALID_ROLES.includes(role as any)) {
+    throw new CustomError('Invalid role', 400);
+  }
+
   const user = await User.findById(userId);
-  if (!user) throw new Error('User not found');
+  if (!user) throw new CustomError('User not found', 404);
   
-  user.role = role as any;
+  user.role = role as typeof VALID_ROLES[number];
   await user.save();
   return user;
 };
@@ -52,11 +58,18 @@ export const updateUserRole = async (userId: string, role: string) => {
  * addCredits - Issues balance/credits to a user.
  */
 export const addCredits = async (userId: string, amount: number) => {
-  const user = await User.findById(userId);
-  if (!user) throw new Error('User not found');
+  if (typeof amount !== 'number' || amount < 0) {
+    throw new CustomError('Amount must be a positive number', 400);
+  }
+
+  const user = await User.findOneAndUpdate(
+    { _id: userId },
+    { $inc: { balance: amount } },
+    { new: true }
+  );
+
+  if (!user) throw new CustomError('User not found', 404);
   
-  user.balance = (user.balance || 0) + amount;
-  await user.save();
   return user;
 };
 
