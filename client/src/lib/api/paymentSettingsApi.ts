@@ -24,4 +24,15 @@ export const paymentSettingsApi = {
     const res = await api.put('/admin/payment-settings', data);
     return res.data.settings;
   },
+
+  uploadQrCode: async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append('qrImage', file);
+    const res = await api.post('/admin/payment-settings/qr', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return res.data.qrUrl;
+  },
 };

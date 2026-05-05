@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { Save, CreditCard, Smartphone, QrCode, Loader2, Check } from "lucide-react";
+import React, { useEffect, useState, useRef } from "react";
+import { Save, CreditCard, Smartphone, QrCode, Loader2, Check, Upload, Trash2 } from "lucide-react";
 import { paymentSettingsApi, PaymentSettings } from "../../lib/api/paymentSettingsApi";
 import { toast } from "sonner";
 
@@ -72,6 +72,8 @@ export default function PaymentSettingsManager() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [isUploadingQr, setIsUploadingQr] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     paymentSettingsApi.getAdmin()
@@ -102,6 +104,31 @@ export default function PaymentSettingsManager() {
       toast.error("Failed to save payment settings");
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleQrUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Optional: add strict size/type checks
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("File is too large. Please keep it under 5MB.");
+      return;
+    }
+
+    setIsUploadingQr(true);
+    try {
+      const qrUrl = await paymentSettingsApi.uploadQrCode(file);
+      setForm((prev) => ({ ...prev, revolutQrUrl: qrUrl }));
+      toast.success("QR Code uploaded successfully! Remember to save settings.");
+    } catch (err) {
+      toast.error("Failed to upload QR Code");
+    } finally {
+      setIsUploadingQr(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     }
   };
 
@@ -139,14 +166,51 @@ export default function PaymentSettingsManager() {
           placeholder="@yourrevolutname"
           hint="The @tag clients should send money to."
         />
-        <Field
-          label="QR Code Image URL"
-          name="revolutQrUrl"
-          value={form.revolutQrUrl || ""}
-          onChange={handleChange}
-          placeholder="https://..."
-          hint="Optional — link to your Revolut QR code image. Leave empty to show a placeholder icon."
-        />
+        <div className="space-y-1.5 pt-2 border-t border-border/50">
+          <label className="text-[10px] font-black uppercase tracking-[0.2em] text-text/50">QR Code Image</label>
+          
+          {form.revolutQrUrl ? (
+            <div className="relative w-32 h-32 rounded-xl border border-border/50 bg-white p-2 group overflow-hidden">
+              <img src={form.revolutQrUrl} alt="QR Preview" className="w-full h-full object-contain" />
+              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
+                <button 
+                  onClick={() => handleChange('revolutQrUrl', '')}
+                  className="w-8 h-8 rounded-full bg-red-500 text-white flex items-center justify-center hover:scale-110 active:scale-95 transition-transform shadow-lg"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploadingQr}
+              className="w-full h-32 rounded-xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-2 hover:border-blue-500/50 hover:bg-blue-500/5 transition-colors disabled:opacity-50"
+            >
+              {isUploadingQr ? (
+                <>
+                  <Loader2 size={24} className="text-blue-500 animate-spin" />
+                  <span className="text-xs font-bold text-blue-500">Uploading...</span>
+                </>
+              ) : (
+                <>
+                  <div className="w-10 h-10 rounded-full bg-black/5 flex items-center justify-center text-text/50">
+                    <Upload size={18} />
+                  </div>
+                  <span className="text-xs font-bold text-text/60">Click to upload QR Code</span>
+                  <span className="text-[10px] text-text/40">JPG, PNG, WEBP (Max 5MB)</span>
+                </>
+              )}
+            </button>
+          )}
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            onChange={handleQrUpload} 
+            accept="image/jpeg, image/png, image/webp" 
+            className="hidden" 
+          />
+        </div>
       </div>
 
       {/* Card / IBAN */}

@@ -46,6 +46,7 @@ router.get('/workspaces/:id/preview', requireAuth, requireRole('admin', 'agent')
 // Payment Settings
 router.get('/payment-settings', requireAuth, requireRole('admin'), paymentSettingsController.getPaymentSettings);
 router.put('/payment-settings', requireAuth, requireRole('admin'), paymentSettingsController.updatePaymentSettings);
+router.post('/payment-settings/qr', requireAuth, requireRole('admin'), upload.single('qrImage'), paymentSettingsController.uploadQrCode);
 
 router.get('/health', requireAuth, requireRole('admin'), (_req, res) => {
   res.json({ success: true, message: 'Admin router is active' });
