@@ -7,17 +7,19 @@ services:
       context: ./client
       dockerfile: Dockerfile
       target: production
-    image: zenvy-client:latest
-    container_name: zenvy-client
+      # NEXT_PUBLIC_* vars must be passed at BUILD TIME — Next.js bakes them
+      # into the static bundle during `next build`. env_file alone is not enough.
+      args:
+        - NEXT_PUBLIC_API_URL=http://smartcaf.tech/api
+        - NEXT_PUBLIC_SOCKET_URL=http://smartcaf.tech
+    image: caf-client:latest
+    container_name: caf-client
     # Nginx handles public exposure — no need to bind port directly
     # ports:
     #   - "3000:3000"
     environment:
       - NODE_ENV=production
-      - CHOKIDAR_USEPOLLING=true
       - NEXT_TELEMETRY_DISABLED=1
-    env_file:
-      - ./client/.env.production
     networks:
       - app-network
     restart: unless-stopped

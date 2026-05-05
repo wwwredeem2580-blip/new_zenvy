@@ -31,6 +31,9 @@ FROM base AS builder
 ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
+ARG NEXT_PUBLIC_SOCKET_URL
+ENV NEXT_PUBLIC_SOCKET_URL=$NEXT_PUBLIC_SOCKET_URL
+
 WORKDIR /src
 
 # Copy all source files
@@ -52,19 +55,6 @@ WORKDIR /src
 
 # Install curl and dumb-init for health checks and proper signal handling
 RUN apk add --no-cache curl dumb-init
-
-# Install Chromium and dependencies for Puppeteer (BEFORE copying files)
-RUN apk add --no-cache \
-    chromium \
-    nss \
-    freetype \
-    harfbuzz \
-    ca-certificates \
-    ttf-freefont
-
-# Tell Puppeteer to skip installing Chrome and use the installed package
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
-    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
 # Copy necessary files from builder
 COPY --from=builder /src/.next ./.next
