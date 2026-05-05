@@ -43,10 +43,20 @@ export function createServer() {
   app.use(express.json({ limit: '10mb' }));
   app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+  // CLIENT_URL supports comma-separated values for multiple origins:
+  // e.g. CLIENT_URL=https://smartcaf.tech,https://www.smartcaf.tech
+  const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:3000')
+    .split(',')
+    .map(o => o.trim())
+    .filter(Boolean);
+
   app.use(cors({
-    origin: [
-      process.env.CLIENT_URL || 'http://localhost:3000'
-    ],
+    origin: (origin, callback) => {
+      // Allow requests with no origin (curl, Postman, server-to-server)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      callback(new Error(`CORS: Origin '${origin}' is not allowed`));
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
