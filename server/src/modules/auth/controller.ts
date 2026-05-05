@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { User } from '../../models/User.model';
 import { handleError } from '../../utils/handleError';
-import { ACCESS_TOKEN_CONFIG } from '../../utils/cookieConfig';
+import { getAccessTokenConfig } from '../../utils/cookieConfig';
 import {
   registerManual,
   loginManual,
@@ -41,7 +41,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     const parsed = LoginSchema.parse(req.body);
     const { token, user } = await loginManual(parsed);
 
-    res.cookie('accessToken', token, ACCESS_TOKEN_CONFIG);
+    res.cookie('accessToken', token, getAccessTokenConfig(req));
     res.status(200).json({ success: true, user });
   } catch (error) {
     handleError(error, res);
@@ -81,7 +81,7 @@ export const googleCallback = async (req: Request, res: Response): Promise<void>
     const { code } = req.query;
     const { token, user } = await handleGoogleCallback(code as string);
 
-    res.cookie('accessToken', token, ACCESS_TOKEN_CONFIG);
+    res.cookie('accessToken', token, getAccessTokenConfig(req));
 
     // Redirect back to the client portal after successful Google auth
     const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
@@ -111,11 +111,12 @@ export const getMe = async (req: Request, res: Response): Promise<void> => {
 };
 
 // ─── POST /auth/logout ────────────────────────────────────────────────────────
-export const logout = async (_req: Request, res: Response): Promise<void> => {
+export const logout = async (req: Request, res: Response): Promise<void> => {
   try {
+    const isSecure = req.secure || req.headers['x-forwarded-proto'] === 'https';
     res.clearCookie('accessToken', {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: isSecure,
       sameSite: 'lax',
     });
     res.status(200).json({ success: true, message: 'Logged out successfully' });
