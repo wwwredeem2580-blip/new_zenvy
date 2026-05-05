@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { Save, CreditCard, Smartphone, QrCode, Loader2, Check } from "lucide-react";
 import { paymentSettingsApi, PaymentSettings } from "../../lib/api/paymentSettingsApi";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 const Field = ({
   label,
