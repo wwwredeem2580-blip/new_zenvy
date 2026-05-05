@@ -78,7 +78,7 @@ export function ActivityTimeline({ application }: ActivityTimelineProps) {
         ) : (
           sortedLog.reverse().map((entry, index) => (
             <div 
-              key={entry.id} 
+              key={(entry as any)._id || entry.id || `${entry.timestamp}-${index}`} 
               className="relative pl-8 flex flex-col gap-1"
             >
               {/* Dot */}
