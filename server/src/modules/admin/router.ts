@@ -4,10 +4,17 @@ import { requireAuth, requireRole } from '../../middlewares/auth';
 import * as adminController from './controller';
 import * as workspaceController from './workspace.controller';
 import * as invitationController from './invitation.controller';
+import * as branchController from '../branch/controller';
 import multer from 'multer';
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
+
+// Branch Management
+router.get('/branches', requireAuth, requireRole('admin'), branchController.listAdminBranches);
+router.post('/branches', requireAuth, requireRole('admin'), branchController.createBranch);
+router.put('/branches/:id', requireAuth, requireRole('admin'), branchController.updateBranch);
+router.delete('/branches/:id', requireAuth, requireRole('admin'), branchController.deleteBranch);
 
 // Analytics
 router.get('/analytics', requireAuth, requireRole('admin'), adminController.getAnalytics);

@@ -40,6 +40,7 @@ import { toast } from "sonner";
 import { validateFile } from "../lib/utils";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { branchApi, Branch } from "../lib/api/branchApi";
 
 const IconMap: Record<string, React.ReactNode> = {
   FileText: <FileText size={20} />,
@@ -68,7 +69,7 @@ interface DynamicService {
   subservices: DynamicSubService[];
 }
 
-type Step = 1 | 2 | 3 | 4;
+type Step = 1 | 2 | 3 | 4 | 5;
 
 interface FormData {
   name: string;
@@ -135,6 +136,8 @@ export default function ApplicationForm() {
   const [isUseCredits, setIsUseCredits] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [branches, setBranches] = useState<Branch[]>([]);
+  const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -148,6 +151,22 @@ export default function ApplicationForm() {
       }
     };
     fetchServices();
+  }, []);
+
+  useEffect(() => {
+    const fetchBranches = async () => {
+      try {
+        const res = await branchApi.listPublicBranches();
+        if (res.success && res.branches.length > 0) {
+          setBranches(res.branches);
+          const main = res.branches.find((b: Branch) => b.isMain) || res.branches[0];
+          setSelectedBranch(main);
+        }
+      } catch (err) {
+        console.error("Failed to load branches", err);
+      }
+    };
+    fetchBranches();
   }, []);
 
   const requiredDocs = useMemo(() => {
@@ -319,6 +338,13 @@ export default function ApplicationForm() {
     }
 
     if (step === 4) {
+      if (!selectedBranch) {
+        toast.error("Please select a branch location");
+        return false;
+      }
+    }
+
+    if (step === 5) {
       const missingDocs = requiredDocs.filter(rd => rd.required && !formData.documents[rd.label]);
       if (missingDocs.length > 0) {
         missingDocs.forEach(rd => {
@@ -390,6 +416,8 @@ export default function ApplicationForm() {
         permessoType: formData.permessoType,
         permessoExpiry: formData.permessoExpiry,
         selectedServices: formData.selectedServices,
+        branchId: selectedBranch?._id || '',
+        branchName: selectedBranch?.name || '',
         paymentMethod: method as any,
         transactionId,
         attachments,
@@ -420,7 +448,7 @@ export default function ApplicationForm() {
             >
               <div className="mb-8">
                 <h1 className="text-3xl md:text-5xl font-space font-bold tracking-tighter mb-3">
-                  {step === 1 ? "Basic Info." : step === 2 ? "Contact Details." : step === 3 ? "Select Services." : "Upload Documents."}
+                  {step === 1 ? "Basic Info." : step === 2 ? "Contact Details." : step === 3 ? "Select Services." : step === 4 ? "Choose Location." : "Upload Documents."}
                 </h1>
                 <p className="text-sm text-muted max-w-lg font-light">
                   {step === 1 
@@ -429,6 +457,8 @@ export default function ApplicationForm() {
                     ? "How can we reach you and where do you reside?"
                     : step === 3
                     ? "Choose the services that best fit your needs."
+                    : step === 4
+                    ? "Select the office location where you'd like to receive your service."
                     : "Please provide high-quality scans of the required documents."}
                 </p>
               </div>
@@ -691,6 +721,74 @@ export default function ApplicationForm() {
                 )}
 
                 {step === 4 && (
+                  <div className="grid gap-4">
+                    {branches.length === 0 ? (
+                      <div className="text-center py-12 bg-surface/50 rounded-xl border border-dashed border-border">
+                        <MapPin size={32} className="mx-auto text-text/20 mb-3" />
+                        <p className="text-text/40 font-bold uppercase tracking-widest text-[10px]">No branches available</p>
+                      </div>
+                    ) : (
+                      branches.map((branch) => {
+                        const isSelected = selectedBranch?._id === branch._id;
+                        return (
+                          <button
+                            key={branch._id}
+                            type="button"
+                            onClick={() => setSelectedBranch(branch)}
+                            className={`group text-left p-6 rounded-[24px] border transition-all duration-300 ${
+                              isSelected
+                                ? "bg-text text-bg border-text shadow-lg"
+                                : "bg-surface border-border hover:border-text/30 hover:shadow-xl"
+                            }`}
+                          >
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="flex items-start gap-4 flex-1">
+                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${ isSelected ? "bg-bg/10 text-bg" : "bg-text/5 text-text" }`}>
+                                  <MapPin size={20} />
+                                </div>
+                                <div className="space-y-1">
+                                  <div className="flex items-center gap-2">
+                                    <h4 className={`font-bold text-lg leading-tight ${isSelected ? "text-bg" : "text-text"}`}>{branch.name}</h4>
+                                    {branch.isMain && (
+                                      <span className={`text-[9px] font-black uppercase tracking-[0.15em] px-2 py-0.5 rounded-sm ${ isSelected ? "text-bg/60 bg-bg/10" : "text-text/40 bg-text/5" }`}>Main</span>
+                                    )}
+                                  </div>
+                                  <p className={`text-sm font-medium ${ isSelected ? "text-bg/80" : "text-text/70" }`}>{branch.address}</p>
+                                  {branch.workingHours && (
+                                    <p className={`text-[11px] font-bold uppercase tracking-widest ${ isSelected ? "text-bg/50" : "text-muted" }`}>
+                                      <Clock size={11} className="inline mr-1" />{branch.workingHours}
+                                    </p>
+                                  )}
+                                  {branch.phone && (
+                                    <p className={`text-[11px] ${ isSelected ? "text-bg/50" : "text-muted" }`}>{branch.phone}</p>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex flex-col items-end gap-2 shrink-0">
+                                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${ isSelected ? "border-bg bg-bg" : "border-border bg-surface group-hover:border-text/30" }`}>
+                                  {isSelected && <Check size={14} className="text-text" />}
+                                </div>
+                                {branch.googleMapsUrl && (
+                                  <a
+                                    href={branch.googleMapsUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={(e) => e.stopPropagation()}
+                                    className={`text-[10px] font-bold uppercase tracking-widest underline underline-offset-2 ${ isSelected ? "text-bg/60 hover:text-bg" : "text-blue-500 hover:text-blue-700" }`}
+                                  >
+                                    View Map
+                                  </a>
+                                )}
+                              </div>
+                            </div>
+                          </button>
+                        );
+                      })
+                    )}
+                  </div>
+                )}
+
+                {step === 5 && (
                   <div className="grid sm:grid-cols-2 gap-6">
                     {requiredDocs.map((rd, idx) => (
                       <FileUploadSlot
@@ -717,13 +815,13 @@ export default function ApplicationForm() {
                     {step === 1 ? "Cancel Application" : "Previous Step"}
                   </button>
 
-                  {step < 4 ? (
+                  {step < 5 ? (
                     <button
                       type="button"
                       onClick={nextStep}
                       className="w-full sm:w-auto flex items-center justify-center gap-2 bg-text text-bg px-10 py-3 rounded-full text-xs font-bold hover:scale-105 active:scale-95 transition-all shadow-xl shadow-text/10"
                     >
-                      Continue to {step === 1 ? "Contact" : step === 2 ? "Services" : "Documents"}
+                      Continue to {step === 1 ? "Contact" : step === 2 ? "Services" : step === 3 ? "Location" : "Documents"}
                       <ChevronRight size={16} />
                     </button>
                   ) : (

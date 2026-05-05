@@ -57,6 +57,7 @@ import { AssignAgentModal } from './admin/AssignAgentModal';
 import { ActivityTimeline } from './admin/ActivityTimeline';
 import { RequestFileModal } from './admin/RequestFileModal';
 import { ServicesView } from './admin/ServicesView';
+import BranchesManager from './admin/BranchesManager';
 import { Application, ApplicationStatus, RequestedFile } from '../data/applications';
 import { Workspace, WorkspacePermission, FileRecord, AgentPermissions } from '../types/user';
 import { User as UserType } from '../types/user';
@@ -70,7 +71,7 @@ import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 import { validateFile } from '@/lib/utils';
 
-type AdminTab = 'Overview' | 'Applications' | 'Users' | 'Workspaces' | 'Analytics' | 'Services' | 'Settings';
+type AdminTab = 'Overview' | 'Applications' | 'Users' | 'Workspaces' | 'Analytics' | 'Services' | 'Branches' | 'Settings';
 
 export default function AdminPage() {
   const router = useRouter();
@@ -240,6 +241,7 @@ export default function AdminPage() {
             <div className="pt-6 border-t border-black/5 flex flex-col gap-3">
                <div className="text-[10px] uppercase tracking-widest font-bold text-black/20 mb-1">System</div>
                <SidebarLink label="Services" isActive={activeTab === 'Services'} onClick={() => setActiveTab('Services')} />
+               <SidebarLink label="Branches" isActive={activeTab === 'Branches'} onClick={() => setActiveTab('Branches')} />
                <SidebarLink label="Analytics" isActive={activeTab === 'Analytics'} onClick={() => setActiveTab('Analytics')} />
                <SidebarLink label="Settings" isActive={activeTab === 'Settings'} onClick={() => setActiveTab('Settings')} />
             </div>
@@ -289,6 +291,7 @@ export default function AdminPage() {
                {activeTab === 'Workspaces' && "Orchestrate cloud storage structures and manage folder-level permissions."}
                {activeTab === 'Overview' && "Real-time metrics and system health indicators at a glance."}
                 {activeTab === 'Services' && "Define dynamic document requirements and pricing for all available services."}
+                {activeTab === 'Branches' && "Manage office locations, working hours, and set the main branch displayed to clients."}
              </p>
 
              {activeTab === 'Applications' && (
@@ -372,6 +375,9 @@ export default function AdminPage() {
                   {activeTab === 'Services' && (
                        <ServicesView />
                   )}
+                   {activeTab === 'Branches' && (
+                        <BranchesManager />
+                   )}
                   {activeTab === 'Settings' && (
                      <div className="space-y-12 py-12">
                         <section className="space-y-6">
@@ -434,6 +440,7 @@ export default function AdminPage() {
           <DockItem icon={<UserPlus size={22} />} label="Invite" isActive={isInviteModalOpen} onClick={() => setIsInviteModalOpen(true)} />
           <DockItem icon={<Folder size={22} />} label="Workspaces" isActive={activeTab === 'Workspaces'} onClick={() => setActiveTab('Workspaces')} />
           <DockItem icon={<Settings2 size={22} />} label="Services" isActive={activeTab === 'Services'} onClick={() => setActiveTab('Services')} />
+          <DockItem icon={<MapPin size={22} />} label="Branches" isActive={activeTab === 'Branches'} onClick={() => setActiveTab('Branches')} />
           <DockItem icon={<BarChart3 size={22} />} label="Stats" isActive={activeTab === 'Analytics'} onClick={() => setActiveTab('Analytics')} />
           <DockItem icon={<Settings2 size={22} />} label="Settings" isActive={activeTab === 'Settings'} onClick={() => setActiveTab('Settings')} />
         </div>

@@ -7,6 +7,8 @@ export const SubServiceSchema = z.object({
 });
 
 export const CreateApplicationSchema = z.object({
+  branchId: z.string().min(1, 'Branch ID is required'),
+  branchName: z.string().min(1, 'Branch Name is required'),
   name: z.string().min(2, 'Name is too short'),
   dob: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (YYYY-MM-DD)'),
   pob: z.string().min(2, 'Place of birth is required'),

@@ -4,7 +4,7 @@ import applicationRoutes from './modules/application/router';
 import mediaRoutes from './modules/media/router';
 import adminRoutes from './modules/admin/router';
 import serviceRoutes from './modules/service/routes';
-
+import branchRoutes from './modules/branch/router';
 
 const router = Router();
 
@@ -13,5 +13,6 @@ router.use('/applications', applicationRoutes);
 router.use('/media', mediaRoutes);
 router.use('/admin', adminRoutes);
 router.use('/services', serviceRoutes);
+router.use('/branches', branchRoutes);
 
 export default router;

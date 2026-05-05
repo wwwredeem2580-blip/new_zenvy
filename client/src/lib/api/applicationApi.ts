@@ -22,6 +22,8 @@ export interface CreateApplicationData {
     duration: string;
   }[];
   transactionId?: string;
+  branchId: string;
+  branchName: string;
   attachments?: {
     name: string;
     label: string;

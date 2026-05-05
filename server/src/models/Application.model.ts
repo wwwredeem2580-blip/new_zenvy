@@ -43,6 +43,8 @@ export interface IRequestedFile {
 export interface IApplication extends Document {
   applicationId: string; // e.g., CAF-123456
   userId: mongoose.Types.ObjectId;
+  branchId: mongoose.Types.ObjectId;
+  branchName: string;
   name: string;
   dob: string;
   pob: string;
@@ -117,6 +119,8 @@ const ApplicationSchema = new Schema<IApplication>(
   {
     applicationId: { type: String, required: true, unique: true },
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    branchId: { type: Schema.Types.ObjectId, ref: 'Branch', required: true },
+    branchName: { type: String, required: true },
     name: { type: String, required: true },
     dob: { type: String, required: true },
     pob: { type: String, required: true },

@@ -16,6 +16,7 @@ import {
 import { useState, useMemo, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { applicationApi } from "@/lib/api/applicationApi";
+import { branchApi, Branch } from "@/lib/api/branchApi";
 
 export default function Home() {
   const router = useRouter();
@@ -23,6 +24,7 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [services, setServices] = useState<any[]>([]);
+  const [mainBranch, setMainBranch] = useState<Branch | null>(null);
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -35,7 +37,19 @@ export default function Home() {
         console.error("Failed to load services", err);
       }
     };
+    const fetchBranches = async () => {
+      try {
+        const res = await branchApi.listPublicBranches();
+        if (res.success && res.branches.length > 0) {
+          const main = res.branches.find((b: Branch) => b.isMain) || res.branches[0];
+          setMainBranch(main);
+        }
+      } catch (err) {
+        console.error("Failed to load branches", err);
+      }
+    };
     fetchServices();
+    fetchBranches();
   }, []);
 
   const allSubservices = useMemo(() => {
@@ -209,7 +223,7 @@ export default function Home() {
                     <h4 className="font-bold text-xl text-black leading-tight">{sub.name}</h4>
                     <div className="flex flex-wrap items-center gap-4 text-[10px] font-bold text-black/40 uppercase tracking-widest">
                       <div className="flex items-center gap-1.5">
-                        <MapPin size={14} className="text-black/20" /> Rome, Italy
+                        <MapPin size={14} className="text-black/20" /> {mainBranch?.address || 'Italy'}
                       </div>
                       <div className="flex items-center gap-1.5">
                         <Clock size={14} className="text-black/20" /> {sub.duration}
