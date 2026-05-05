@@ -7,7 +7,7 @@ import CustomError from '../CustomError';
 export const generateAccessToken = (payload: JwtTokenPayload): string => {
   return jwt.sign(
     payload,
-    process.env.JWT_ACCESS_TOKEN_SECRET! || 'secret',
+    process.env.JWT_ACCESS_TOKEN_SECRET!,
     { expiresIn: '7d' }
   );
 };

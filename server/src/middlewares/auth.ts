@@ -20,7 +20,7 @@ export const requireAuth = (req: Request, res: Response, next: NextFunction): vo
       throw new CustomError('Unauthorized — no token provided', 401);
     }
 
-    const decoded = verifyToken(token, process.env.JWT_ACCESS_TOKEN_SECRET! || 'secret');
+    const decoded = verifyToken(token, process.env.JWT_ACCESS_TOKEN_SECRET!);
     req.user = decoded;
     next();
   } catch (error: any) {
