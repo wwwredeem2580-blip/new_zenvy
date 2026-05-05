@@ -8,8 +8,10 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { DownloadCloudIcon, Folder, PlusIcon, Settings2, Trash2, UploadCloudIcon, X } from 'lucide-react';
-import { User as UserType } from '../../lib/api/mockApi';
+import { User as UserType } from '../../types/user';
 import { adminApi } from '@/lib/api/adminApi';
+import { validatePreviewUrl } from '@/lib/utils';
+import { toast } from 'sonner';
 
 export type WorkspacePermission = 'Public' | 'Read-only' | 'Restricted';
 
@@ -185,11 +187,15 @@ function WorkspaceBrowser({ workspace, onBack, onEdit }: { workspace: Workspace,
     try {
       const res = await adminApi.getFilePreviewUrl(workspace._id || workspace.id!, fileKey);
       if (res.success) {
-        window.open(res.previewUrl, '_blank');
+        if (!validatePreviewUrl(res.previewUrl)) {
+          toast.error("Invalid preview URL");
+          return;
+        }
+        window.open(res.previewUrl, '_blank', 'noopener,noreferrer');
       }
     } catch (e) {
       console.error(e);
-      alert("Failed to generate preview URL");
+      toast.error("Failed to generate preview URL");
     }
   };
 

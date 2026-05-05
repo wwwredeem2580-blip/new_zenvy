@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { X, UserPlus, Check, Users, Loader2, AlertCircle, ChevronRight } from 'lucide-react';
 import { adminApi, AgentWorkload } from '../../lib/api/adminApi';
 import { applicationApi } from '../../lib/api/applicationApi';
+import { getAvatarUrl } from '../../lib/utils';
 
 interface AssignAgentModalProps {
   applicationId: string;
@@ -93,7 +94,7 @@ export function AssignAgentModal({ applicationId, onClose, onAssigned }: AssignA
                  <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-sm bg-white border border-black/10 overflow-hidden shadow-sm shrink-0 flex items-center justify-center">
                        <img 
-                          src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${agent.firstName}${agent.id}`} 
+                          src={getAvatarUrl(agent.firstName || agent.email, (agent as any).avatar)} 
                           alt={agent.firstName}
                           className="w-full h-full object-cover"
                        />

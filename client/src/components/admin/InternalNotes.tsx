@@ -5,6 +5,7 @@ import { applicationApi } from '../../lib/api/applicationApi';
 import { adminApi } from '../../lib/api/adminApi';
 import { useAuth } from '../../context/AuthContext';
 import { User } from '../../types/user';
+import { getAvatarUrl } from '../../lib/utils';
 
 interface InternalNotesProps {
   application: any; // Using any or specific Application type
@@ -133,7 +134,7 @@ export function InternalNotes({ application, onUpdate }: InternalNotesProps) {
             <div key={note._id || note.id} className="group flex gap-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
               <div className="w-10 h-10 rounded-sm bg-black/5 flex items-center justify-center shrink-0 border border-black/10 overflow-hidden">
                 <img 
-                  src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${note.authorName || 'User'}${note.authorId}`} 
+                  src={getAvatarUrl(note.authorName || 'User', note.authorAvatar)} 
                   alt={note.authorName || 'User'}
                   className="w-full h-full object-cover"
                 />
@@ -192,7 +193,7 @@ export function InternalNotes({ application, onUpdate }: InternalNotesProps) {
                     className="w-full px-5 py-4 flex items-center gap-4 hover:bg-black/5 transition-colors text-left"
                   >
                     <div className="w-8 h-8 rounded-sm bg-black/5 overflow-hidden">
-                      <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${agent.email}`} alt={agent.firstName} />
+                      <img src={getAvatarUrl(agent.firstName || agent.email, agent.avatar)} alt={agent.firstName} className="w-full h-full object-cover" />
                     </div>
                     <div className="flex flex-col">
                       <span className="text-[11px] font-bold">{agent.firstName} {agent.lastName}</span>

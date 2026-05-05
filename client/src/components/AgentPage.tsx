@@ -48,14 +48,14 @@ import { RequestFileModal } from './admin/RequestFileModal';
 import { Application, ApplicationStatus, RequestedFile } from "../data/applications";
 import { adminApi } from '../lib/api/adminApi';
 import { applicationApi } from '../lib/api/applicationApi';
-import { Workspace, AgentPermissions, FileRecord } from '../lib/api/mockApi'; // Keeping types from mockApi for now or defining them
+import { Workspace, AgentPermissions, FileRecord } from '../types/user';
 import { RefundModal } from './admin/RefundModal';
 import { CollapsibleSection } from './ui/CollapsibleSection';
 
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
-import { validateFile } from '@/lib/utils';
+import { validatePreviewUrl, getAvatarUrl, validateFile } from "@/lib/utils";
 
 export default function AgentPage() {
   const router = useRouter();
@@ -110,22 +110,28 @@ export default function AgentPage() {
     try {
       const response = await applicationApi.getAttachmentPreviewUrl((selectedApp._id || selectedApp.id) as string, attachment.url);
       if (response.success && response.previewUrl) {
-        window.open(response.previewUrl, '_blank');
+        if (!validatePreviewUrl(response.previewUrl)) {
+          toast.error('Invalid preview URL');
+          return;
+        }
+        window.open(response.previewUrl, '_blank', 'noopener,noreferrer');
       }
     } catch (error) {
       console.error('Failed to get preview URL', error);
-      alert('Error: Access denied or file not found.');
+      toast.error('Error: Access denied or file not found.');
     }
   };
 
 
-  const permissions = {
-    canViewWorkspaces: true,
-    canUploadFiles: true,
-    canDeleteFiles: true,
-    canViewApplications: true,
-    canManageApplications: true,
-  };
+  const permissions = user?.role === 'admin' 
+    ? { canViewWorkspaces: true, canUploadFiles: true, canDeleteFiles: true, canViewApplications: true, canManageApplications: true }
+    : user?.permissions || {
+        canViewWorkspaces: true,
+        canUploadFiles: false,
+        canDeleteFiles: false,
+        canViewApplications: true,
+        canManageApplications: true,
+      };
 
   useEffect(() => {
     if (!isAuthLoading && user && (user.role === 'agent' || user.role === 'admin')) {
@@ -169,7 +175,7 @@ export default function AgentPage() {
 
   const handleSelectWorkspace = (ws: Workspace) => {
     setSelectedWorkspace(ws);
-    loadFiles(ws.id);
+    loadFiles((ws._id || ws.id) as string);
   };
 
   const handleFileUpload = async (fileName: string) => {
@@ -177,7 +183,7 @@ export default function AgentPage() {
     setIsUploading(true);
     try {
       const dummyFile = new File(["dummy content"], fileName, { type: "text/plain" });
-      const response = await adminApi.uploadFile(selectedWorkspace.id, dummyFile);
+      const response = await adminApi.uploadFile((selectedWorkspace._id || selectedWorkspace.id) as string, dummyFile);
       setWorkspaceFiles(prev => [response.file, ...prev]);
     } catch (e: any) {
       console.error(e);
@@ -190,7 +196,7 @@ export default function AgentPage() {
   const handleFileDelete = async (fileId: string) => {
     if (!selectedWorkspace || selectedWorkspace.permission === 'Read-only' || !permissions.canDeleteFiles) return;
     try {
-      await adminApi.deleteFile(selectedWorkspace.id, fileId);
+      await adminApi.deleteFile((selectedWorkspace._id || selectedWorkspace.id) as string, fileId);
       setWorkspaceFiles(prev => prev.filter(f => f.id !== fileId));
     } catch(e) {
       console.error(e);
@@ -206,11 +212,15 @@ export default function AgentPage() {
         fileId
       );
       if (res.success && res.previewUrl) {
-        window.open(res.previewUrl, '_blank');
+        if (!validatePreviewUrl(res.previewUrl)) {
+          toast.error('Invalid preview URL');
+          return;
+        }
+        window.open(res.previewUrl, '_blank', 'noopener,noreferrer');
       }
     } catch (e) {
       console.error(e);
-      alert('Failed to generate preview. Please try again.');
+      toast.error('Failed to generate preview. Please try again.');
     }
   };
 
@@ -247,8 +257,8 @@ export default function AgentPage() {
             </div>
             
             <div className="bg-white px-6 py-2 rounded-[16px] shadow-sm border border-black/5 flex items-center gap-6 min-w-[300px]">
-               <div className="w-12 h-12 border border-black/10 rounded-2xl flex items-center justify-center font-bold text-lg uppercase">
-                  <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.email+user.id}`} alt={user.email}/>
+               <div className="w-12 h-12 border border-black/10 rounded-2xl flex items-center justify-center font-bold text-lg uppercase overflow-hidden">
+                  <img src={getAvatarUrl(user.firstName || user.email, user.avatar)} alt={user.email} className="w-full h-full object-cover"/>
                </div>
                <div className="flex flex-col">
                   <span className="text-sm font-bold">{user.firstName} {user.lastName}</span>
@@ -443,16 +453,16 @@ export default function AgentPage() {
                                     {app.status === 'Reviewing' && app.reviewerId && (
                                        <div className="flex items-center gap-2 pr-4 border-r border-black/5">
                                           <div className="flex items-center -space-x-1">
-                                             <div className="w-6 h-6 rounded-full border-2 border-white overflow-hidden shrink-0 shadow-sm relative z-10">
-                                                <img 
-                                                   src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${app.reviewerName}${app.reviewerId}`} 
-                                                   alt={app.reviewerName}
-                                                   className="w-full h-full object-cover"
-                                                />
-                                             </div>
-                                             <div className="bg-blue-500/10 text-blue-600 px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-tight pl-3 border border-blue-500/10">
-                                                {app.reviewerName?.split(' ')[0]}
-                                             </div>
+                                             <div className="w-8 h-8 rounded-full border border-black/10 overflow-hidden bg-black/5 mr-3 shrink-0">
+                                                   <img 
+                                                   src={getAvatarUrl(app.reviewerName || 'Agent')} 
+                                                   alt="Agent" 
+                                                   className="w-full h-full object-cover" 
+                                                   />
+                                                </div>
+                                          </div>
+                                          <div className="bg-blue-500/10 text-blue-600 px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-tight pl-3 border border-blue-500/10">
+                                             {app.reviewerName?.split(' ')[0]}
                                           </div>
                                           <span className="text-[8px] font-bold text-black/20 hidden lg:block italic">
                                              {timeAgo(app.lastActivityAt)}

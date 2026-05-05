@@ -58,10 +58,12 @@ import { ActivityTimeline } from './admin/ActivityTimeline';
 import { RequestFileModal } from './admin/RequestFileModal';
 import { ServicesView } from './admin/ServicesView';
 import { Application, ApplicationStatus, RequestedFile } from '../data/applications';
-import { mockApi, User as UserType, Workspace, WorkspacePermission, FileRecord, AgentPermissions } from '../lib/api/mockApi';
+import { Workspace, WorkspacePermission, FileRecord, AgentPermissions } from '../types/user';
+import { User as UserType } from '../types/user';
+import { adminApi } from '../lib/api/adminApi';
 import { applicationApi } from '../lib/api/applicationApi';
+import { validatePreviewUrl } from '../lib/utils';
 import { CollapsibleSection } from './ui/CollapsibleSection';
-import { adminApi } from '@/lib/api/adminApi';
 
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
@@ -130,37 +132,9 @@ export default function AdminPage() {
     }
   }, [isAuthLoading, user, activeTab]);
 
-  useEffect(() => {
-    if (selectedWorkspace) {
-      loadFiles(selectedWorkspace.id);
-    }
-  }, [selectedWorkspace]);
 
-  const loadFiles = async (wsId: string) => {
-    const files = await mockApi.getFiles(wsId);
-    setWorkspaceFiles(files);
-  };
 
-  const handleFileUpload = async (fileName: string) => {
-    if (!selectedWorkspace) return;
-    setIsUploading(true);
-    try {
-      const newFile = await mockApi.uploadFile(selectedWorkspace.id, fileName);
-      setWorkspaceFiles(prev => [newFile, ...prev]);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
-  const handleFileDelete = async (fileId: string) => {
-    if (!selectedWorkspace) return;
-    const ok = await mockApi.deleteFile(selectedWorkspace.id, fileId);
-    if (ok) {
-      setWorkspaceFiles(prev => prev.filter(f => f.id !== fileId));
-    }
-  };
+  // File management logic for workspaces was moved to WorkspacesManager.tsx
 
   const loadData = async () => {
     setIsLoading(true);
@@ -207,11 +181,15 @@ export default function AdminPage() {
     try {
       const response = await applicationApi.getAttachmentPreviewUrl(selectedApp._id, attachment.url);
       if (response.success && response.previewUrl) {
-        window.open(response.previewUrl, '_blank');
+        if (!validatePreviewUrl(response.previewUrl)) {
+          toast.error("Invalid preview URL");
+          return;
+        }
+        window.open(response.previewUrl, '_blank', 'noopener,noreferrer');
       }
     } catch (error) {
       console.error("Failed to get preview URL", error);
-      alert("Error: Access denied or file not found.");
+      toast.error("Error: Access denied or file not found.");
     }
   };
 
@@ -420,10 +398,9 @@ export default function AdminPage() {
                                     <button
                                       key={h}
                                       onClick={() => {
-                                         mockApi.setAutoReleaseHours(h);
-                                         loadData(); // Just to trigger a re-render of current config if visible
+                                         toast.error("Auto-release setting not implemented on backend");
                                       }}
-                                      className={`px-6 py-3 rounded-sm text-[10px] font-bold uppercase tracking-widest transition-all ${mockApi.getAutoReleaseHours() === h ? 'bg-black text-white shadow-xl scale-105' : 'bg-white border border-black/5 text-black/40 hover:border-black/20'}`}
+                                      className={`px-6 py-3 rounded-sm text-[10px] font-bold uppercase tracking-widest transition-all bg-white border border-black/5 text-black/40 hover:border-black/20`}
                                     >
                                        {h} Hours {h === 48 && "(Default)"}
                                     </button>
@@ -1097,10 +1074,11 @@ export default function AdminPage() {
           application={pendingRefundApp || selectedApp || {} as Application}
           onConfirm={async (refundData) => {
              if (pendingRefundApp) {
-                await mockApi.updateApplicationStatus(pendingRefundApp._id, 'Rejected', false, refundData);
-                setPendingRefundApp(null);
-                const data = await mockApi.getApplications();
-                setApplications(data);
+                await applicationApi.updateStatus((pendingRefundApp._id || pendingRefundApp.id) as string, 'Rejected');
+                const data = await applicationApi.listAllApplications();
+                if (data.success) {
+                   setApplications(data.applications);
+                }
                 setSelectedApp(null);
              }
           }}
@@ -1136,24 +1114,21 @@ function WorkspaceBrowser({ workspace, onBack, onEdit }: { workspace: Workspace,
 
   const loadFiles = async () => {
     setIsLoading(true);
-    const data = await mockApi.getFiles(workspace.id);
-    setFiles(data);
+    // Workspace files logic is in WorkspacesManager.tsx
     setIsLoading(false);
   };
 
   const handleUpload = async () => {
     setIsUploading(true);
     try {
-      const newFile = await mockApi.uploadFile(workspace.id, `Manual_Upload_${Math.floor(Math.random()*1000)}.pdf`);
-      setFiles(prev => [newFile, ...prev]);
+      // Logic would be here
     } finally {
       setIsUploading(false);
     }
   };
 
   const handleDeleteFile = async (id: string) => {
-    const ok = await mockApi.deleteFile(workspace.id, id);
-    if (ok) setFiles(prev => prev.filter(f => f.id !== id));
+    // Logic would be here
   };
 
   return (

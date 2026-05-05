@@ -13,5 +13,33 @@ export interface User {
   avatar?: string;
   createdAt: string;
   updatedAt: string;
-  permissions?: any; // For agent permissions
+  permissions?: AgentPermissions; // For agent permissions
+}
+
+export interface AgentPermissions {
+  canViewWorkspaces: boolean;
+  canUploadFiles: boolean;
+  canDeleteFiles: boolean;
+  canViewApplications: boolean;
+  canManageApplications: boolean;
+}
+
+export type WorkspacePermission = 'Public' | 'Read-only' | 'Restricted';
+
+export interface Workspace {
+  _id: string;
+  id?: string;
+  name: string;
+  permission: WorkspacePermission;
+  isSystem: boolean;
+  allowedAgents?: string[];
+  createdAt: string;
+}
+
+export interface FileRecord {
+  id: string;
+  name: string;
+  size: string;
+  uploadedBy: string;
+  uploadedAt: string;
 }

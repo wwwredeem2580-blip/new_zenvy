@@ -8,8 +8,8 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { X } from 'lucide-react';
-import { User as UserType, AgentPermissions } from '../../lib/api/mockApi';
-import { mockApi } from '../../lib/api/mockApi';
+import { User as UserType, AgentPermissions } from '../../types/user';
+import { adminApi } from '../../lib/api/adminApi';
 
 export function PermissionsModal({ 
   user, 
@@ -23,7 +23,14 @@ export function PermissionsModal({
   const [overrides, setOverrides] = useState<Partial<AgentPermissions>>(user.permissions || {});
   const [isSaving, setIsSaving] = useState(false);
 
-  const effective = mockApi.getEffectivePermissions({ ...user, permissions: overrides });
+  const defaultPermissions: AgentPermissions = {
+    canViewWorkspaces: true,
+    canUploadFiles: false,
+    canDeleteFiles: false,
+    canViewApplications: true,
+    canManageApplications: true,
+  };
+  const effective = { ...defaultPermissions, ...(user.permissions || {}), ...overrides };
 
   const toggle = (key: keyof AgentPermissions) => {
     setOverrides((prev: any) => ({
@@ -34,7 +41,7 @@ export function PermissionsModal({
 
   const handleSave = async () => {
     setIsSaving(true);
-    await mockApi.updateUserPermissions(user.id, overrides);
+    await adminApi.updateUserPermissions(user.id, overrides);
     onSaved();
     setIsSaving(false);
   };

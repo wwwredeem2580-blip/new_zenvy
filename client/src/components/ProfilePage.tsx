@@ -32,7 +32,9 @@ import {
   Plus as PlusIcon
 } from "lucide-react";
 import { User } from "../types/user";
-import { applicationApi } from "../lib/api/applicationApi";
+import { applicationApi } from '../lib/api/applicationApi';
+import { validatePreviewUrl } from '../lib/utils';
+import { toast } from 'sonner';
 import { authApi } from "../lib/api/authApi";
 import { Application, ApplicationStatus, RequestedFile } from "../data/applications";
 
@@ -97,11 +99,15 @@ export default function ProfilePage() {
     try {
       const response = await applicationApi.getAttachmentPreviewUrl(selectedApp._id, attachment.url);
       if (response.success && response.previewUrl) {
-        window.open(response.previewUrl, '_blank');
+        if (!validatePreviewUrl(response.previewUrl)) {
+          toast.error("Invalid preview URL");
+          return;
+        }
+        window.open(response.previewUrl, '_blank', 'noopener,noreferrer');
       }
     } catch (error) {
       console.error("Failed to get preview URL", error);
-      alert("Error: Access denied or file not found.");
+      toast.error("Error: Access denied or file not found.");
     }
   };
 

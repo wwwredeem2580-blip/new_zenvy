@@ -58,5 +58,28 @@ export function validateFile(file: File): { valid: boolean; error?: string } {
       error: `Unsupported file format. Please select only ${ALLOWED_EXTENSIONS_DISPLAY} files.`,
     };
   }
+  
+  const MAX_SIZE_MB = 10;
+  if (file.size > MAX_SIZE_MB * 1024 * 1024) {
+    return {
+      valid: false,
+      error: `File is too large. Maximum size allowed is ${MAX_SIZE_MB}MB.`,
+    };
+  }
+  
   return { valid: true };
+}
+
+export function getAvatarUrl(nameOrEmail: string, avatarUrl?: string | null): string {
+  if (avatarUrl) return avatarUrl;
+  return `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(nameOrEmail)}`;
+}
+
+export function validatePreviewUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'https:' || parsed.protocol === 'http:';
+  } catch {
+    return false;
+  }
 }

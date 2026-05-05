@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Search, ChevronRight, FileSpreadsheet } from 'lucide-react';
 import { Application, ApplicationStatus } from '../../data/applications';
 import { ExportModal } from './ExportModal';
+import { getAvatarUrl } from '../../lib/utils';
 
 function StatusPill({ status }: { status: ApplicationStatus }) {
   const colors: Record<ApplicationStatus, string> = {
@@ -80,7 +81,7 @@ export function ApplicationsView({ applications, onSelect }: { applications: App
                           <div className="flex items-center gap-2 pr-4 border-r border-black/5">
                              <div className="w-6 h-6 rounded-full border border-black/10 overflow-hidden shrink-0">
                                 <img 
-                                   src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${app.reviewerName}${app.reviewerId}`} 
+                                   src={getAvatarUrl(app.reviewerName || 'Agent')} 
                                    alt={app.reviewerName}
                                    className="w-full h-full object-cover"
                                 />

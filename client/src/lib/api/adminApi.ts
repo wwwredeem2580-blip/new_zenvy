@@ -1,6 +1,6 @@
 import { api } from './axios';
 
-import { User } from './mockApi';
+import { User } from '../../types/user';
 
 export interface AgentWorkload {
   id: string;
@@ -45,6 +45,17 @@ export const adminApi = {
     const response = await api.patch<{ success: boolean; user: User }>(
       `/admin/users/${userId}/role`,
       { role }
+    );
+    return response.data;
+  },
+
+  /**
+   * updateUserPermissions — Overrides agent permissions.
+   */
+  updateUserPermissions: async (userId: string, permissions: any) => {
+    const response = await api.patch<{ success: boolean; user: User }>(
+      `/admin/users/${userId}/permissions`,
+      { permissions }
     );
     return response.data;
   },

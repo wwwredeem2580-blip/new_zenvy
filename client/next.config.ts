@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   
   images: {
-    domains: ['images.unsplash.com', 'picsum.photos'],
+    domains: ['images.unsplash.com', 'picsum.photos', 'lh3.googleusercontent.com'],
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],
     minimumCacheTTL: 60,
@@ -20,23 +20,7 @@ const nextConfig: NextConfig = {
   },
   // Redirects
   async redirects() {
-    return [
-      {
-        source: '/host/orders',
-        destination: '/host/dashboard',
-        permanent: true,
-      },
-      {
-        source: '/host/events',
-        destination: '/host/dashboard',
-        permanent: true,
-      },
-      {
-        source: '/host/analytics',
-        destination: '/host/dashboard',
-        permanent: true,
-      },
-    ];
+    return [];
   },
 
   // Security headers
@@ -60,6 +44,18 @@ const nextConfig: NextConfig = {
           {
             key: 'Referrer-Policy',
             value: 'origin-when-cross-origin'
+          },
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=63072000; includeSubDomains; preload'
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(self), microphone=(), geolocation=()'
+          },
+          {
+            key: 'Content-Security-Policy',
+            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; connect-src 'self' http://localhost:3001 https://www.zenvy.com.bd https://zenvy.com.bd; img-src 'self' data: https://api.dicebear.com blob: https://images.unsplash.com https://*.googleusercontent.com; style-src 'self' 'unsafe-inline'; frame-ancestors 'none';"
           },
         ],
       },
