@@ -1,6 +1,14 @@
 import mongoose, { Document, Schema } from 'mongoose';
 import { UserRole } from '../types/auth.type';
 
+export interface IAgentPermissions {
+  canViewWorkspaces: boolean;
+  canUploadFiles: boolean;
+  canDeleteFiles: boolean;
+  canViewApplications: boolean;
+  canManageApplications: boolean;
+}
+
 export interface IUser extends Document {
   firstName: string;
   lastName: string;
@@ -14,6 +22,7 @@ export interface IUser extends Document {
   googleId?: string;
   avatar?: string;
   balance: number;
+  permissions?: IAgentPermissions;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -73,6 +82,13 @@ const UserSchema = new Schema<IUser>(
     balance: {
       type: Number,
       default: 0,
+    },
+    permissions: {
+      canViewWorkspaces: { type: Boolean },
+      canUploadFiles: { type: Boolean },
+      canDeleteFiles: { type: Boolean },
+      canViewApplications: { type: Boolean },
+      canManageApplications: { type: Boolean },
     },
   },
   {

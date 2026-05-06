@@ -55,6 +55,19 @@ export const updateUserRole = async (userId: string, role: string) => {
 };
 
 /**
+ * updateUserPermissions - Overrides specific permissions for an agent.
+ */
+export const updateUserPermissions = async (userId: string, permissions: Record<string, boolean>) => {
+  const user = await User.findById(userId);
+  if (!user) throw new CustomError('User not found', 404);
+  if (user.role !== 'agent') throw new CustomError('Permissions can only be set for agents', 400);
+
+  user.permissions = { ...user.permissions, ...permissions } as any;
+  await user.save();
+  return user;
+};
+
+/**
  * addCredits - Issues balance/credits to a user.
  */
 export const addCredits = async (userId: string, amount: number) => {

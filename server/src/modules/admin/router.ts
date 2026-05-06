@@ -30,6 +30,7 @@ router.delete('/invitations/:id', requireAuth, requireRole('admin'), invitationC
 // User Management
 router.get('/users', requireAuth, requireRole('admin'), adminController.listUsers);
 router.patch('/users/:id/role', requireAuth, requireRole('admin'), adminController.updateUserRole);
+router.patch('/users/:id/permissions', requireAuth, requireRole('admin'), adminController.updateUserPermissions);
 router.post('/users/:id/credits', requireAuth, requireRole('admin'), adminController.addCredits);
 
 // Workspace Management

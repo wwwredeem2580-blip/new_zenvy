@@ -128,7 +128,7 @@ export default function AgentPage() {
     ? { canViewWorkspaces: true, canUploadFiles: true, canDeleteFiles: true, canViewApplications: true, canManageApplications: true }
     : user?.permissions || {
         canViewWorkspaces: true,
-        canUploadFiles: false,
+        canUploadFiles: true,   // agents can upload by default unless admin restricts
         canDeleteFiles: false,
         canViewApplications: true,
         canManageApplications: true,
@@ -648,7 +648,7 @@ export default function AgentPage() {
                                 </button>
                              </>
                           )}
-                          {selectedApp.reviewerId && (
+                          {selectedApp.reviewerId && user?.role === 'admin' && (
                              <button 
                                 disabled={isActionLoading}
                                 onClick={async () => {

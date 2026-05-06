@@ -42,6 +42,17 @@ export const addCredits = async (req: Request, res: Response): Promise<void> => 
   }
 };
 
+export const updateUserPermissions = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { permissions } = req.body;
+    const user = await adminService.updateUserPermissions(id as string, permissions);
+    res.status(200).json({ success: true, user });
+  } catch (error) {
+    handleError(error, res);
+  }
+};
+
 export const getAnalytics = async (_req: Request, res: Response): Promise<void> => {
   try {
     const analytics = await adminService.getDashboardAnalytics();
