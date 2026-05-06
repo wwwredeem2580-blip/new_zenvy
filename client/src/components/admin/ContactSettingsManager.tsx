@@ -38,8 +38,8 @@ const Field = ({
     <label className="text-[10px] font-black uppercase tracking-[0.2em] text-black/40">{label}</label>
     <div className="relative">
       {Icon && (
-        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-black/30 pointer-events-none z-10">
-          {typeof Icon === 'function' ? <Icon size={16} /> : Icon}
+        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-black/30 pointer-events-none z-10 flex items-center justify-center">
+          {React.isValidElement(Icon) ? Icon : <Icon size={16} />}
         </div>
       )}
       <input
