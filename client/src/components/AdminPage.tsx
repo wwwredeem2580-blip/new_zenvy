@@ -68,7 +68,7 @@ import { applicationApi } from '../lib/api/applicationApi';
 import { validatePreviewUrl } from '../lib/utils';
 import { CollapsibleSection } from './ui/CollapsibleSection';
 
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 import { validateFile } from '@/lib/utils';
@@ -88,7 +88,38 @@ export default function AdminPage() {
   }, [user, isAuthLoading, router]);
   
   const onBack = () => router.push('/');
-  const [activeTab, setActiveTab] = useState<AdminTab>('Applications');
+  
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const tabParam = searchParams.get('tab');
+
+  const validTabs: AdminTab[] = ['Overview', 'Applications', 'Users', 'Workspaces', 'Analytics', 'Services', 'Branches', 'Payment', 'Contact', 'Settings'];
+  
+  const [activeTab, setActiveTab] = useState<AdminTab>(() => {
+    if (tabParam) {
+      const found = validTabs.find(t => t.toLowerCase() === tabParam.toLowerCase());
+      if (found) return found;
+    }
+    return 'Applications';
+  });
+
+  // Sync state when URL changes (back/forward buttons)
+  useEffect(() => {
+    if (tabParam) {
+      const found = validTabs.find(t => t.toLowerCase() === tabParam.toLowerCase());
+      if (found && found !== activeTab) {
+        setActiveTab(found);
+      }
+    }
+  }, [tabParam, activeTab]);
+
+  const handleTabChange = (tab: AdminTab) => {
+    setActiveTab(tab);
+    const params = new URLSearchParams(searchParams);
+    params.set('tab', tab.toLowerCase());
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  };
+
   const [applications, setApplications] = useState<Application[]>([]);
   const [users, setUsers] = useState<UserType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -225,10 +256,11 @@ export default function AdminPage() {
         
         <nav className="flex flex-col gap-6 text-sm font-medium">
            <div className="flex flex-col gap-3">
-              <SidebarLink label="Overview" isActive={activeTab === 'Overview'} onClick={() => setActiveTab('Overview')} />
-              <SidebarLink label="Applications" isActive={activeTab === 'Applications'} onClick={() => setActiveTab('Applications')} />
-              <SidebarLink label="Users" isActive={activeTab === 'Users'} onClick={() => setActiveTab('Users')} />
-              <SidebarLink label="Workspaces" isActive={activeTab === 'Workspaces'} onClick={() => setActiveTab('Workspaces')} />
+              <div className="text-[10px] uppercase tracking-widest font-bold text-black/20 mb-1">Navigation</div>
+              <SidebarLink label="Overview" isActive={activeTab === 'Overview'} onClick={() => handleTabChange('Overview')} />
+              <SidebarLink label="Applications" isActive={activeTab === 'Applications'} onClick={() => handleTabChange('Applications')} />
+              <SidebarLink label="Users" isActive={activeTab === 'Users'} onClick={() => handleTabChange('Users')} />
+              <SidebarLink label="Workspaces" isActive={activeTab === 'Workspaces'} onClick={() => handleTabChange('Workspaces')} />
            </div>
 
            <div className="pt-6 border-t border-black/5 flex flex-col gap-3">
@@ -242,12 +274,12 @@ export default function AdminPage() {
            
             <div className="pt-6 border-t border-black/5 flex flex-col gap-3">
                <div className="text-[10px] uppercase tracking-widest font-bold text-black/20 mb-1">System</div>
-               <SidebarLink label="Services" isActive={activeTab === 'Services'} onClick={() => setActiveTab('Services')} />
-               <SidebarLink label="Branches" isActive={activeTab === 'Branches'} onClick={() => setActiveTab('Branches')} />
-               <SidebarLink label="Payment" isActive={activeTab === 'Payment'} onClick={() => setActiveTab('Payment')} />
-               <SidebarLink label="Contact Info" isActive={activeTab === 'Contact'} onClick={() => setActiveTab('Contact')} />
-               <SidebarLink label="Analytics" isActive={activeTab === 'Analytics'} onClick={() => setActiveTab('Analytics')} />
-               <SidebarLink label="Settings" isActive={activeTab === 'Settings'} onClick={() => setActiveTab('Settings')} />
+               <SidebarLink label="Services" isActive={activeTab === 'Services'} onClick={() => handleTabChange('Services')} />
+               <SidebarLink label="Branches" isActive={activeTab === 'Branches'} onClick={() => handleTabChange('Branches')} />
+               <SidebarLink label="Payment" isActive={activeTab === 'Payment'} onClick={() => handleTabChange('Payment')} />
+               <SidebarLink label="Contact Info" isActive={activeTab === 'Contact'} onClick={() => handleTabChange('Contact')} />
+               <SidebarLink label="Analytics" isActive={activeTab === 'Analytics'} onClick={() => handleTabChange('Analytics')} />
+               <SidebarLink label="Settings" isActive={activeTab === 'Settings'} onClick={() => handleTabChange('Settings')} />
             </div>
 
            <div className="pt-12">
@@ -446,15 +478,15 @@ export default function AdminPage() {
       {/* Mobile Dock Navigation */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-md border-t border-black/5 px-2 py-2 safe-area-bottom">
         <div className="flex items-center justify-around">
-          <DockItem icon={<LayoutGrid size={22} />} label="Overview" isActive={activeTab === 'Overview'} onClick={() => setActiveTab('Overview')} />
-          <DockItem icon={<FileText size={22} />} label="Apps" isActive={activeTab === 'Applications'} onClick={() => setActiveTab('Applications')} />
-          <DockItem icon={<Users size={22} />} label="Users" isActive={activeTab === 'Users'} onClick={() => setActiveTab('Users')} />
+          <DockItem icon={<LayoutGrid size={22} />} label="Overview" isActive={activeTab === 'Overview'} onClick={() => handleTabChange('Overview')} />
+          <DockItem icon={<FileText size={22} />} label="Apps" isActive={activeTab === 'Applications'} onClick={() => handleTabChange('Applications')} />
+          <DockItem icon={<Users size={22} />} label="Users" isActive={activeTab === 'Users'} onClick={() => handleTabChange('Users')} />
           <DockItem icon={<UserPlus size={22} />} label="Invite" isActive={isInviteModalOpen} onClick={() => setIsInviteModalOpen(true)} />
-          <DockItem icon={<Folder size={22} />} label="Workspaces" isActive={activeTab === 'Workspaces'} onClick={() => setActiveTab('Workspaces')} />
-          <DockItem icon={<Settings2 size={22} />} label="Services" isActive={activeTab === 'Services'} onClick={() => setActiveTab('Services')} />
-          <DockItem icon={<MapPin size={22} />} label="Branches" isActive={activeTab === 'Branches'} onClick={() => setActiveTab('Branches')} />
-          <DockItem icon={<BarChart3 size={22} />} label="Stats" isActive={activeTab === 'Analytics'} onClick={() => setActiveTab('Analytics')} />
-          <DockItem icon={<Settings2 size={22} />} label="Settings" isActive={activeTab === 'Settings'} onClick={() => setActiveTab('Settings')} />
+          <DockItem icon={<Folder size={22} />} label="Workspaces" isActive={activeTab === 'Workspaces'} onClick={() => handleTabChange('Workspaces')} />
+          <DockItem icon={<Settings2 size={22} />} label="Services" isActive={activeTab === 'Services'} onClick={() => handleTabChange('Services')} />
+          <DockItem icon={<MapPin size={22} />} label="Branches" isActive={activeTab === 'Branches'} onClick={() => handleTabChange('Branches')} />
+          <DockItem icon={<BarChart3 size={22} />} label="Stats" isActive={activeTab === 'Analytics'} onClick={() => handleTabChange('Analytics')} />
+          <DockItem icon={<Settings2 size={22} />} label="Settings" isActive={activeTab === 'Settings'} onClick={() => handleTabChange('Settings')} />
         </div>
       </nav>
 
