@@ -59,6 +59,7 @@ import { RequestFileModal } from './admin/RequestFileModal';
 import { ServicesView } from './admin/ServicesView';
 import BranchesManager from './admin/BranchesManager';
 import PaymentSettingsManager from './admin/PaymentSettingsManager';
+import ContactSettingsManager from './admin/ContactSettingsManager';
 import { Application, ApplicationStatus, RequestedFile } from '../data/applications';
 import { Workspace, WorkspacePermission, FileRecord, AgentPermissions } from '../types/user';
 import { User as UserType } from '../types/user';
@@ -72,7 +73,7 @@ import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 import { validateFile } from '@/lib/utils';
 
-type AdminTab = 'Overview' | 'Applications' | 'Users' | 'Workspaces' | 'Analytics' | 'Services' | 'Branches' | 'Payment' | 'Settings';
+type AdminTab = 'Overview' | 'Applications' | 'Users' | 'Workspaces' | 'Analytics' | 'Services' | 'Branches' | 'Payment' | 'Contact' | 'Settings';
 
 export default function AdminPage() {
   const router = useRouter();
@@ -244,6 +245,7 @@ export default function AdminPage() {
                <SidebarLink label="Services" isActive={activeTab === 'Services'} onClick={() => setActiveTab('Services')} />
                <SidebarLink label="Branches" isActive={activeTab === 'Branches'} onClick={() => setActiveTab('Branches')} />
                <SidebarLink label="Payment" isActive={activeTab === 'Payment'} onClick={() => setActiveTab('Payment')} />
+               <SidebarLink label="Contact Info" isActive={activeTab === 'Contact'} onClick={() => setActiveTab('Contact')} />
                <SidebarLink label="Analytics" isActive={activeTab === 'Analytics'} onClick={() => setActiveTab('Analytics')} />
                <SidebarLink label="Settings" isActive={activeTab === 'Settings'} onClick={() => setActiveTab('Settings')} />
             </div>
@@ -294,6 +296,8 @@ export default function AdminPage() {
                {activeTab === 'Overview' && "Real-time metrics and system health indicators at a glance."}
                 {activeTab === 'Services' && "Define dynamic document requirements and pricing for all available services."}
                 {activeTab === 'Branches' && "Manage office locations, working hours, and set the main branch displayed to clients."}
+                {activeTab === 'Payment' && "Configure payment methods, IBAN, Revolut details, and upload QR codes."}
+                {activeTab === 'Contact' && "Manage the public contact page: WhatsApp number, support email, and phone."}
              </p>
 
              {activeTab === 'Applications' && (
@@ -382,6 +386,9 @@ export default function AdminPage() {
                    )}
                    {activeTab === 'Payment' && (
                         <PaymentSettingsManager />
+                   )}
+                   {activeTab === 'Contact' && (
+                        <ContactSettingsManager />
                    )}
                    {activeTab === 'Settings' && (
                      <div className="space-y-12 py-12">
