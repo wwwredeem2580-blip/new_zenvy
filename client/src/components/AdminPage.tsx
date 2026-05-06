@@ -5,7 +5,7 @@
 
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   X, 
@@ -95,26 +95,16 @@ export default function AdminPage() {
 
   const validTabs: AdminTab[] = ['Overview', 'Applications', 'Users', 'Workspaces', 'Analytics', 'Services', 'Branches', 'Payment', 'Contact', 'Settings'];
   
-  const [activeTab, setActiveTab] = useState<AdminTab>(() => {
+  // Single source of truth: the URL
+  const activeTab = useMemo(() => {
     if (tabParam) {
       const found = validTabs.find(t => t.toLowerCase() === tabParam.toLowerCase());
       if (found) return found;
     }
     return 'Applications';
-  });
-
-  // Sync state when URL changes (back/forward buttons)
-  useEffect(() => {
-    if (tabParam) {
-      const found = validTabs.find(t => t.toLowerCase() === tabParam.toLowerCase());
-      if (found && found !== activeTab) {
-        setActiveTab(found);
-      }
-    }
-  }, [tabParam, activeTab]);
+  }, [tabParam]);
 
   const handleTabChange = (tab: AdminTab) => {
-    setActiveTab(tab);
     const params = new URLSearchParams(searchParams);
     params.set('tab', tab.toLowerCase());
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
