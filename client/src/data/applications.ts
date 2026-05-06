@@ -23,9 +23,11 @@ export interface ActivityLogEntry {
 }
 
 export interface Note {
+  _id?: string;
   id: string;
   authorId: string;
   authorName: string;
+  authorAvatar?: string;
   text: string;
   createdAt: string;
   updatedAt?: string;
@@ -75,6 +77,7 @@ export interface Application {
   selectedServices: SubService[];
   reviewerId?: string;
   reviewerName?: string;
+  reviewerAvatar?: string;
   lastActivityAt?: string;
   refundAmount?: number;
   refundType?: 'Full' | 'Partial';

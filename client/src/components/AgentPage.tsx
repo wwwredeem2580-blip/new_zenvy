@@ -55,7 +55,8 @@ import { CollapsibleSection } from './ui/CollapsibleSection';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
-import { validatePreviewUrl, getAvatarUrl, validateFile } from "@/lib/utils";
+import { validatePreviewUrl, validateFile } from "@/lib/utils";
+import UserAvatar from "./ui/UserAvatar";
 
 export default function AgentPage() {
   const router = useRouter();
@@ -257,9 +258,12 @@ export default function AgentPage() {
             </div>
             
             <div className="bg-white px-6 py-2 rounded-[16px] shadow-sm border border-black/5 flex items-center gap-6 min-w-[300px]">
-               <div className="w-12 h-12 border border-black/10 rounded-2xl flex items-center justify-center font-bold text-lg uppercase overflow-hidden">
-                  <img src={getAvatarUrl(user.firstName || user.email, user.avatar)} alt={user.email} className="w-full h-full object-cover"/>
-               </div>
+               <UserAvatar 
+                 name={user.firstName || user.email} 
+                 src={user.avatar} 
+                 size={48} 
+                 className="rounded-2xl border border-black/10"
+               />
                <div className="flex flex-col">
                   <span className="text-sm font-bold">{user.firstName} {user.lastName}</span>
                   <span className="text-[10px] text-black/40 font-bold uppercase tracking-widest leading-tight">
@@ -453,13 +457,12 @@ export default function AgentPage() {
                                     {app.status === 'Reviewing' && app.reviewerId && (
                                        <div className="flex items-center gap-2 pr-4 border-r border-black/5">
                                           <div className="flex items-center -space-x-1">
-                                             <div className="w-8 h-8 rounded-full border border-black/10 overflow-hidden bg-black/5 mr-3 shrink-0">
-                                                   <img 
-                                                   src={getAvatarUrl(app.reviewerName || 'Agent')} 
-                                                   alt="Agent" 
-                                                   className="w-full h-full object-cover" 
-                                                   />
-                                                </div>
+                                             <UserAvatar 
+                                               name={app.reviewerName || 'Agent'} 
+                                               src={app.reviewerAvatar} 
+                                               size={32} 
+                                               className="mr-3 shrink-0"
+                                             />
                                           </div>
                                           <div className="bg-blue-500/10 text-blue-600 px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-tight pl-3 border border-blue-500/10">
                                              {app.reviewerName?.split(' ')[0]}

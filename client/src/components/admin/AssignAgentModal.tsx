@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { X, UserPlus, Check, Users, Loader2, AlertCircle, ChevronRight } from 'lucide-react';
 import { adminApi, AgentWorkload } from '../../lib/api/adminApi';
 import { applicationApi } from '../../lib/api/applicationApi';
-import { getAvatarUrl } from '../../lib/utils';
+import UserAvatar from '../ui/UserAvatar';
 
 interface AssignAgentModalProps {
   applicationId: string;
@@ -92,13 +92,12 @@ export function AssignAgentModal({ applicationId, onClose, onAssigned }: AssignA
                  className="w-full flex items-center justify-between p-6 bg-black/[0.02] border border-black/10 rounded-sm hover:bg-white hover:border-black/30 hover:shadow-2xl transition-all group pointer-events-auto"
                >
                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-sm bg-white border border-black/10 overflow-hidden shadow-sm shrink-0 flex items-center justify-center">
-                       <img 
-                          src={getAvatarUrl(agent.firstName || agent.email, (agent as any).avatar)} 
-                          alt={agent.firstName}
-                          className="w-full h-full object-cover"
-                       />
-                    </div>
+                    <UserAvatar 
+                      name={agent.firstName || agent.email} 
+                      src={agent.avatar} 
+                      size={48} 
+                      className="rounded-sm border border-black/10 shadow-sm shrink-0"
+                    />
                     <div className="text-left">
                        <span className="block font-bold text-sm">{agent.firstName} {agent.lastName}</span>
                        <span className="block text-[8px] uppercase tracking-widest font-bold text-black/30">{agent.email}</span>

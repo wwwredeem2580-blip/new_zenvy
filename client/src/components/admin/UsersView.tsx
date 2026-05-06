@@ -9,7 +9,7 @@ import React, { useState } from 'react';
 import { Search, TrendingUp, Shield, User, Clock, X } from 'lucide-react';
 import { User as UserType } from '../../types/user';
 import { adminApi } from '../../lib/api/adminApi';
-import { getAvatarUrl } from '../../lib/utils';
+import UserAvatar from '../ui/UserAvatar';
 
 type RoleFilter = 'all' | 'client' | 'agent' | 'admin';
 
@@ -127,9 +127,12 @@ export function UsersView({
              >
                 <div className="flex items-center gap-10">
                    <div className="relative">
-                      <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-lg uppercase overflow-hidden">
-                         <img src={getAvatarUrl(user.firstName || user.email, (user as any).avatar)} alt={user.email} className="w-full h-full object-cover"/>
-                      </div>
+                      <UserAvatar 
+                        name={user.firstName || user.email} 
+                        src={user.avatar} 
+                        size={32} 
+                        className="rounded-lg"
+                      />
                       {user.role === 'admin' && (
                          <div className="absolute -top-1 -right-1 w-5 h-5 bg-yellow-400 border-2 border-white rounded-full flex items-center justify-center">
                             <Shield size={10} className="text-white" />

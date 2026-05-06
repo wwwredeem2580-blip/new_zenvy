@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { User } from "@/types/user";
-import { getAvatarUrl } from "@/lib/utils";
+import UserAvatar from "../ui/UserAvatar";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -74,9 +74,11 @@ export default function Navbar() {
                 className="flex items-center gap-2 p-1 pl-3 bg-black/5 rounded-full border border-black/5 hover:bg-black/10 transition-colors"
               >
                 <span className="text-[10px] font-bold uppercase tracking-widest hidden sm:block">{user.firstName}</span>
-                <div className="w-8 h-8 rounded-full border border-black/10 flex items-center justify-center text-xs font-bold overflow-hidden">
-                  <img src={getAvatarUrl(user.firstName || user.email, user.avatar)} alt={user.email} className="w-full h-full object-cover"/>
-                </div>
+                <UserAvatar 
+                  name={user.firstName || user.email} 
+                  src={user.avatar} 
+                  size={32} 
+                />
               </button>
               
               <AnimatePresence>
