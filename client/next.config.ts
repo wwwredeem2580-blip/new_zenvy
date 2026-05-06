@@ -55,7 +55,7 @@ const nextConfig: NextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; connect-src 'self' http://localhost:3001 https://www.zenvy.com.bd https://zenvy.com.bd; img-src 'self' data: https://api.dicebear.com blob: https://images.unsplash.com https://*.googleusercontent.com; style-src 'self' 'unsafe-inline'; frame-ancestors 'none';"
+            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://static.cloudflareinsights.com; connect-src 'self' http://localhost:3001 ws://localhost:3001 https://smartcaf.tech wss://smartcaf.tech https://cloudflareinsights.com; img-src 'self' data: https://api.dicebear.com blob: https://images.unsplash.com https://*.googleusercontent.com https://*.backblazeb2.com; style-src 'self' 'unsafe-inline'; frame-ancestors 'none';"
           },
         ],
       },
