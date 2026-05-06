@@ -105,6 +105,7 @@ export default function AgentPage() {
   const [requestFileName, setRequestFileName] = useState("");
   const [requestFileNote, setRequestFileNote] = useState("");
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const wsFileInputRef = React.useRef<HTMLInputElement>(null);
 
   const handleViewAttachment = async (attachment: any) => {
     if (!selectedApp) return;
@@ -179,18 +180,20 @@ export default function AgentPage() {
     loadFiles((ws._id || ws.id) as string);
   };
 
-  const handleFileUpload = async (fileName: string) => {
+  const handleFileUpload = async (file: File) => {
     if (!selectedWorkspace || selectedWorkspace.permission === 'Read-only' || !permissions.canUploadFiles) return;
     setIsUploading(true);
     try {
-      const dummyFile = new File(["dummy content"], fileName, { type: "text/plain" });
-      const response = await adminApi.uploadFile((selectedWorkspace._id || selectedWorkspace.id) as string, dummyFile);
+      const response = await adminApi.uploadFile((selectedWorkspace._id || selectedWorkspace.id) as string, file);
       setWorkspaceFiles(prev => [response.file, ...prev]);
+      toast.success(`"${file.name}" uploaded successfully.`);
     } catch (e: any) {
       console.error(e);
-      alert("Failed to upload: " + (e.response?.data?.message || e.message));
+      toast.error("Failed to upload: " + (e.response?.data?.message || e.message));
     } finally {
       setIsUploading(false);
+      // Reset so same file can be re-uploaded if needed
+      if (wsFileInputRef.current) wsFileInputRef.current.value = '';
     }
   };
 
@@ -322,13 +325,25 @@ export default function AgentPage() {
                   </div>
 
                   {selectedWorkspace.permission !== 'Read-only' && permissions.canUploadFiles && (
-                     <button 
-                        onClick={() => handleFileUpload(`Agent_Upload_${Math.floor(Math.random()*100)}.pdf`)}
-                        disabled={isUploading}
-                        className="px-6 py-2 bg-black text-white rounded-xl font-bold text-sm shadow-xl hover:scale-105 transition-all disabled:opacity-20 flex items-center gap-2"
-                     >
-                        <UploadCloudIcon size={16} /> {isUploading ? "Uploading..." : "Add File"}
-                     </button>
+                     <>
+                       <input
+                         type="file"
+                         className="hidden"
+                         ref={wsFileInputRef}
+                         accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx,.txt"
+                         onChange={(e) => {
+                           const file = e.target.files?.[0];
+                           if (file) handleFileUpload(file);
+                         }}
+                       />
+                       <button 
+                          onClick={() => wsFileInputRef.current?.click()}
+                          disabled={isUploading}
+                          className="px-6 py-2 bg-black text-white rounded-xl font-bold text-sm shadow-xl hover:scale-105 transition-all disabled:opacity-20 flex items-center gap-2"
+                       >
+                          <UploadCloudIcon size={16} /> {isUploading ? "Uploading..." : "Add File"}
+                       </button>
+                     </>
                   )}
                </div>
 
