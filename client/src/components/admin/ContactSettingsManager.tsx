@@ -23,10 +23,10 @@ const Field = ({
   icon?: any;
 }) => (
   <div className="space-y-1.5">
-    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-text/50">{label}</label>
+    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-black/40">{label}</label>
     <div className="relative">
       {Icon && (
-        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-text/30">
+        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-black/30 pointer-events-none z-10">
           <Icon size={16} />
         </div>
       )}
@@ -35,10 +35,10 @@ const Field = ({
         value={value}
         onChange={(e) => onChange(name, e.target.value)}
         placeholder={placeholder}
-        className={`w-full bg-bg border border-border rounded-xl py-3 text-sm focus:outline-none focus:border-text/30 transition-all placeholder:opacity-30 font-medium ${Icon ? "pl-11 pr-4" : "px-4"}`}
+        className={`w-full bg-black/[0.03] border border-black/5 rounded-xl py-3 text-sm focus:outline-none focus:border-black/20 transition-all placeholder:opacity-30 font-medium ${Icon ? "pl-12 pr-4" : "px-4"}`}
       />
     </div>
-    {hint && <p className="text-[10px] text-text/40">{hint}</p>}
+    {hint && <p className="text-[10px] text-black/30">{hint}</p>}
   </div>
 );
 
@@ -83,7 +83,7 @@ export default function ContactSettingsManager() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-24">
-        <Loader2 size={24} className="animate-spin text-text/30" />
+        <Loader2 size={24} className="animate-spin text-black/10" />
       </div>
     );
   }
@@ -92,10 +92,10 @@ export default function ContactSettingsManager() {
     <div className="space-y-8 max-w-2xl">
       <div>
         <h2 className="text-2xl font-space font-bold tracking-tighter">Contact Settings</h2>
-        <p className="text-sm text-text/50 mt-1">Manage the contact information shown publicly on the "Contact Us" page.</p>
+        <p className="text-sm text-black/50 mt-1">Manage the contact information shown publicly on the "Contact Us" page.</p>
       </div>
 
-      <div className="bg-surface border border-border rounded-[24px] p-6 space-y-6">
+      <div className="bg-white border border-black/5 rounded-[24px] p-6 space-y-6">
         <div className="space-y-5">
           <Field
             label="WhatsApp Number"
@@ -127,14 +127,14 @@ export default function ContactSettingsManager() {
         </div>
       </div>
 
-      <div className="flex justify-end border-t border-border pt-6">
+      <div className="flex justify-end border-t border-black/5 pt-6">
         <button
           onClick={handleSave}
           disabled={isSaving || saved}
           className={`flex items-center gap-2 px-8 py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-all ${
             saved
               ? "bg-green-500 text-white"
-              : "bg-black text-white hover:scale-105 active:scale-95"
+              : "bg-black text-white hover:scale-105 active:scale-95 shadow-xl shadow-black/10"
           }`}
         >
           {isSaving ? (

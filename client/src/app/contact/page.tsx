@@ -12,7 +12,7 @@ import {
   ChevronRight,
   Globe,
 } from "lucide-react";
-import api from "@/lib/api/axios";
+import { api } from "@/lib/api/axios";
 
 interface ContactSettings {
   whatsappNumber: string;
@@ -39,9 +39,6 @@ function buildWhatsappLink(phone: string): string {
   );
   return `https://wa.me/${cleaned}?text=${message}`;
 }
-
-const shimmer =
-  "bg-gradient-to-r from-black/5 via-black/8 to-black/5 bg-[length:200%_100%] animate-[shimmer_1.5s_infinite]";
 
 function BranchCard({ branch, index }: { branch: Branch; index: number }) {
   return (
@@ -157,13 +154,14 @@ export default function ContactPage() {
               transition={{ delay: 0.1 }}
             >
               {loading || !settings ? (
-                <div className={`h-52 rounded-[28px] ${shimmer}`} />
+                <div className="h-52 rounded-[28px] bg-black/5 animate-pulse" />
               ) : (
                 <a
                   href={buildWhatsappLink(settings.whatsappNumber)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group flex flex-col justify-between h-full bg-[#25D366] text-white rounded-[28px] p-8 hover:scale-[1.02] hover:shadow-2xl hover:shadow-green-500/20 transition-all duration-300 cursor-pointer"
+                  style={{ backgroundColor: '#25D366' }}
+                  className="group flex flex-col justify-between h-full text-white rounded-[28px] p-8 hover:scale-[1.02] hover:shadow-2xl hover:shadow-green-500/20 transition-all duration-300 cursor-pointer"
                 >
                   <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
                     <MessageCircle size={24} />
@@ -193,7 +191,7 @@ export default function ContactPage() {
               transition={{ delay: 0.2 }}
             >
               {loading || !settings ? (
-                <div className={`h-52 rounded-[28px] ${shimmer}`} />
+                <div className="h-52 rounded-[28px] bg-black/5 animate-pulse" />
               ) : (
                 <a
                   href={`mailto:${settings.supportEmail}`}
@@ -227,7 +225,7 @@ export default function ContactPage() {
               transition={{ delay: 0.3 }}
             >
               {loading || !settings ? (
-                <div className={`h-52 rounded-[28px] ${shimmer}`} />
+                <div className="h-52 rounded-[28px] bg-black/5 animate-pulse" />
               ) : (
                 <a
                   href={`tel:${settings.supportPhone}`}
@@ -272,7 +270,7 @@ export default function ContactPage() {
           {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {[1, 2, 3, 4].map((i) => (
-                <div key={i} className={`h-56 rounded-[28px] ${shimmer}`} />
+                <div key={i} className="h-56 rounded-[28px] bg-black/5 animate-pulse" />
               ))}
             </div>
           ) : branches.length === 0 ? (
