@@ -58,7 +58,7 @@ export const createInvitation = async (data: { email: string; role: 'agent' | 'a
  * listInvitations - Retrieves all invitations.
  */
 export const listInvitations = async () => {
-  return Invitation.find().sort({ createdAt: -1 });
+  return Invitation.find({ status: 'Pending' }).sort({ createdAt: -1 });
 };
 
 /**
