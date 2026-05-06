@@ -162,7 +162,7 @@ export default function ContactPage() {
                   style={{ backgroundColor: '#25D366' }}
                   className="group flex flex-col justify-between h-full text-white rounded-[28px] p-8 hover:scale-[1.02] hover:shadow-2xl hover:shadow-green-500/20 transition-all duration-300 cursor-pointer"
                 >
-                  <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
+                  <div className="w-12 h-12 mb-3 bg-white/20 rounded-2xl flex items-center justify-center">
                     <svg 
                       viewBox="0 0 24 24" 
                       className="w-7 h-7 fill-current"
