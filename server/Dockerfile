@@ -9,8 +9,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install all dependencies
-RUN npm config set fetch-retry-maxtimeout 600000 && \
-    npm ci
+RUN npm install
 
 # ==============================
 # 2️⃣ Development stage
@@ -54,9 +53,10 @@ RUN apk add --no-cache curl
 
 # Copy only the build output and package files
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/package*.json ./
+
 # Install only production dependencies
-RUN npm config set fetch-retry-maxtimeout 600000 && \
-    npm ci --omit=dev
+RUN npm install --omit=dev
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \

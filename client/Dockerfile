@@ -7,8 +7,7 @@ WORKDIR /src
 COPY package*.json ./
 
 # Install all dependencies
-RUN npm config set fetch-retry-maxtimeout 600000 && \
-    npm ci
+RUN npm install
 
 # Development stage
 FROM base AS development
@@ -66,8 +65,7 @@ COPY --from=builder /src/package*.json ./
 COPY --from=builder /src/next.config.* ./
 
 # Install only production dependencies
-RUN npm config set fetch-retry-maxtimeout 600000 && \
-    npm ci --omit=dev
+RUN npm install --omit=dev
 
 # Change ownership to node user (IMPORTANT: Do this AFTER installing packages)
 RUN chown -R node:node /src
