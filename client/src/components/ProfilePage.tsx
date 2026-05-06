@@ -312,6 +312,12 @@ export default function ProfilePage() {
                   </div>
                   <div className="flex flex-col items-end gap-2 sm:gap-3 flex-shrink-0">
                     <StatusBadge status={app.status} />
+                    {app.requestedFiles?.some(rf => rf.status === 'Pending') && (
+                      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-red-200 bg-red-50 text-red-600 text-[8px] font-bold uppercase tracking-widest">
+                        <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                        Action Required
+                      </div>
+                    )}
                     {app.paymentMethod && (
                        <div className={`px-2 py-0.5 rounded-lg border text-[8px] font-bold uppercase tracking-widest ${app.paymentStatus === 'Received' ? 'bg-green-500/10 text-green-600 border-green-500/20' : 'bg-orange-500/10 text-orange-600 border-orange-500/20'}`}>
                           {app.paymentMethod} • {app.paymentStatus}
@@ -517,6 +523,44 @@ export default function ProfilePage() {
                                         </div>
                                     ))}
                                     
+                                    {/* Custom file requests from agents/admins not tied to service requirements */}
+                                    {requests
+                                      .filter(rf => rf.status === 'Pending' && !reqList.some(r => r.label === rf.name))
+                                      .map((rf, i) => (
+                                        <div key={`custom-req-${i}`} className="p-5 rounded-[24px] border-2 border-dashed border-red-200 bg-red-50 transition-all">
+                                          <div className="flex items-start justify-between gap-4">
+                                            <div className="space-y-1">
+                                              <div className="flex items-center gap-2">
+                                                <span className="text-xs font-bold uppercase tracking-tight text-red-900">
+                                                  Action Required: {rf.name}
+                                                </span>
+                                              </div>
+                                              {rf.note && (
+                                                <p className="text-[10px] font-medium leading-relaxed text-red-700/60">
+                                                  &ldquo;{rf.note}&rdquo;
+                                                </p>
+                                              )}
+                                              <p className="text-[8px] font-bold uppercase tracking-widest text-red-400">
+                                                Requested on {new Date(rf.requestedAt).toLocaleDateString()}
+                                              </p>
+                                            </div>
+                                            <div className="w-10 h-10 rounded-xl bg-red-500 text-white flex items-center justify-center animate-pulse flex-shrink-0">
+                                              <Upload size={18} />
+                                            </div>
+                                          </div>
+                                          <button
+                                            onClick={() => {
+                                              // Generic upload, backend handles matching by name
+                                              fileInputRef.current?.click();
+                                            }}
+                                            className="mt-4 w-full py-2.5 rounded-xl text-[9px] font-bold uppercase tracking-widest transition-all bg-red-500 text-white hover:bg-red-600 shadow-lg shadow-red-500/20"
+                                          >
+                                            Upload {rf.name}
+                                          </button>
+                                        </div>
+                                      ))
+                                    }
+
                                     {/* Generic Upload for supplemental docs */}
                                     {(selectedApp.status === "Pending" || selectedApp.status === "Reviewing") && (
                                         <>

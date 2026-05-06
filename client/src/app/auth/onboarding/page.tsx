@@ -16,7 +16,7 @@ function OnboardingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
-  const { setUser } = useAuth();
+  const { user, logout, setUser } = useAuth();
 
   const [invitation, setInvitation] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -31,13 +31,19 @@ function OnboardingContent() {
   });
 
   useEffect(() => {
-    if (!token) {
-      setError("No invitation token found.");
-      setLoading(false);
-      return;
-    }
+    const init = async () => {
+      // If a user is already logged in, clear their session to avoid role/account overlap
+      if (user) {
+        await logout();
+        return;
+      }
 
-    const verify = async () => {
+      if (!token) {
+        setError("No invitation token found.");
+        setLoading(false);
+        return;
+      }
+
       try {
         const res = await authApi.verifyInvitation(token);
         if (res.success) {
@@ -50,8 +56,8 @@ function OnboardingContent() {
       }
     };
 
-    verify();
-  }, [token]);
+    init();
+  }, [token, user, logout]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
