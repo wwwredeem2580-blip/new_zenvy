@@ -7,14 +7,16 @@ interface ApplicationUpdatePayload {
   email: string;
   name: string;
   applicationId: string;
-  updateType: 'PAYMENT_APPROVED' | 'PAYMENT_REJECTED' | 'STATUS_UPDATED' | 'AGENT_ASSIGNED';
+  updateType: 'PAYMENT_APPROVED' | 'PAYMENT_REJECTED' | 'STATUS_UPDATED' | 'AGENT_ASSIGNED' | 'DOCUMENT_REQUESTED';
   newStatus?: string;
   agentName?: string;
   services?: string[];
+  documentName?: string;
+  requestNote?: string;
 }
 
 export function applicationUpdateTemplate(payload: ApplicationUpdatePayload): string {
-  const { email, name, applicationId, updateType, newStatus, agentName, services } = payload;
+  const { email, name, applicationId, updateType, newStatus, agentName, services, documentName, requestNote } = payload;
   const displayName = (name && name !== 'undefined' && name !== 'undefined undefined') ? name.split(' ')[0] : 'there';
   const logoUrl = 'https://ik.imagekit.io/pinecone/SmartCaf/smartcaf_dark.png?updatedAt=1777571162166';
 
@@ -42,6 +44,11 @@ export function applicationUpdateTemplate(payload: ApplicationUpdatePayload): st
       title = 'Review Started';
       message = `Your application <strong style="color: #000000;">#${applicationId}</strong> is now being processed by <strong style="color: #000000;">${agentName}</strong>. You'll hear from us soon.`;
       accentColor = '#F59E0B';
+      break;
+    case 'DOCUMENT_REQUESTED':
+      title = 'Action Required';
+      message = `Our team requires an additional document to process your application <strong style="color: #000000;">#${applicationId}</strong>.<br><br><strong>Requested Document:</strong> ${documentName}<br>${requestNote ? `<strong>Note from agent:</strong> <em>"${requestNote}"</em><br><br>` : ''}Please log in to your dashboard to upload this file as soon as possible so we can continue processing your request.`;
+      accentColor = '#F43F5E';
       break;
   }
 
@@ -83,7 +90,7 @@ export function applicationUpdateTemplate(payload: ApplicationUpdatePayload): st
       <p class="text">Hi ${displayName},<br><br>${message}</p>
       
       <div class="cta-container">
-        <a href="${process.env.CLIENT_URL || 'https://smartcaf.it'}/profile" class="cta-button" style="color: #ffffff !important;">View Details →</a>
+        <a href="${process.env.CLIENT_URL || 'https://smartcaf.tech'}/profile" class="cta-button" style="color: #ffffff !important;">View Details →</a>
       </div>
     </div>
     <div class="footer">
