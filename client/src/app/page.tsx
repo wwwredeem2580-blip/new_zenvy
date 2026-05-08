@@ -185,12 +185,12 @@ export default function Home() {
             />
           </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-2">
+          <div className="flex flex-nowrap sm:flex-wrap items-center sm:justify-center gap-2 overflow-x-auto pb-1 sm:pb-0 hide-scrollbar">
             {categories.map((cat) => (
               <button
                 key={cat.id}
                 onClick={() => setSelectedCategory(cat.id)}
-                className={`px-6 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${
+                className={`px-6 ml-2 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all whitespace-nowrap shrink-0 ${
                   selectedCategory === cat.id 
                     ? "bg-black text-white shadow-lg shadow-black/20 scale-105" 
                     : "bg-black/5 text-black/40 hover:bg-black/10 hover:text-black"
