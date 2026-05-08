@@ -207,20 +207,20 @@ export default function Home() {
             filteredServices.map((sub, i) => (
               <div 
                 key={i} 
-                className="bg-white border-b border-black/10 p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 hover:border-black/30 hover:shadow-2xl hover:shadow-black/5 transition-all group animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both"
+                className="bg-white border-b border-black/10 p-2 sm:p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 hover:border-black/30 hover:shadow-2xl hover:shadow-black/5 transition-all group animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both"
                 style={{ animationDelay: `${i * 50}ms` }}
               >
                 <div className="flex items-center gap-5 flex-1">
-                  <div className="w-14 h-14 bg-black/5 rounded-2xl flex items-center justify-center text-black shrink-0 group-hover:scale-110 transition-transform">
+                  <div className="w-12 sm:w-14 h-12 sm:h-14 bg-black/5 rounded-2xl flex items-center justify-center text-black shrink-0 group-hover:scale-110 transition-transform">
                     <FileSliders className="text-black" />
                   </div>
                   <div className="space-y-1.5">
                     <div className="flex items-center gap-2">
-                      <span className="text-[9px] font-black uppercase tracking-[0.2em] text-black/20 bg-black/[0.03] px-2 py-0.5 rounded-sm">
+                      <span className="text-[9px] font-black uppercase tracking-[0.2em] text-black/60 bg-black/[0.03] px-2 py-0.5 rounded-sm">
                         {sub.categoryName}
                       </span>
                     </div>
-                    <h4 className="font-bold text-xl text-black leading-tight">{sub.name}</h4>
+                    <h4 className="font-bold text-lg sm:text-xl text-black leading-tight">{sub.name}</h4>
                     <div className="flex flex-wrap items-center gap-4 text-[10px] font-bold text-black/40 uppercase tracking-widest">
                       <div className="flex items-center gap-1.5">
                         <MapPin size={14} className="text-black/20" /> {mainBranch?.address || 'Italy'}
@@ -233,7 +233,7 @@ export default function Home() {
                 </div>
                 
                 <div className="flex flex-row md:flex-col items-center md:items-end justify-between md:justify-center gap-4 shrink-0 border-t md:border-t-0 border-black/5 pt-4 md:pt-0">
-                  <div className="text-right">
+                  <div className="text-left">
                     <div className="text-[10px] uppercase tracking-widest text-black/40 font-bold">Standard Fee</div>
                     <div className="text-2xl font-space font-bold text-black">
                       {sub.price === 0 ? "FREE" : `€${sub.price}`}
