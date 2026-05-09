@@ -80,6 +80,7 @@ export const updatePaymentStatus = async (req: Request, res: Response): Promise<
     const actor = {
       name: `${(req as any).user.firstName} ${(req as any).user.lastName}`,
       id: (req as any).user.userId,
+      role: (req as any).user.role,
     };
 
     const application = await applicationService.updatePaymentStatus(id as string, status, actor);
@@ -96,6 +97,7 @@ export const assignAgent = async (req: Request, res: Response): Promise<void> =>
     const actor = {
       name: `${(req as any).user.firstName} ${(req as any).user.lastName}`,
       id: (req as any).user.userId,
+      role: (req as any).user.role,
     };
 
     const application = await applicationService.assignApplication(id as string, agentId, actor);
@@ -112,6 +114,7 @@ export const updateStatus = async (req: Request, res: Response): Promise<void> =
     const actor = {
       name: `${(req as any).user.firstName} ${(req as any).user.lastName}`,
       id: (req as any).user.userId,
+      role: (req as any).user.role,
     };
 
     const application = await applicationService.updateStatus(id as string, status, actor);
@@ -127,6 +130,7 @@ export const unassignAgent = async (req: Request, res: Response): Promise<void> 
     const actor = {
       name: `${(req as any).user.firstName} ${(req as any).user.lastName}`,
       id: (req as any).user.userId,
+      role: (req as any).user.role,
     };
 
     const application = await applicationService.unassignApplication(id as string, actor);
@@ -177,6 +181,7 @@ export const requestFile = async (req: Request, res: Response): Promise<void> =>
     const actor = {
       name: `${(req as any).user.firstName} ${(req as any).user.lastName}`,
       id: (req as any).user.userId,
+      role: (req as any).user.role,
     };
 
     const application = await applicationService.requestFile(id as string, { name, note }, actor);

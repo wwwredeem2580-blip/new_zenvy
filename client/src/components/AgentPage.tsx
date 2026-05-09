@@ -45,6 +45,8 @@ import { InternalNotes } from './admin/InternalNotes';
 import { AssignAgentModal } from './admin/AssignAgentModal';
 import { ActivityTimeline } from './admin/ActivityTimeline';
 import { RequestFileModal } from './admin/RequestFileModal';
+import { UserLookupModal } from './agent/UserLookupModal';
+import { SubmitOnBehalfModal } from './agent/SubmitOnBehalfModal';
 import { Application, ApplicationStatus, RequestedFile } from "../data/applications";
 import { adminApi } from '../lib/api/adminApi';
 import { applicationApi } from '../lib/api/applicationApi';
@@ -100,6 +102,9 @@ export default function AgentPage() {
 
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
+  const [isUserLookupOpen, setIsUserLookupOpen] = useState(false);
+  const [isSubmitOnBehalfOpen, setIsSubmitOnBehalfOpen] = useState(false);
+  const [selectedUserForSubmission, setSelectedUserForSubmission] = useState<any>(null);
   const [isDocsExpanded, setIsDocsExpanded] = useState(false);
   const [isActionLoading, setIsActionLoading] = useState(false);
   const [requestFileName, setRequestFileName] = useState("");
@@ -295,6 +300,13 @@ export default function AgentPage() {
                   Queue
                </button>
             )}
+            <div className="w-[1px] h-6 bg-black/10 mx-2" />
+            <button 
+              onClick={() => setIsUserLookupOpen(true)}
+              className="px-6 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest text-indigo-600 hover:bg-indigo-50 transition-all flex items-center gap-2"
+            >
+               <PlusIcon size={14} /> Submit Application
+            </button>
          </div>
 
          {isLoading ? (
@@ -716,24 +728,47 @@ export default function AgentPage() {
                           Reviewing
                        </button>
 
-                       <button 
-                          disabled={isActionLoading}
-                          onClick={async () => {
-                             setIsActionLoading(true);
-                             try {
-                               const res = await applicationApi.updateStatus(selectedApp._id, 'Approved');
-                               if (res.success) loadData();
-                             } finally {
-                               setIsActionLoading(false);
-                             }
-                          }}
-                          className={`py-4 flex items-center justify-center gap-2 rounded-sm text-[10px] uppercase tracking-widest font-bold border transition-all ${selectedApp.status === 'Approved' ? 'bg-green-600 text-white border-green-600 shadow-lg' : 'border-black/10 text-black/40 bg-white hover:border-black/20'} disabled:opacity-50`}>
-                          {isActionLoading && selectedApp.status !== 'Approved' && <Loader2 size={12} className="animate-spin" />}
-                          Approved
-                       </button>
+                       {user?.role === 'admin' ? (
+                         <button 
+                            disabled={isActionLoading}
+                            onClick={async () => {
+                               setIsActionLoading(true);
+                               try {
+                                 const res = await applicationApi.updateStatus(selectedApp._id, 'Approved');
+                                 if (res.success) loadData();
+                               } finally {
+                                 setIsActionLoading(false);
+                               }
+                            }}
+                            className={`py-4 flex items-center justify-center gap-2 rounded-sm text-[10px] uppercase tracking-widest font-bold border transition-all ${selectedApp.status === 'Approved' ? 'bg-green-600 text-white border-green-600 shadow-lg' : 'border-black/10 text-black/40 bg-white hover:border-black/20'} disabled:opacity-50`}>
+                            {isActionLoading && selectedApp.status !== 'Approved' && <Loader2 size={12} className="animate-spin" />}
+                            Approved
+                         </button>
+                       ) : (
+                         <button 
+                            disabled={isActionLoading || selectedApp.status === 'Pending Admin Approval'}
+                            onClick={async () => {
+                               setIsActionLoading(true);
+                               try {
+                                 const res = await applicationApi.updateStatus(selectedApp._id, 'Pending Admin Approval');
+                                 if (res.success) {
+                                   toast.success('Application submitted for Admin approval');
+                                   loadData();
+                                 }
+                               } catch (err: any) {
+                                 toast.error(err.response?.data?.message || 'Failed to submit for approval');
+                               } finally {
+                                 setIsActionLoading(false);
+                               }
+                            }}
+                            className={`py-4 flex items-center justify-center gap-2 rounded-sm text-[10px] uppercase tracking-widest font-bold border transition-all ${selectedApp.status === 'Pending Admin Approval' ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg' : 'border-black/10 text-black/40 bg-white hover:border-black/20'} disabled:opacity-50`}>
+                            {isActionLoading && selectedApp.status !== 'Pending Admin Approval' && <Loader2 size={12} className="animate-spin" />}
+                            {selectedApp.status === 'Pending Admin Approval' ? 'Submitted for Approval' : 'Submit for Approval'}
+                         </button>
+                       )}
 
                        <button 
-                          disabled={isActionLoading}
+                          disabled={isActionLoading || (user?.role === 'agent' && selectedApp.status === 'Pending Admin Approval')}
                           onClick={async () => {
                              setPendingRefundApp(selectedApp);
                           }}
@@ -760,6 +795,20 @@ export default function AgentPage() {
                                 <DetailItem icon={<Phone size={14}/>} label="Phone" value={selectedApp.phone} />
                                 <DetailItem icon={<Mail size={14}/>} label="Email" value={selectedApp.email} />
                                 <DetailItem icon={<Home size={14}/>} label="Address" value={selectedApp.address} />
+                                 {selectedApp.submittedBy && (
+                                   <DetailItem 
+                                     icon={<Shield size={14}/>} 
+                                     label="Submitted By" 
+                                     value={`${selectedApp.submittedBy.agentName} (${selectedApp.submittedBy.method === 'agent_assisted' ? 'Assisted' : 'Self'})`} 
+                                   />
+                                 )}
+                                 {selectedApp.referredBy && (
+                                   <DetailItem 
+                                     icon={<ArrowUpRight size={14}/>} 
+                                     label="Referred By" 
+                                     value={selectedApp.referredBy.agentName} 
+                                   />
+                                 )}
                              </div>
                           </div>
 
@@ -1078,8 +1127,35 @@ export default function AgentPage() {
                     if (refreshed.success) setSelectedApp(refreshed.application);
                  }}
                />
+             )}
+          </AnimatePresence>
+
+          <UserLookupModal 
+            isOpen={isUserLookupOpen}
+            onClose={() => setIsUserLookupOpen(false)}
+            onSelect={(u) => {
+              setSelectedUserForSubmission(u);
+              setIsUserLookupOpen(false);
+              setIsSubmitOnBehalfOpen(true);
+            }}
+          />
+
+          <AnimatePresence>
+            {isSubmitOnBehalfOpen && selectedUserForSubmission && (
+              <SubmitOnBehalfModal 
+                isOpen={isSubmitOnBehalfOpen}
+                selectedUser={selectedUserForSubmission}
+                onClose={() => {
+                  setIsSubmitOnBehalfOpen(false);
+                  setSelectedUserForSubmission(null);
+                }}
+                onSuccess={() => {
+                  loadData();
+                  setActiveTab('applications');
+                }}
+              />
             )}
-         </AnimatePresence>
+          </AnimatePresence>
       </div>
     </div>
   );
@@ -1089,6 +1165,7 @@ function StatusPill({ status }: { status: ApplicationStatus }) {
   const styles: Record<ApplicationStatus, string> = {
     'Pending': 'bg-yellow-400 text-black',
     'Reviewing': 'bg-blue-400 text-white',
+    'Pending Admin Approval': 'bg-indigo-500 text-white shadow-lg shadow-indigo-100',
     'Approved': 'bg-green-500 text-white',
     'Rejected': 'bg-red-500 text-white'
   };

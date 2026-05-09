@@ -1,6 +1,6 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
-export type ApplicationStatus = 'Pending' | 'Reviewing' | 'Approved' | 'Rejected';
+export type ApplicationStatus = 'Pending' | 'Reviewing' | 'Pending Admin Approval' | 'Approved' | 'Rejected';
 
 export interface ISubService {
   name: string;
@@ -73,6 +73,15 @@ export interface IApplication extends Document {
   activityLog: IActivityLogEntry[];
   attachments: IAttachment[];
   requestedFiles: IRequestedFile[];
+  submittedBy?: {
+    agentId: mongoose.Types.ObjectId;
+    agentName: string;
+    method: 'self' | 'agent_assisted';
+  };
+  referredBy?: {
+    agentId: mongoose.Types.ObjectId;
+    agentName: string;
+  };
   createdAt: Date;
   updatedAt: Date;
 }
@@ -146,7 +155,7 @@ const ApplicationSchema = new Schema<IApplication>(
     transactionId: { type: String },
     status: {
       type: String,
-      enum: ['Pending', 'Reviewing', 'Approved', 'Rejected'],
+      enum: ['Pending', 'Reviewing', 'Pending Admin Approval', 'Approved', 'Rejected'],
       default: 'Pending',
     },
     selectedServices: [SubServiceSchema],
@@ -160,6 +169,15 @@ const ApplicationSchema = new Schema<IApplication>(
     activityLog: { type: [ActivityLogSchema], default: [] },
     attachments: { type: [AttachmentSchema], default: [] },
     requestedFiles: { type: [RequestedFileSchema], default: [] },
+    submittedBy: {
+      agentId: { type: Schema.Types.ObjectId, ref: 'User' },
+      agentName: { type: String },
+      method: { type: String, enum: ['self', 'agent_assisted'], default: 'self' }
+    },
+    referredBy: {
+      agentId: { type: Schema.Types.ObjectId, ref: 'User' },
+      agentName: { type: String }
+    }
   },
   { timestamps: true }
 );

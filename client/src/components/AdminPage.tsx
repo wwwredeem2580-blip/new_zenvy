@@ -715,6 +715,20 @@ export default function AdminPage() {
                                 <DetailItem icon={<Phone size={14}/>} label="Phone" value={selectedApp.phone} />
                                 <DetailItem icon={<Mail size={14}/>} label="Email" value={selectedApp.email} />
                                 <DetailItem icon={<Home size={14}/>} label="Address" value={selectedApp.address} />
+                                {selectedApp.submittedBy && (
+                                  <DetailItem 
+                                    icon={<Shield size={14}/>} 
+                                    label="Submitted By" 
+                                    value={`${selectedApp.submittedBy.agentName} (${selectedApp.submittedBy.method === 'agent_assisted' ? 'Assisted' : 'Self'})`} 
+                                  />
+                                )}
+                                {selectedApp.referredBy && (
+                                  <DetailItem 
+                                    icon={<ArrowUpRight size={14}/>} 
+                                    label="Referred By" 
+                                    value={selectedApp.referredBy.agentName} 
+                                  />
+                                )}
                              </div>
                           </div>
 
@@ -1270,6 +1284,7 @@ function StatusPill({ status }: { status: ApplicationStatus }) {
   const colors: Record<ApplicationStatus, string> = {
     Pending: "bg-yellow-500",
     Reviewing: "bg-blue-500",
+    "Pending Admin Approval": "bg-indigo-500 shadow-sm shadow-indigo-100",
     Approved: "bg-green-500",
     Rejected: "bg-red-500"
   };
@@ -1285,6 +1300,7 @@ function StatusBadge({ status }: { status: ApplicationStatus }) {
     const styles = {
       Pending: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
       Reviewing: "bg-blue-500/10 text-blue-500 border-blue-500/20",
+      "Pending Admin Approval": "bg-indigo-500/10 text-indigo-600 border-indigo-500/20",
       Approved: "bg-green-500/10 text-green-500 border-green-500/20",
       Rejected: "bg-red-500/10 text-red-500 border-red-500/20",
     };
@@ -1292,6 +1308,7 @@ function StatusBadge({ status }: { status: ApplicationStatus }) {
     const icons = {
       Pending: <Clock size={12} />,
       Reviewing: <Search size={12} />,
+      "Pending Admin Approval": <Shield size={12} />,
       Approved: <CheckCircle2 size={12} />,
       Rejected: <X size={12} />,
     };

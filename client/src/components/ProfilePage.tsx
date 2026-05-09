@@ -29,6 +29,7 @@ import {
   Upload,
   Lock,
   Eye,
+  Shield,
   Plus as PlusIcon
 } from "lucide-react";
 import { User } from "../types/user";
@@ -627,6 +628,7 @@ function StatusBadge({ status }: { status: ApplicationStatus }) {
     const styles = {
       Pending: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
       Reviewing: "bg-blue-500/10 text-blue-500 border-blue-500/20",
+      "Pending Admin Approval": "bg-indigo-500/10 text-indigo-600 border-indigo-500/20",
       Approved: "bg-green-500/10 text-green-500 border-green-500/20",
       Rejected: "bg-red-500/10 text-red-500 border-red-500/20",
     };
@@ -634,6 +636,7 @@ function StatusBadge({ status }: { status: ApplicationStatus }) {
     const icons = {
       Pending: <Clock size={12} />,
       Reviewing: <Search size={12} />,
+      "Pending Admin Approval": <Shield size={12} />,
       Approved: <CheckCircle2 size={12} />,
       Rejected: <AlertCircle size={12} />,
     };

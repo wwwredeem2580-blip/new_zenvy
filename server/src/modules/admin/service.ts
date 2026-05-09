@@ -94,7 +94,7 @@ export const getDashboardAnalytics = async () => {
 
   let totalRevenue = 0;
   let pendingRevenue = 0;
-  let statuses = { Pending: 0, Reviewing: 0, Approved: 0, Rejected: 0 };
+  let statuses = { Pending: 0, Reviewing: 0, 'Pending Admin Approval': 0, Approved: 0, Rejected: 0 };
 
   // For charts: last 7 days of revenue inflow
   const last7Days: Record<string, number> = {};
@@ -138,4 +138,59 @@ export const getDashboardAnalytics = async () => {
     statuses,
     chartData,
   };
+};
+
+/**
+ * findUserByContact - Search for users by email or phone (Agents/Admins only)
+ */
+export const findUserByContact = async (emailOrPhone: string) => {
+  const users = await User.find({
+    $or: [
+      { email: { $regex: emailOrPhone, $options: 'i' } },
+      { phone: { $regex: emailOrPhone, $options: 'i' } }
+    ]
+  }).limit(5);
+  
+  return users.map(u => ({
+    id: u._id,
+    firstName: u.firstName,
+    lastName: u.lastName,
+    email: u.email,
+    phone: u.phone,
+    avatar: u.avatar
+  }));
+};
+
+/**
+ * createMinimalUser - Create a user with minimal details (Agent Assisted)
+ */
+import crypto from 'crypto';
+import { addEmailJob } from '../../workers/email.queue';
+
+export const createMinimalUser = async (data: { firstName: string; lastName: string; email: string; phone?: string }) => {
+  const existing = await User.findOne({ email: data.email });
+  if (existing) throw new CustomError('User with this email already exists', 400);
+
+  const verificationToken = crypto.randomBytes(32).toString('hex');
+  const tokenExpiry = new Date(Date.now() + 48 * 60 * 60 * 1000); // 48 hours
+
+  const user = await User.create({
+    ...data,
+    role: 'client',
+    authProvider: 'manual',
+    isEmailVerified: false,
+    emailVerificationToken: verificationToken,
+    emailVerificationTokenExpiry: tokenExpiry,
+    balance: 0
+  });
+
+  // Notify user to claim account
+  const claimUrl = `${process.env.CLIENT_URL || 'http://localhost:3000'}/auth/onboarding?token=${verificationToken}`;
+  await addEmailJob('AGENT_ASSISTED_WELCOME', {
+    email: user.email,
+    name: `${user.firstName} ${user.lastName}`,
+    claimUrl,
+  });
+
+  return user;
 };

@@ -60,6 +60,14 @@ export const submitApplication = async (
         timestamp: new Date(),
       },
     ],
+    submittedBy: data.submittedBy ? {
+      ...data.submittedBy,
+      agentId: new mongoose.Types.ObjectId(data.submittedBy.agentId)
+    } : undefined,
+    referredBy: data.referredBy ? {
+      ...data.referredBy,
+      agentId: new mongoose.Types.ObjectId(data.referredBy.agentId)
+    } : undefined
   });
 
   if (application.paymentStatus === 'Received' && !application.invoiceGenerated) {
@@ -361,14 +369,27 @@ export const assignApplication = async (
 export const updateStatus = async (
   applicationId: string,
   status: ApplicationStatus,
-  actor: { name: string; id: string }
+  actor: { name: string; id: string; role: string }
 ) => {
   const query = mongoose.Types.ObjectId.isValid(applicationId) 
     ? { _id: applicationId } 
     : { applicationId };
-
+ 
   const application = await Application.findOne(query);
   if (!application) throw new CustomError('Application not found', 404);
+
+  // Workflow enforcement:
+  // 1. Agents can only move to "Pending Admin Approval", not "Approved" or "Rejected" directly
+  if (actor.role === 'agent' && (status === 'Approved' || status === 'Rejected')) {
+    // Override: silently move to Pending Admin Approval if an agent tries to approve/reject
+    // Or throw error if you want strict enforcement
+    throw new CustomError('Agents cannot finalize applications. Please submit for Admin Approval.', 403);
+  }
+
+  // 2. Only Admin can move FROM "Pending Admin Approval" to "Approved"/"Rejected"
+  if (application.status === 'Pending Admin Approval' && actor.role !== 'admin') {
+    throw new CustomError('Only administrators can perform final approval on this application.', 403);
+  }
 
   application.status = status;
   application.activityLog.push({

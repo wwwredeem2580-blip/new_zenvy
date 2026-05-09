@@ -194,4 +194,26 @@ export const adminApi = {
     const response = await api.delete<{ success: boolean; message: string }>(`/services/${id}`);
     return response.data;
   },
+
+  /**
+   * findUser — Searches for users by email or phone.
+   */
+  findUser: async (query: string) => {
+    const response = await api.get<{ success: boolean; users: User[] }>(
+      '/admin/users/search',
+      { params: { query } }
+    );
+    return response.data;
+  },
+
+  /**
+   * createMinimalUser — Creates a minimal account for a client.
+   */
+  createMinimalUser: async (data: { firstName: string; lastName: string; email: string; phone: string }) => {
+    const response = await api.post<{ success: boolean; user: User }>(
+      '/admin/users/minimal',
+      data
+    );
+    return response.data;
+  },
 };

@@ -27,10 +27,20 @@ export interface CreateApplicationData {
   attachments?: {
     name: string;
     label: string;
-    url: string; // The objectKey from Backblaze
+    url: string;
     uploadedBy: string;
     uploadedById: string;
   }[];
+  userId?: string;
+  submittedBy?: {
+    agentId: string;
+    agentName: string;
+    method: 'self' | 'agent_assisted';
+  };
+  referredBy?: {
+    agentId: string;
+    agentName: string;
+  };
 }
 
 export const applicationApi = {

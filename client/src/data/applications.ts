@@ -1,4 +1,4 @@
-export type ApplicationStatus = "Pending" | "Reviewing" | "Approved" | "Rejected";
+export type ApplicationStatus = "Pending" | "Reviewing" | "Pending Admin Approval" | "Approved" | "Rejected";
 
 export interface SubService {
   name: string;
@@ -85,6 +85,15 @@ export interface Application {
   activityLog?: ActivityLogEntry[];
   attachments?: Attachment[];
   requestedFiles?: RequestedFile[];
+  submittedBy?: {
+    agentId: string;
+    agentName: string;
+    method: 'self' | 'agent_assisted';
+  };
+  referredBy?: {
+    agentId: string;
+    agentName: string;
+  };
 }
 
 export const mockApplications: Application[] = [

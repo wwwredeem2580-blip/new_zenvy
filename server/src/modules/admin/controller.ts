@@ -61,3 +61,22 @@ export const getAnalytics = async (_req: Request, res: Response): Promise<void> 
     handleError(error, res);
   }
 };
+
+export const findUser = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { contact } = req.query;
+    const users = await adminService.findUserByContact(contact as string);
+    res.status(200).json({ success: true, users });
+  } catch (error) {
+    handleError(error, res);
+  }
+};
+
+export const createMinimalUser = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const user = await adminService.createMinimalUser(req.body);
+    res.status(201).json({ success: true, user });
+  } catch (error) {
+    handleError(error, res);
+  }
+};

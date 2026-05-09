@@ -16,6 +16,7 @@ function StatusPill({ status }: { status: ApplicationStatus }) {
   const colors: Record<ApplicationStatus, string> = {
     Pending: "bg-yellow-500",
     Reviewing: "bg-blue-500",
+    "Pending Admin Approval": "bg-indigo-500",
     Approved: "bg-green-500",
     Rejected: "bg-red-500"
   };
@@ -29,11 +30,14 @@ function StatusPill({ status }: { status: ApplicationStatus }) {
 
 export function ApplicationsView({ applications, onSelect }: { applications: Application[], onSelect: (app: Application) => void }) {
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<ApplicationStatus | 'All'>('All');
   const [isExportOpen, setIsExportOpen] = useState(false);
 
-  const filtered = applications.filter((app: Application) => 
-    app.name.toLowerCase().includes(search.toLowerCase()) || (app.applicationId || "").includes(search)
-  );
+  const filtered = applications.filter((app: Application) => {
+    const matchesSearch = app.name.toLowerCase().includes(search.toLowerCase()) || (app.applicationId || "").includes(search);
+    const matchesStatus = statusFilter === 'All' || app.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
 
   return (
     <>
@@ -50,14 +54,29 @@ export function ApplicationsView({ applications, onSelect }: { applications: App
               />
            </div>
 
-           {/* Export Button */}
-           <button
-             onClick={() => setIsExportOpen(true)}
-             className="flex items-center gap-2 px-4 py-2 bg-white border border-black/10 rounded-sm text-[10px] font-bold uppercase tracking-widest text-black/60 hover:bg-black hover:text-white hover:border-black transition-all shadow-sm"
-           >
-             <FileSpreadsheet size={14} />
-             Export Excel
-           </button>
+            <div className="flex items-center gap-4">
+               <select 
+                 value={statusFilter}
+                 onChange={(e) => setStatusFilter(e.target.value as any)}
+                 className="px-4 py-2 bg-black/5 border-none rounded-sm text-[10px] font-bold uppercase tracking-widest text-black/60 focus:outline-none focus:ring-0 appearance-none cursor-pointer"
+               >
+                 <option value="All">All Status</option>
+                 <option value="Pending">Pending</option>
+                 <option value="Reviewing">Reviewing</option>
+                 <option value="Pending Admin Approval">Approval Queue</option>
+                 <option value="Approved">Approved</option>
+                 <option value="Rejected">Rejected</option>
+               </select>
+
+               {/* Export Button */}
+               <button
+                 onClick={() => setIsExportOpen(true)}
+                 className="flex items-center gap-2 px-4 py-2 bg-white border border-black/10 rounded-sm text-[10px] font-bold uppercase tracking-widest text-black/60 hover:bg-black hover:text-white hover:border-black transition-all shadow-sm"
+               >
+                 <FileSpreadsheet size={14} />
+                 Export Excel
+               </button>
+            </div>
         </div>
 
         <div className="space-y-0.5">

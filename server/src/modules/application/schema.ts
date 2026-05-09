@@ -25,6 +25,15 @@ export const CreateApplicationSchema = z.object({
   paymentMethod: z.enum(['Cash', 'Revolut', 'PostPay', 'Card', 'Credits']),
   selectedServices: z.array(SubServiceSchema).min(1, 'At least one service must be selected'),
   transactionId: z.string().optional(),
+  submittedBy: z.object({
+    agentId: z.string(),
+    agentName: z.string(),
+    method: z.enum(['self', 'agent_assisted']),
+  }).optional(),
+  referredBy: z.object({
+    agentId: z.string(),
+    agentName: z.string(),
+  }).optional(),
   attachments: z.array(z.object({
     name: z.string(),
     label: z.string(),

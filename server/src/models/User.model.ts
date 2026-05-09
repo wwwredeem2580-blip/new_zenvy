@@ -21,6 +21,7 @@ export interface IUser extends Document {
   emailVerificationTokenExpiry?: Date;
   googleId?: string;
   avatar?: string;
+  phone?: string;
   balance: number;
   permissions?: IAgentPermissions;
   createdAt: Date;
@@ -78,6 +79,10 @@ const UserSchema = new Schema<IUser>(
     },
     avatar: {
       type: String,
+    },
+    phone: {
+      type: String,
+      trim: true,
     },
     balance: {
       type: Number,

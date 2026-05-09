@@ -3,6 +3,7 @@ import nodemailer from 'nodemailer';
 import { emailVerificationTemplate } from '../utils/email/emailVerification';
 import { welcomeClientTemplate } from '../utils/email/welcomeClient';
 import { applicationUpdateTemplate } from '../utils/email/applicationUpdates';
+import { agentAssistedWelcomeTemplate } from '../utils/email/agentAssistedWelcome';
 
 const SibApiV3Sdk = require('sib-api-v3-sdk');
 
@@ -171,9 +172,13 @@ export const initEmailWorker = async () => {
         case 'INVITATION':
           to = job.data.email;
           subject = "You're invited to join Smart CAF";
-          // We need to import invitationTemplate, let's just assume it was passed in data or we import it.
-          // Since the template logic is already in invitation.service, it might be better to just support raw HTML.
           html = job.data.html;
+          break;
+
+        case 'AGENT_ASSISTED_WELCOME':
+          to = job.data.email;
+          subject = 'Welcome to Smart CAF — Secure Your Account';
+          html = agentAssistedWelcomeTemplate(job.data);
           break;
 
         default:
