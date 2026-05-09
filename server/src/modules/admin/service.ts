@@ -144,6 +144,8 @@ export const getDashboardAnalytics = async () => {
  * findUserByContact - Search for users by email or phone (Agents/Admins only)
  */
 export const findUserByContact = async (emailOrPhone: string) => {
+  if (!emailOrPhone) return [];
+  
   const users = await User.find({
     $or: [
       { email: { $regex: emailOrPhone, $options: 'i' } },

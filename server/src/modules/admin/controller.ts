@@ -64,8 +64,8 @@ export const getAnalytics = async (_req: Request, res: Response): Promise<void> 
 
 export const findUser = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { contact } = req.query;
-    const users = await adminService.findUserByContact(contact as string);
+    const query = (req.query.query || req.query.contact || '') as string;
+    const users = await adminService.findUserByContact(query);
     res.status(200).json({ success: true, users });
   } catch (error) {
     handleError(error, res);

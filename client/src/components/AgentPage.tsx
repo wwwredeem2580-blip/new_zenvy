@@ -260,10 +260,18 @@ export default function AgentPage() {
                <h1 className="text-3xl md:text-7xl font-space font-bold tracking-tighter uppercase mb-4">
                  Agent Hub.
                </h1>
-               <p className="text-md text-black/40 font-light max-w-xl leading-relaxed">
-                 Access your designated cloud workspaces and operational documents.
-               </p>
-            </div>
+                <p className="text-md text-black/40 font-light max-w-xl leading-relaxed">
+                  Access your designated cloud workspaces and operational documents.
+                </p>
+                <div className="mt-8 flex items-center gap-4">
+                  <button 
+                    onClick={() => setIsUserLookupOpen(true)}
+                    className="px-8 py-4 bg-indigo-600 text-white rounded-2xl text-[10px] font-bold uppercase tracking-widest hover:bg-indigo-700 hover:scale-105 transition-all flex items-center gap-2 shadow-xl shadow-indigo-100"
+                  >
+                    <PlusIcon size={14} /> Submit Application on Behalf
+                  </button>
+                </div>
+             </div>
             
             <div className="bg-white px-6 py-2 rounded-[16px] shadow-sm border border-black/5 flex items-center gap-6 min-w-[300px]">
                <UserAvatar 
@@ -300,13 +308,6 @@ export default function AgentPage() {
                   Queue
                </button>
             )}
-            <div className="w-[1px] h-6 bg-black/10 mx-2" />
-            <button 
-              onClick={() => setIsUserLookupOpen(true)}
-              className="px-6 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest text-indigo-600 hover:bg-indigo-50 transition-all flex items-center gap-2"
-            >
-               <PlusIcon size={14} /> Submit Application
-            </button>
          </div>
 
          {isLoading ? (
