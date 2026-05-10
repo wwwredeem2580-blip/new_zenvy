@@ -497,17 +497,43 @@ export default function AdminPage() {
               <div className="space-y-6">
                  {/* Agent Submission Banner */}
                  {selectedApp.submittedBy?.method === 'agent_assisted' && (
-                    <div className="bg-black text-white p-4 rounded-sm flex items-center gap-3 mb-6">
-                       <div className="w-8 h-8 bg-white/10 rounded-sm flex items-center justify-center">
-                          <User size={14} />
-                       </div>
-                       <div>
-                          <p className="text-[10px] font-bold uppercase tracking-[0.2em]">Agent Submission</p>
-                          <p className="text-xs opacity-60">
-                             Submitted by <span className="font-bold opacity-100 text-white">{selectedApp.submittedBy.agentName}</span> on behalf of <span className="font-bold opacity-100 text-white">{selectedApp.name}</span>
-                          </p>
-                       </div>
-                    </div>
+                     <div className="bg-black text-white p-4 rounded-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+                        <div className="flex items-center gap-3">
+                           <div className="w-8 h-8 bg-white/10 rounded-sm flex items-center justify-center">
+                              <User size={14} />
+                           </div>
+                           <div>
+                              <p className="text-[10px] font-bold uppercase tracking-[0.2em]">Agent Submission</p>
+                              <p className="text-xs opacity-60">
+                                 Submitted by <span className="font-bold opacity-100 text-white">{selectedApp.submittedBy.agentName}</span> on behalf of <span className="font-bold opacity-100 text-white">{selectedApp.name}</span>
+                              </p>
+                           </div>
+                        </div>
+                        {!selectedApp.reviewerId && (
+                           <button 
+                             disabled={isActionLoading}
+                             onClick={async () => {
+                               setIsActionLoading(true);
+                               try {
+                                 if (selectedApp.paymentStatus !== 'Received') {
+                                   await applicationApi.updatePaymentStatus(selectedApp._id, 'Received');
+                                 }
+                                 await applicationApi.assignAgent(selectedApp._id, selectedApp.submittedBy!.agentId);
+                                 toast.success(`Application assigned to ${selectedApp.submittedBy!.agentName}`);
+                                 await loadData();
+                               } catch (err: any) {
+                                 toast.error(err.message || "Failed to process assignment");
+                               } finally {
+                                 setIsActionLoading(false);
+                               }
+                             }}
+                             className="flex items-center gap-2 px-4 py-2 bg-white text-black text-[10px] font-bold uppercase tracking-widest rounded-sm hover:bg-white/90 transition-all disabled:opacity-50"
+                           >
+                              {isActionLoading ? <Loader2 size={12} className="animate-spin" /> : <UserPlus size={12} />}
+                              {selectedApp.paymentStatus === 'Received' ? 'Assign to this Agent' : 'Approve Payment & Assign'}
+                           </button>
+                        )}
+                     </div>
                  )}
 
                  {/* Top Card: Status & Payment Actions */}
