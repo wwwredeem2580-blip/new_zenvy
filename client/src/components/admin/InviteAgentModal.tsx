@@ -23,7 +23,7 @@ export function InviteAgentModal({ onClose, onInvited }: { onClose: () => void, 
       await adminApi.createInvitation(email, role);
       setIsSuccess(true);
     } catch (e: any) {
-      alert(e.response?.data?.message || e.message);
+      alert(e.message);
     } finally {
       setIsSending(false);
     }

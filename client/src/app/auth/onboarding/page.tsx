@@ -50,7 +50,7 @@ function OnboardingContent() {
           setInvitation(res.invitation);
         }
       } catch (err: any) {
-        setError(err.response?.data?.message || "Invalid or expired invitation.");
+        setError(err.message || "Invalid or expired invitation.");
       } finally {
         setLoading(false);
       }
@@ -80,7 +80,7 @@ function OnboardingContent() {
         }
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || "Registration failed.");
+      setError(err.message || "Registration failed.");
       setIsSubmitting(false);
     }
   };

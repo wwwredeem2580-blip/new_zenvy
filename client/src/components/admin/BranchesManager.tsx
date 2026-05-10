@@ -148,7 +148,7 @@ function BranchModal({ branch, onClose, onSave }: { branch: Branch | null, onClo
       }
       onSave();
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || "Failed to save branch");
+      toast.error(error?.message || "Failed to save branch");
     } finally {
       setIsSubmitting(false);
     }

@@ -28,7 +28,7 @@ export const RequestFileModal: React.FC<RequestFileModalProps> = ({ applicationI
       onRequested();
       onClose();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to request file.');
+      toast.error(error.message || 'Failed to request file.');
     } finally {
       setIsSubmitting(false);
     }

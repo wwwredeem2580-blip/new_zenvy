@@ -194,7 +194,7 @@ export default function AgentPage() {
       toast.success(`"${file.name}" uploaded successfully.`);
     } catch (e: any) {
       console.error(e);
-      toast.error("Failed to upload: " + (e.response?.data?.message || e.message));
+      toast.error("Failed to upload: " + (e.message));
     } finally {
       setIsUploading(false);
       // Reset so same file can be re-uploaded if needed
@@ -772,7 +772,7 @@ export default function AgentPage() {
                                    loadData();
                                  }
                                } catch (err: any) {
-                                 toast.error(err.response?.data?.message || 'Failed to submit for approval');
+                                 toast.error(err.message || 'Failed to submit for approval');
                                } finally {
                                  setIsActionLoading(false);
                                }

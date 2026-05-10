@@ -236,7 +236,7 @@ export function SubmitOnBehalfModal({ isOpen, onClose, selectedUser, onSuccess }
       onSuccess();
       onClose();
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to submit application');
+      toast.error(err.message || 'Failed to submit application');
     } finally {
       setIsLoading(false);
     }

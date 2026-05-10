@@ -164,7 +164,7 @@ export default function ProfilePage() {
       }
     } catch (error: any) {
       console.error("Upload failed", error);
-      alert(error.response?.data?.message || "Failed to upload document. Please try again.");
+      alert(error.message || "Failed to upload document. Please try again.");
     } finally {
       setIsUploadingDoc(false);
       // Reset input

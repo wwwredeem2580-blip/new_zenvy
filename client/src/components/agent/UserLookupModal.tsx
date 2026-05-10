@@ -57,7 +57,7 @@ export function UserLookupModal({ isOpen, onClose, onSelect }: UserLookupModalPr
       toast.success('Minimal account created');
       onSelect(res.user);
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to create user');
+      toast.error(err.message || 'Failed to create user');
     } finally {
       setIsCreating(false);
     }
