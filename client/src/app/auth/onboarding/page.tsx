@@ -76,7 +76,9 @@ function OnboardingContent() {
         // We could log them in automatically
         if (res.user) {
           setUser(res.user);
-          router.push(res.user.role === 'admin' ? '/admin' : '/agent');
+          const dest = res.user.role === 'admin' ? '/admin' : 
+                       res.user.role === 'agent' ? '/agent' : '/profile';
+          router.push(dest);
         }
       }
     } catch (err: any) {

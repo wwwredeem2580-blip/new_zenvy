@@ -288,14 +288,37 @@ export const resendVerificationEmail = async (userId: string) => {
 import { Invitation } from '../../models/Invitation.model';
 
 export const verifyAgentInvitation = async (token: string) => {
+  // 1. Check Staff Invitations
   const invitation = await Invitation.findOne({ token, status: 'Pending' });
-  if (!invitation) throw new CustomError('Invalid or expired invitation link', 400);
-  if (invitation.expiresAt < new Date()) {
-    invitation.status = 'Expired';
-    await invitation.save();
-    throw new CustomError('Invitation has expired', 400);
+  if (invitation) {
+    if (invitation.expiresAt < new Date()) {
+      invitation.status = 'Expired';
+      await invitation.save();
+      throw new CustomError('Invitation has expired', 400);
+    }
+    return invitation;
   }
-  return invitation;
+
+  // 2. Check User Verification Tokens (for Agent-Created Clients)
+  const user = await User.findOne({ 
+    emailVerificationToken: token 
+  }).select('+emailVerificationTokenExpiry');
+
+  if (user) {
+    if (!user.emailVerificationTokenExpiry || user.emailVerificationTokenExpiry < new Date()) {
+      throw new CustomError('Invitation has expired', 400);
+    }
+    // Return a synthetic invitation object for the controller
+    return {
+      email: user.email,
+      role: user.role,
+      token: token,
+      isUser: true,
+      _id: user._id
+    };
+  }
+
+  throw new CustomError('Invalid or expired invitation link', 400);
 };
 
 export const registerAgent = async (data: RegisterAgentInput) => {
@@ -307,20 +330,37 @@ export const registerAgent = async (data: RegisterAgentInput) => {
   // 2. Hash password
   const hashedPassword = await bcrypt.hash(password, 12);
 
-  // 3. Create user (email is already in the invitation)
-  const user = await User.create({
-    firstName,
-    lastName,
-    email: invitation.email,
-    password: hashedPassword,
-    role: invitation.role, // 'agent' or 'admin'
-    authProvider: 'manual',
-    isEmailVerified: true, // They verified by clicking the invitation link
-  });
+  let user;
 
-  // 4. Update invitation status
-  invitation.status = 'Accepted';
-  await invitation.save();
+  // 3. Handle User vs Invitation
+  if ((invitation as any).isUser) {
+    // It's a minimal user completing their registration
+    user = await User.findById((invitation as any)._id);
+    if (!user) throw new CustomError('User not found', 404);
+
+    user.firstName = firstName;
+    user.lastName = lastName;
+    user.password = hashedPassword;
+    user.isEmailVerified = true;
+    user.emailVerificationToken = undefined;
+    user.emailVerificationTokenExpiry = undefined;
+    await user.save();
+  } else {
+    // It's a new staff member (Agent/Admin)
+    user = await User.create({
+      firstName,
+      lastName,
+      email: invitation.email,
+      password: hashedPassword,
+      role: invitation.role, // 'agent' or 'admin'
+      authProvider: 'manual',
+      isEmailVerified: true, // They verified by clicking the invitation link
+    });
+
+    // 4. Update invitation status
+    (invitation as any).status = 'Accepted';
+    await (invitation as any).save();
+  }
 
   // 5. Generate session token
   const sessionToken = generateAccessToken({
