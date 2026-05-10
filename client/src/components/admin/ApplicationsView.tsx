@@ -110,7 +110,14 @@ export function ApplicationsView({ applications, onSelect }: { applications: App
                           </div>
                        )}
                         <div className="flex flex-col items-end gap-0.5">
-                           <StatusPill status={app.status} />
+                           <div className="flex items-center gap-2">
+                             {app.submittedBy?.method === 'agent_assisted' && (
+                               <span className="text-[8px] font-bold bg-black text-white px-1.5 py-0.5 rounded-sm uppercase tracking-tighter">
+                                 Agent
+                               </span>
+                             )}
+                             <StatusPill status={app.status} />
+                           </div>
                            {app.paymentMethod && (
                               <span className="text-[8px] font-bold text-black/20 uppercase tracking-tighter">
                                  {app.paymentMethod} • {app.paymentStatus}

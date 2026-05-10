@@ -522,12 +522,27 @@ export default function AgentPage() {
               initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', damping: 25, stiffness: 200 }}
               className="relative w-full max-w-4xl h-full bg-white border-l border-black/10 shadow-2xl p-6 sm:p-12 overflow-y-auto"
             >
-              <div className="flex justify-between items-center mb-16">
+<div className="flex justify-between items-center mb-16">
                  <h2 className="text-2xl font-space tracking-tight uppercase font-bold">Document Details</h2>
                  <button onClick={() => setSelectedApp(null)} className="p-3 hover:bg-black/5 rounded-sm transition-colors"><X size={24} /></button>
               </div>
 
               <div className="space-y-6">
+                 {/* Agent Submission Banner */}
+                 {selectedApp.submittedBy?.method === 'agent_assisted' && (
+                    <div className="bg-black text-white p-4 rounded-sm flex items-center gap-3 mb-6">
+                       <div className="w-8 h-8 bg-white/10 rounded-sm flex items-center justify-center">
+                          <User size={14} />
+                       </div>
+                       <div>
+                          <p className="text-[10px] font-bold uppercase tracking-[0.2em]">Agent Submission</p>
+                          <p className="text-xs opacity-60">
+                             Submitted by <span className="font-bold opacity-100 text-white">{selectedApp.submittedBy.agentName}</span> on behalf of <span className="font-bold opacity-100 text-white">{selectedApp.name}</span>
+                          </p>
+                       </div>
+                    </div>
+                 )}
+
                  {/* Top Card: Status & Payment Actions */}
                  <div className="bg-white border border-black/5 rounded-sm p-8 flex flex-col gap-10">
                     {/* Status Info Row */}

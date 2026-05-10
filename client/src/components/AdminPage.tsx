@@ -495,6 +495,21 @@ export default function AdminPage() {
               </div>
 
               <div className="space-y-6">
+                 {/* Agent Submission Banner */}
+                 {selectedApp.submittedBy?.method === 'agent_assisted' && (
+                    <div className="bg-black text-white p-4 rounded-sm flex items-center gap-3 mb-6">
+                       <div className="w-8 h-8 bg-white/10 rounded-sm flex items-center justify-center">
+                          <User size={14} />
+                       </div>
+                       <div>
+                          <p className="text-[10px] font-bold uppercase tracking-[0.2em]">Agent Submission</p>
+                          <p className="text-xs opacity-60">
+                             Submitted by <span className="font-bold opacity-100 text-white">{selectedApp.submittedBy.agentName}</span> on behalf of <span className="font-bold opacity-100 text-white">{selectedApp.name}</span>
+                          </p>
+                       </div>
+                    </div>
+                 )}
+
                  {/* Top Card: Status & Payment Actions */}
                  <div className="bg-white border border-black/5 rounded-sm p-8 flex flex-col gap-10">
                     {/* Status Info Row */}

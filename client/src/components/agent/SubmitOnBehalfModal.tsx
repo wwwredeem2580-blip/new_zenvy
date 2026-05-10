@@ -1,8 +1,3 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
 "use client";
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -25,13 +20,15 @@ import {
   Upload, 
   Loader2,
   Building2,
-  AlertCircle
+  AlertCircle,
+  ChevronDown
 } from 'lucide-react';
 import { applicationApi } from '../../lib/api/applicationApi';
 import { branchApi, Branch } from '../../lib/api/branchApi';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 import { validateFile } from '../../lib/utils';
+import DateDropdownField from '../ui/DateDropdownField';
 
 interface SubmitOnBehalfModalProps {
   isOpen: boolean;
@@ -63,6 +60,7 @@ export function SubmitOnBehalfModal({ isOpen, onClose, selectedUser, onSuccess }
   const [availableServices, setAvailableServices] = useState<any[]>([]);
   const [branches, setBranches] = useState<Branch[]>([]);
   const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const [formData, setFormData] = useState({
     name: '',
@@ -149,7 +147,54 @@ export function SubmitOnBehalfModal({ isOpen, onClose, selectedUser, onSuccess }
     }));
   };
 
+  const validateStep = () => {
+    const newErrors: Record<string, string> = {};
+    
+    if (step === 1) {
+      if (formData.name.length < 2) newErrors.name = "Full name is required";
+      if (!formData.dob) newErrors.dob = "Date of birth is required";
+      if (!formData.pob) newErrors.pob = "Place of birth is required";
+      if (!formData.nationality) newErrors.nationality = "Nationality is required";
+      if (formData.codiceFiscale.length !== 16) newErrors.codiceFiscale = "Codice Fiscale must be 16 characters";
+      if (formData.phone.length < 5) newErrors.phone = "Valid phone number is required";
+      if (!formData.streetAddress) newErrors.streetAddress = "Street address is required";
+      if (!formData.postCode) newErrors.postCode = "Post code is required";
+      if (!formData.province) newErrors.province = "Province is required";
+    }
+    
+    if (step === 2) {
+      if (formData.selectedServices.length === 0) {
+        toast.error("Please select at least one service");
+        return false;
+      }
+      if (!selectedBranch) {
+        toast.error("Please select a branch location");
+        return false;
+      }
+    }
+
+    if (step === 3) {
+      const missingDocs = requiredDocs.filter(rd => rd.required && !formData.documents[rd.label]);
+      if (missingDocs.length > 0) {
+        toast.error("Please upload all required documents");
+        return false;
+      }
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleNext = () => {
+    if (validateStep()) {
+      setStep(prev => prev + 1);
+      setErrors({});
+    }
+  };
+
   const handleSubmit = async () => {
+    if (!validateStep()) return;
+    
     setIsLoading(true);
     try {
       // 1. Upload files
@@ -163,6 +208,7 @@ export function SubmitOnBehalfModal({ isOpen, onClose, selectedUser, onSuccess }
           url: uploadRes.objectKey,
           uploadedBy: agent?.firstName + ' ' + agent?.lastName + ' (Agent)',
           uploadedById: agent?.id || 'agent',
+          uploadedAt: new Date().toISOString()
         });
       }
 
@@ -170,7 +216,7 @@ export function SubmitOnBehalfModal({ isOpen, onClose, selectedUser, onSuccess }
       await applicationApi.submitApplication({
         ...formData,
         address: `${formData.streetAddress}, ${formData.postCode}, ${formData.province}`,
-        userId: selectedUser.id,
+        userId: selectedUser.id || selectedUser._id,
         branchId: selectedBranch?._id || '',
         branchName: selectedBranch?.name || '',
         paymentMethod: 'Cash', // Default for agent submissions
@@ -179,6 +225,10 @@ export function SubmitOnBehalfModal({ isOpen, onClose, selectedUser, onSuccess }
           agentId: agent?.id || '',
           agentName: `${agent?.firstName} ${agent?.lastName}`,
           method: 'agent_assisted'
+        },
+        referredBy: {
+          agentId: agent?.id || '',
+          agentName: `${agent?.firstName} ${agent?.lastName}`
         }
       });
 
@@ -208,29 +258,114 @@ export function SubmitOnBehalfModal({ isOpen, onClose, selectedUser, onSuccess }
                 <User size={12} /> Submitting for {selectedUser.firstName} {selectedUser.lastName}
               </div>
               <h2 className="text-3xl font-space font-bold uppercase tracking-tighter">
-                {step === 1 ? "Client Identity" : step === 2 ? "Services" : step === 3 ? "Documents" : "Review"}
+                {step === 1 ? "Client Identity" : step === 2 ? "Services & Location" : "Documents"}
               </h2>
             </div>
-            <button onClick={onClose} className="p-3 hover:bg-black/5 rounded-sm"><X size={24} /></button>
+            <button onClick={onClose} className="p-3 hover:bg-black/5 rounded-sm transition-colors"><X size={24} /></button>
           </div>
 
           <div className="space-y-12">
             {step === 1 && (
               <div className="space-y-8">
                 <div className="grid md:grid-cols-2 gap-6">
-                  <FormInput label="Full Name" value={formData.name} onChange={(v: string) => setFormData({...formData, name: v})} icon={<User size={14}/>} />
-                  <FormInput label="Date of Birth" value={formData.dob} onChange={(v: string) => setFormData({...formData, dob: v})} icon={<Calendar size={14}/>} placeholder="YYYY-MM-DD" />
-                  <FormInput label="Place of Birth" value={formData.pob} onChange={(v: string) => setFormData({...formData, pob: v})} icon={<MapPin size={14}/>} />
-                  <FormInput label="Nationality" value={formData.nationality} onChange={(v: string) => setFormData({...formData, nationality: v})} icon={<Globe size={14}/>} />
-                  <FormInput label="Codice Fiscale" value={formData.codiceFiscale} onChange={(v: string) => setFormData({...formData, codiceFiscale: v})} icon={<Hash size={14}/>} />
-                  <FormInput label="Phone" value={formData.phone} onChange={(v: string) => setFormData({...formData, phone: v})} icon={<Phone size={14}/>} />
+                  <FormInput 
+                    label="Full Name" 
+                    value={formData.name} 
+                    onChange={(v: string) => setFormData({...formData, name: v})} 
+                    icon={<User size={14}/>} 
+                    error={errors.name}
+                  />
+                  <DateDropdownField
+                    label="Date of Birth"
+                    icon={<Calendar size={14} />}
+                    value={formData.dob}
+                    onChange={(val) => setFormData(p => ({ ...p, dob: val }))}
+                    required
+                    disableFuture
+                    externalError={errors.dob}
+                  />
+                  <FormInput 
+                    label="Place of Birth" 
+                    value={formData.pob} 
+                    onChange={(v: string) => setFormData({...formData, pob: v})} 
+                    icon={<MapPin size={14}/>} 
+                    error={errors.pob}
+                  />
+                  <FormInput 
+                    label="Nationality" 
+                    value={formData.nationality} 
+                    onChange={(v: string) => setFormData({...formData, nationality: v})} 
+                    icon={<Globe size={14}/>} 
+                    error={errors.nationality}
+                  />
+                  <FormInput 
+                    label="Codice Fiscale" 
+                    value={formData.codiceFiscale} 
+                    onChange={(v: string) => setFormData({...formData, codiceFiscale: v})} 
+                    icon={<Hash size={14}/>} 
+                    error={errors.codiceFiscale}
+                  />
+                  <FormInput 
+                    label="Phone" 
+                    value={formData.phone} 
+                    onChange={(v: string) => setFormData({...formData, phone: v})} 
+                    icon={<Phone size={14}/>} 
+                    error={errors.phone}
+                  />
+                  
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-black/40 flex items-center gap-2">
+                      <FileText size={12} /> Permesso Type
+                    </label>
+                    <div className="relative">
+                      <select
+                        name="permessoType"
+                        value={formData.permessoType}
+                        onChange={(e) => setFormData({...formData, permessoType: e.target.value})}
+                        className="w-full px-4 py-3 bg-black/[0.02] border border-black/10 rounded-sm text-sm focus:outline-none focus:border-black appearance-none transition-all"
+                      >
+                        <option value="">Select Type</option>
+                        {permessoTypes.map((t) => (
+                          <option key={t} value={t}>{t}</option>
+                        ))}
+                      </select>
+                      <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-black/40" />
+                    </div>
+                  </div>
+
+                  <DateDropdownField
+                    label="Permesso Expiry"
+                    icon={<Calendar size={14} />}
+                    value={formData.permessoExpiry}
+                    onChange={(val) => setFormData(p => ({ ...p, permessoExpiry: val }))}
+                    externalError={errors.permessoExpiry}
+                  />
                 </div>
+
                 <div className="grid md:grid-cols-3 gap-6 pt-8 border-t border-black/5">
                   <div className="md:col-span-1">
-                    <FormInput label="Street Address" value={formData.streetAddress} onChange={(v: string) => setFormData({...formData, streetAddress: v})} icon={<Home size={14}/>} />
+                    <FormInput 
+                      label="Street Address" 
+                      value={formData.streetAddress} 
+                      onChange={(v: string) => setFormData({...formData, streetAddress: v})} 
+                      icon={<Home size={14}/>} 
+                      error={errors.streetAddress}
+                    />
                   </div>
-                  <FormInput label="Post Code" value={formData.postCode} onChange={(v: string) => setFormData({...formData, postCode: v})} icon={<Hash size={14}/>} />
-                  <FormInput label="Province" value={formData.province} onChange={(v: string) => setFormData({...formData, province: v})} icon={<MapPin size={14}/>} />
+                  <FormInput 
+                    label="Post Code" 
+                    value={formData.postCode} 
+                    onChange={(v: string) => setFormData({...formData, postCode: v})} 
+                    icon={<Hash size={14}/>} 
+                    error={errors.postCode}
+                  />
+                  <FormInput 
+                    label="Province" 
+                    value={formData.province} 
+                    onChange={(v: string) => setFormData({...formData, province: v})} 
+                    icon={<MapPin size={14}/>} 
+                    error={errors.province}
+                  />
                 </div>
               </div>
             )}
@@ -238,6 +373,7 @@ export function SubmitOnBehalfModal({ isOpen, onClose, selectedUser, onSuccess }
             {step === 2 && (
               <div className="space-y-8">
                 <div className="grid gap-3">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-black/40 block">Select Services</label>
                   {allSubservices.map((sub, i) => {
                     const isSelected = formData.selectedServices.some(s => s.name === sub.name);
                     return (
@@ -251,13 +387,13 @@ export function SubmitOnBehalfModal({ isOpen, onClose, selectedUser, onSuccess }
                               : [...prev.selectedServices, sub]
                           }));
                         }}
-                        className={`flex items-center justify-between p-6 border rounded-sm transition-all ${isSelected ? 'bg-black text-white border-black' : 'bg-white border-black/5 hover:border-black/20'}`}
+                        className={`flex items-center justify-between p-6 border rounded-sm transition-all ${isSelected ? 'bg-black text-white border-black shadow-lg' : 'bg-white border-black/5 hover:border-black/20'}`}
                       >
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-4 text-left">
                           <div className={`w-10 h-10 rounded-sm flex items-center justify-center ${isSelected ? 'bg-white/10' : 'bg-black/5'}`}>
                             {IconMap[sub.icon] || <FileText size={18}/>}
                           </div>
-                          <div className="text-left">
+                          <div>
                             <p className="text-sm font-bold">{sub.name}</p>
                             <p className={`text-[10px] font-bold uppercase tracking-widest ${isSelected ? 'text-white/40' : 'text-black/40'}`}>{sub.categoryName} • {sub.duration}</p>
                           </div>
@@ -269,13 +405,13 @@ export function SubmitOnBehalfModal({ isOpen, onClose, selectedUser, onSuccess }
                 </div>
                 
                 <div className="pt-8 border-t border-black/5">
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-black/40 block mb-4">Submission Location</label>
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-black/40 block mb-4">Submission Location (Branch)</label>
                   <div className="grid gap-3">
                     {branches.map(b => (
                       <button
                         key={b._id}
                         onClick={() => setSelectedBranch(b)}
-                        className={`flex items-center justify-between p-6 border rounded-sm transition-all ${selectedBranch?._id === b._id ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white border-black/5 hover:border-black/20'}`}
+                        className={`flex items-center justify-between p-6 border rounded-sm transition-all ${selectedBranch?._id === b._id ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg' : 'bg-white border-black/5 hover:border-black/20'}`}
                       >
                         <div className="flex items-center gap-4 text-left">
                           <MapPin size={18} />
@@ -339,9 +475,8 @@ export function SubmitOnBehalfModal({ isOpen, onClose, selectedUser, onSuccess }
               )}
               {step < 3 ? (
                 <button 
-                  onClick={() => setStep(step + 1)}
-                  disabled={step === 2 && formData.selectedServices.length === 0}
-                  className="flex-1 py-6 bg-black text-white rounded-sm font-bold text-[10px] uppercase tracking-[0.3em] hover:bg-black/90 transition-all disabled:opacity-20"
+                  onClick={handleNext}
+                  className="flex-1 py-6 bg-black text-white rounded-sm font-bold text-[10px] uppercase tracking-[0.3em] hover:bg-black/90 transition-all shadow-xl"
                 >
                   Continue
                 </button>
@@ -369,20 +504,31 @@ interface FormInputProps {
   onChange: (v: string) => void;
   icon: React.ReactNode;
   placeholder?: string;
+  error?: string;
 }
 
-function FormInput({ label, value, onChange, icon, placeholder }: FormInputProps) {
+function FormInput({ label, value, onChange, icon, placeholder, error }: FormInputProps) {
   return (
     <div className="space-y-2">
-      <label className="text-[10px] font-bold uppercase tracking-widest text-black/40 flex items-center gap-2">
-        {icon} {label}
-      </label>
+      <div className="flex justify-between items-center">
+        <label className={`text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 ${error ? 'text-red-500' : 'text-black/40'}`}>
+          {icon} {label}
+        </label>
+        {error && (
+          <span className="text-[8px] font-bold text-red-500 uppercase tracking-tighter">
+            {error}
+          </span>
+        )}
+      </div>
       <input 
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full px-4 py-3 bg-black/[0.02] border border-black/10 rounded-sm text-sm focus:outline-none focus:border-black transition-all"
+        className={`w-full px-4 py-3 bg-black/[0.02] border rounded-sm text-sm focus:outline-none transition-all ${
+          error ? 'border-red-500 bg-red-50' : 'border-black/10 focus:border-black'
+        }`}
       />
     </div>
   );
 }
+

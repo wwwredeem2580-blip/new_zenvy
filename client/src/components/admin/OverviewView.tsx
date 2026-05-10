@@ -81,9 +81,10 @@ export function OverviewView() {
                </div>
             </div>
 
-            <div className="grid md:grid-cols-4 gap-6">
+            <div className="grid md:grid-cols-5 gap-6">
                 <StatusCard label="Pending" value={data.statuses.Pending} color="bg-yellow-50 text-yellow-600" />
                 <StatusCard label="Reviewing" value={data.statuses.Reviewing} color="bg-blue-50 text-blue-600" />
+                <StatusCard label="Approval Queue" value={data.statuses['Pending Admin Approval']} color="bg-indigo-600 text-white shadow-xl shadow-indigo-100" />
                 <StatusCard label="Approved" value={data.statuses.Approved} color="bg-green-50 text-green-600" />
                 <StatusCard label="Rejected" value={data.statuses.Rejected} color="bg-red-50 text-red-600" />
             </div>
