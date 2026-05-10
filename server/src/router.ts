@@ -5,7 +5,7 @@ import mediaRoutes from './modules/media/router';
 import adminRoutes from './modules/admin/router';
 import serviceRoutes from './modules/service/routes';
 import branchRoutes from './modules/branch/router';
-import { getPaymentSettings } from './modules/admin/paymentSettings.controller';
+import { getPaymentSettings, getQrImage } from './modules/admin/paymentSettings.controller';
 import { getContactSettings } from './modules/admin/contactSettings.controller';
 
 const router = Router();
@@ -19,6 +19,7 @@ router.use('/branches', branchRoutes);
 
 // Public payment settings (no auth — needed for payment modal before login)
 router.get('/payment-settings', getPaymentSettings);
+router.get('/payment-settings/qr-image', getQrImage);
 
 // Public contact settings
 router.get('/contact-settings', getContactSettings);
