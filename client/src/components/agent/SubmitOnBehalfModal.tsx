@@ -216,18 +216,18 @@ export function SubmitOnBehalfModal({ isOpen, onClose, selectedUser, onSuccess }
       await applicationApi.submitApplication({
         ...formData,
         address: `${formData.streetAddress}, ${formData.postCode}, ${formData.province}`,
-        userId: selectedUser.id || selectedUser._id,
+        userId: selectedUser?.id || selectedUser?._id,
         branchId: selectedBranch?._id || '',
         branchName: selectedBranch?.name || '',
         paymentMethod: 'Cash', // Default for agent submissions
         attachments,
         submittedBy: {
-          agentId: agent?.id || '',
+          agentId: (agent as any)?.id || (agent as any)?._id || '',
           agentName: `${agent?.firstName} ${agent?.lastName}`,
           method: 'agent_assisted'
         },
         referredBy: {
-          agentId: agent?.id || '',
+          agentId: (agent as any)?.id || (agent as any)?._id || '',
           agentName: `${agent?.firstName} ${agent?.lastName}`
         }
       });

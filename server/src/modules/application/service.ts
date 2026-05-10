@@ -47,7 +47,7 @@ export const submitApplication = async (
 
   const application = await Application.create({
     ...data,
-    userId: new mongoose.Types.ObjectId(userId),
+    userId: mongoose.Types.ObjectId.isValid(userId) ? new mongoose.Types.ObjectId(userId) : undefined as any,
     applicationId,
     status: 'Pending',
     paymentStatus: data.paymentMethod === 'Credits' ? 'Received' : 'Pending',
@@ -62,11 +62,15 @@ export const submitApplication = async (
     ],
     submittedBy: data.submittedBy ? {
       ...data.submittedBy,
-      agentId: new mongoose.Types.ObjectId(data.submittedBy.agentId)
+      agentId: mongoose.Types.ObjectId.isValid(data.submittedBy.agentId) 
+        ? new mongoose.Types.ObjectId(data.submittedBy.agentId) 
+        : undefined as any
     } : undefined,
     referredBy: data.referredBy ? {
       ...data.referredBy,
-      agentId: new mongoose.Types.ObjectId(data.referredBy.agentId)
+      agentId: mongoose.Types.ObjectId.isValid(data.referredBy.agentId) 
+        ? new mongoose.Types.ObjectId(data.referredBy.agentId) 
+        : undefined as any
     } : undefined
   });
 
