@@ -5,9 +5,16 @@ import { CreateApplicationSchema } from './schema';
 
 export const create = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = (req as any).user.userId;
+    const actorId = (req as any).user.userId;
+    const actorRole = (req as any).user.role;
     const parsed = CreateApplicationSchema.parse(req.body);
-    const application = await applicationService.submitApplication(userId, parsed);
+
+    // If an agent/admin is submitting on behalf of someone, use the provided userId
+    const targetUserId = (actorRole === 'agent' || actorRole === 'admin') && parsed.userId 
+      ? parsed.userId 
+      : actorId;
+
+    const application = await applicationService.submitApplication(targetUserId, parsed);
     res.status(201).json({ success: true, application });
   } catch (error) {
     handleError(error, res);

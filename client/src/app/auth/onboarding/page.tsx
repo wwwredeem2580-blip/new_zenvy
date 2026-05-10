@@ -30,17 +30,24 @@ function OnboardingContent() {
     password: '',
   });
 
+  const initialized = React.useRef(false);
   useEffect(() => {
     const init = async () => {
-      // If a user is already logged in, clear their session to avoid role/account overlap
+      // If we've already handled the initial cleanup and invitation verification, stop.
+      if (initialized.current) return;
+
+      // 1. Force logout of any existing session to prevent account overlap
       if (user) {
         await logout();
+        // The effect will re-run automatically since 'user' is a dependency
         return;
       }
 
+      // 2. Validate the invitation token
       if (!token) {
         setError("No invitation token found.");
         setLoading(false);
+        initialized.current = true;
         return;
       }
 
@@ -48,9 +55,12 @@ function OnboardingContent() {
         const res = await authApi.verifyInvitation(token);
         if (res.success) {
           setInvitation(res.invitation);
+          // Mark as initialized so this effect doesn't re-run after the user registers
+          initialized.current = true;
         }
       } catch (err: any) {
         setError(err.message || "Invalid or expired invitation.");
+        initialized.current = true;
       } finally {
         setLoading(false);
       }

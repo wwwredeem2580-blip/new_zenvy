@@ -42,6 +42,7 @@ export const CreateApplicationSchema = z.object({
     uploadedById: z.string(),
     uploadedAt: z.string().optional(),
   })).optional(),
+  userId: z.string().optional(),
 });
 
 export type CreateApplicationInput = z.infer<typeof CreateApplicationSchema>;
