@@ -24,6 +24,7 @@ export function UserLookupModal({ isOpen, onClose, onSelect }: UserLookupModalPr
   const [results, setResults] = useState<UserType[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
   
   const [formData, setFormData] = useState({
     firstName: '',
@@ -36,6 +37,7 @@ export function UserLookupModal({ isOpen, onClose, onSelect }: UserLookupModalPr
   const handleSearch = async () => {
     if (query.length < 3) return;
     setIsSearching(true);
+    setHasSearched(true);
     try {
       const res = await adminApi.findUser(query);
       setResults(res.users);
@@ -95,7 +97,10 @@ export function UserLookupModal({ isOpen, onClose, onSelect }: UserLookupModalPr
                       type="text" 
                       placeholder="Search by email or phone..."
                       value={query}
-                      onChange={(e) => setQuery(e.target.value)}
+                      onChange={(e) => {
+                        setQuery(e.target.value);
+                        if (hasSearched) setHasSearched(false);
+                      }}
                       onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                       className="w-full pl-12 pr-24 py-4 bg-black/[0.02] border border-black/10 rounded-sm text-sm focus:outline-none focus:border-black transition-all"
                     />
@@ -128,7 +133,7 @@ export function UserLookupModal({ isOpen, onClose, onSelect }: UserLookupModalPr
                           <ChevronRight size={16} className="text-black/10 group-hover:text-black transition-all" />
                         </button>
                       ))
-                    ) : query.length >= 3 && !isSearching && (
+                    ) : hasSearched && !isSearching && (
                       <div className="text-center py-12 bg-black/[0.01] rounded-sm border border-dashed border-black/5">
                         <p className="text-[10px] font-bold text-black/20 uppercase tracking-widest">No clients found</p>
                       </div>
