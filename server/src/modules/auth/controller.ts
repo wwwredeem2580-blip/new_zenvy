@@ -139,7 +139,13 @@ export const verifyInvitationController = async (req: Request, res: Response) =>
 export const registerAgentController = async (req: Request, res: Response) => {
   try {
     const parsed = RegisterAgentSchema.parse(req.body);
-    const result = await authService.registerAgent(parsed);
+    const { token, ...result } = await authService.registerAgent(parsed);
+
+    // Set the session cookie so the user is immediately authenticated after onboarding,
+    // just like the regular login flow does — without this the cookie is never written
+    // and the session is lost on the next page load.
+    res.cookie('accessToken', token, getAccessTokenConfig(req));
+
     res.status(201).json({ success: true, ...result });
   } catch (error) {
     handleError(error, res);
