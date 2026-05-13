@@ -607,7 +607,7 @@ export default function ApplicationForm() {
                         <input 
                           type="text"
                           placeholder="Search for a service..."
-                          className="w-full pl-16 pr-6 py-4 bg-surface border border-border rounded-[24px] focus:outline-none focus:border-text/30 shadow-xl shadow-text/5 transition-all text-text placeholder:text-text/20 font-medium"
+                          className="w-full pl-14 pr-6 py-3 bg-surface border border-border rounded-[20px] focus:outline-none focus:border-text/30 shadow-xl shadow-text/5 transition-all text-text placeholder:text-text/20 font-medium text-sm"
                           value={searchQuery}
                           onChange={(e) => setSearchQuery(e.target.value)}
                         />
@@ -619,7 +619,7 @@ export default function ApplicationForm() {
                             key={cat.id}
                             type="button"
                             onClick={() => setSelectedCategory(cat.id)}
-                            className={`px-6 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${
+                            className={`px-4 py-2 rounded-full text-[9px] font-bold uppercase tracking-widest transition-all ${
                               selectedCategory === cat.id 
                                 ? "bg-text text-bg shadow-lg shadow-text/20 scale-105" 
                                 : "bg-surface text-text/40 hover:bg-text/5 hover:text-text border border-border"
@@ -640,17 +640,17 @@ export default function ApplicationForm() {
                               key={i}
                               type="button"
                               onClick={() => toggleService(sub)}
-                              className={`group flex flex-col md:flex-row md:items-center justify-between gap-6 p-6 rounded-[24px] border transition-all duration-300 text-left ${
+                              className={`group flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 sm:p-5 rounded-[20px] border transition-all duration-300 text-left ${
                                 isSelected
-                                  ? "bg-text text-bg border-text shadow-lg scale-[1.01]"
+                                  ? "bg-text text-bg border-text shadow-lg"
                                   : "bg-surface border-border hover:border-text/30 hover:shadow-xl hover:shadow-text/5"
                               }`}
                             >
                               <div className="flex items-center gap-5 flex-1">
-                                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-colors ${
+                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors shrink-0 ${
                                   isSelected ? "bg-bg/10 text-bg" : "bg-text/5 text-text"
                                 }`}>
-                                  {IconMap[sub.icon] || <FileText size={20} />}
+                                  {IconMap[sub.icon] || <FileText size={18} />}
                                 </div>
                                 <div className="space-y-1.5">
                                   <div className="flex items-center gap-2">
@@ -660,7 +660,7 @@ export default function ApplicationForm() {
                                       {sub.categoryName}
                                     </span>
                                   </div>
-                                  <h4 className={`font-bold text-lg leading-tight ${isSelected ? "text-bg" : "text-text"}`}>{sub.name}</h4>
+                                  <h4 className={`font-bold text-base leading-tight ${isSelected ? "text-bg" : "text-text"}`}>{sub.name}</h4>
                                   <div className={`flex items-center gap-2 text-[10px] uppercase tracking-widest font-bold ${
                                     isSelected ? "text-bg/60" : "text-muted"
                                   }`}>

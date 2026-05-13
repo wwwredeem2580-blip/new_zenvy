@@ -104,12 +104,12 @@ export default function PaymentSelection({ amount, paymentSettings = {}, onSucce
   const needsTransactionId = selectedMethod === 'Revolut' || selectedMethod === 'Card';
 
   return (
-    <div className="fixed inset-0 z-[500] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[500] flex items-center justify-center p-4 overflow-y-auto">
       <motion.div 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="absolute inset-0 bg-black/60 backdrop-blur-md"
+        className="fixed inset-0 bg-black/60 backdrop-blur-md"
         onClick={onCancel}
       />
       
@@ -117,7 +117,7 @@ export default function PaymentSelection({ amount, paymentSettings = {}, onSucce
         initial={{ y: 20, opacity: 0, scale: 0.95 }}
         animate={{ y: 0, opacity: 1, scale: 1 }}
         exit={{ y: 20, opacity: 0, scale: 0.95 }}
-        className="relative w-full max-w-2xl bg-surface border border-border rounded-[32px] overflow-hidden shadow-2xl flex flex-col md:flex-row min-h-[450px]"
+        className="relative w-full max-w-2xl bg-surface border border-border rounded-[32px] overflow-y-auto md:overflow-hidden shadow-2xl flex flex-col md:flex-row min-h-0 md:min-h-[450px] max-h-[90vh] md:max-h-none my-auto"
       >
         <div className="w-full md:w-5/12 bg-bg/50 p-8 border-b md:border-b-0 md:border-r border-border flex flex-col justify-between">
           <div className="space-y-6">

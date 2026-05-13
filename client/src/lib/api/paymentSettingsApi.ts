@@ -12,12 +12,20 @@ export interface PaymentSettings {
 export const paymentSettingsApi = {
   getPublic: async (): Promise<PaymentSettings> => {
     const res = await api.get('/payment-settings');
-    return res.data.settings;
+    const settings = res.data.settings;
+    if (settings.revolutQrUrl && settings.revolutQrUrl.startsWith('/')) {
+      settings.revolutQrUrl = `${api.defaults.baseURL}${settings.revolutQrUrl}`;
+    }
+    return settings;
   },
 
   getAdmin: async (): Promise<PaymentSettings> => {
     const res = await api.get('/admin/payment-settings');
-    return res.data.settings;
+    const settings = res.data.settings;
+    if (settings.revolutQrUrl && settings.revolutQrUrl.startsWith('/')) {
+      settings.revolutQrUrl = `${api.defaults.baseURL}${settings.revolutQrUrl}`;
+    }
+    return settings;
   },
 
   update: async (data: PaymentSettings): Promise<PaymentSettings> => {
@@ -33,6 +41,10 @@ export const paymentSettingsApi = {
         'Content-Type': 'multipart/form-data',
       },
     });
-    return res.data.qrUrl;
+    let qrUrl = res.data.qrUrl;
+    if (qrUrl && qrUrl.startsWith('/')) {
+      qrUrl = `${api.defaults.baseURL}${qrUrl}`;
+    }
+    return qrUrl;
   },
 };
