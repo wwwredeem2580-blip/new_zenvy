@@ -1,9 +1,16 @@
 import type { NextConfig } from "next";
+import path from "path";
 
 const nextConfig: NextConfig = {
   compress: true,
   poweredByHeader: false,
-  
+
+  turbopack: {
+    resolveAlias: {
+      tailwindcss: path.resolve(__dirname, "node_modules/tailwindcss"),
+    },
+  },
+
   images: {
     domains: ['images.unsplash.com', 'picsum.photos', 'lh3.googleusercontent.com'],
     formats: ['image/avif', 'image/webp'],
@@ -55,7 +62,7 @@ const nextConfig: NextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://static.cloudflareinsights.com; connect-src 'self' http://localhost:3001 ws://localhost:3001 https://smartcaf.tech wss://smartcaf.tech https://cloudflareinsights.com; img-src 'self' data: https://api.dicebear.com blob: https://images.unsplash.com https://*.googleusercontent.com https://*.backblazeb2.com; style-src 'self' 'unsafe-inline'; frame-ancestors 'none';"
+            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://static.cloudflareinsights.com; connect-src 'self' http://localhost:3001 ws://localhost:3001 https://smartcaf.tech wss://smartcaf.tech https://cloudflareinsights.com; img-src 'self' data: https://api.dicebear.com blob: https://images.unsplash.com https://*.googleusercontent.com https://*.backblazeb2.com https://picsum.photos https://*.picsum.photos; style-src 'self' 'unsafe-inline'; frame-ancestors 'none';"
           },
         ],
       },

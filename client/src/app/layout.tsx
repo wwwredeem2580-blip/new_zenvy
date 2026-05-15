@@ -1,12 +1,6 @@
 import type { Metadata } from "next";
-import { Space_Grotesk, DM_Sans } from "next/font/google";
+import { DM_Sans, Noto_Serif_Bengali } from "next/font/google";
 import "./globals.css";
-
-const spaceGrotesk = Space_Grotesk({
-  subsets: ["latin"],
-  variable: "--font-space",
-  weight: ["300", "400", "500", "600", "700"],
-});
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -14,13 +8,17 @@ const dmSans = DM_Sans({
   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900", "1000"],
 });
 
+const notoBengali = Noto_Serif_Bengali({
+  subsets: ["bengali"],
+  variable: "--font-bengali",
+  weight: ["300", "400", "500", "600", "700"],
+});
+
 export const metadata: Metadata = {
-  title: "Smart CAF | Digital Portal",
-  description: "The most efficient way to manage your administrative files in Italy.",
+  title: "খবর ২৪ | সত্যের সন্ধানে অবিচল",
+  description: "বাংলাদেশের অগ্রগামী একটি ডিজিটাল নিউজ প্ল্যাটফর্ম।",
 };
 
-import { AuthProvider } from "@/context/AuthContext";
-import AppLayout from "@/components/layout/AppLayout";
 import { Toaster } from "sonner";
 
 export default function RootLayout({
@@ -29,13 +27,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${spaceGrotesk.variable} ${dmSans.variable} light`}>
-       <body className="antialiased font-dm">
-         <AuthProvider>
-           <AppLayout>
-             {children}
-           </AppLayout>
-         </AuthProvider>
+    <html lang="bn" className={`${dmSans.variable} ${notoBengali.variable}`}>
+       <body className="antialiased">
+         {children}
          <Toaster position="top-center" richColors />
        </body>
     </html>
