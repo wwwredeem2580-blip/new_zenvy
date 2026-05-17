@@ -20,9 +20,13 @@ export interface ProductFormData {
 }
 
 export interface Product {
-  id: number;
+  id: number | string;
   name: string;
   stock: number;
   status: string;
   image: string;
+  brand?: string;
+  variants?: ProductVariant[];
+  lowStockThreshold?: number;
 }
+

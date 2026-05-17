@@ -34,12 +34,74 @@ export default function DashboardPage() {
   const [isCreatingProduct, setIsCreatingProduct] = useState(false);
   const [showSuccessOverlay, setShowSuccessOverlay] = useState(false);
   const [productList, setProductList] = useState<Product[]>([
-    { id: 1, name: "Mountain Bike XT-200 | Professional Grade Racing Component", stock: 12, status: 'Published', image: 'https://images.unsplash.com/photo-1532298229144-0ec0c57515c7?q=80&w=200&auto=format' },
-    { id: 2, name: "Cycling Helmet Pro (Matte Black Edition)", stock: 45, status: 'Published', image: 'https://images.unsplash.com/photo-1544133782-00994967396c?q=80&w=200&auto=format' },
-    { id: 3, name: "Leather Saddle S3 - Ergonomic Touring", stock: 0, status: 'Draft', image: 'https://images.unsplash.com/photo-1510211513233-a8ef8e367464?q=80&w=200&auto=format' },
-    { id: 4, name: "Carbon Fiber Frame Set 54cm", stock: 3, status: 'Published', image: 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?q=80&w=200&auto=format' },
-    { id: 5, name: "Wireless Bike Computer with GPS Tracking", stock: 24, status: 'Published', image: 'https://images.unsplash.com/photo-1511994298241-608e28f14fde?q=80&w=200&auto=format' },
-    { id: 6, name: "Test Product - Gold Edition", stock: 8, status: 'Published', image: 'https://images.unsplash.com/photo-1512412086892-424a12e140ef?q=80&w=200&auto=format' },
+    { 
+      id: 1, 
+      name: "Galaxy A35 5G", 
+      brand: "Samsung",
+      stock: 19, 
+      status: 'Published', 
+      image: 'https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?q=80&w=200&auto=format',
+      lowStockThreshold: 5,
+      variants: [
+        { id: 'v1_1', color: 'Blue', ram: '8GB', storage: '256GB', quantity: 4, buyingPrice: 32000, sellingPrice: 38500 },
+        { id: 'v1_2', color: 'Black', ram: '8GB', storage: '128GB', quantity: 15, buyingPrice: 28000, sellingPrice: 34000 },
+        { id: 'v1_3', color: 'White', ram: '6GB', storage: '128GB', quantity: 0, buyingPrice: 26000, sellingPrice: 31000 }
+      ]
+    },
+    { 
+      id: 2, 
+      name: "Redmi Note 13 Pro", 
+      brand: "Xiaomi",
+      stock: 14, 
+      status: 'Published', 
+      image: 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?q=80&w=200&auto=format',
+      lowStockThreshold: 4,
+      variants: [
+        { id: 'v2_1', color: 'Forest Green', ram: '8GB', storage: '256GB', quantity: 12, buyingPrice: 24000, sellingPrice: 29500 },
+        { id: 'v2_2', color: 'Ocean Blue', ram: '12GB', storage: '512GB', quantity: 2, buyingPrice: 29000, sellingPrice: 35000 },
+        { id: 'v2_3', color: 'Stealth Black', ram: '8GB', storage: '256GB', quantity: 0, buyingPrice: 24000, sellingPrice: 29500 }
+      ]
+    },
+    { 
+      id: 3, 
+      name: "iPhone 15 Pro Max", 
+      brand: "Apple",
+      stock: 9, 
+      status: 'Published', 
+      image: 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?q=80&w=200&auto=format',
+      lowStockThreshold: 3,
+      variants: [
+        { id: 'v3_1', color: 'Natural Titanium', ram: '8GB', storage: '256GB', quantity: 8, buyingPrice: 125000, sellingPrice: 145000 },
+        { id: 'v3_2', color: 'Blue Titanium', ram: '8GB', storage: '512GB', quantity: 1, buyingPrice: 140000, sellingPrice: 165000 },
+        { id: 'v3_3', color: 'Black Titanium', ram: '8GB', storage: '256GB', quantity: 0, buyingPrice: 125000, sellingPrice: 145000 }
+      ]
+    },
+    { 
+      id: 4, 
+      name: "OnePlus 12", 
+      brand: "OnePlus",
+      stock: 15, 
+      status: 'Published', 
+      image: 'https://images.unsplash.com/photo-1610945415295-d9bcf067e59c?q=80&w=200&auto=format',
+      lowStockThreshold: 5,
+      variants: [
+        { id: 'v4_1', color: 'Flowy Emerald', ram: '16GB', storage: '512GB', quantity: 10, buyingPrice: 68000, sellingPrice: 79000 },
+        { id: 'v4_2', color: 'Silky Black', ram: '12GB', storage: '256GB', quantity: 5, buyingPrice: 60000, sellingPrice: 69000 }
+      ]
+    },
+    { 
+      id: 5, 
+      name: "Nothing Phone (2a)", 
+      brand: "Nothing",
+      stock: 2, 
+      status: 'Draft', 
+      image: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=200&auto=format',
+      lowStockThreshold: 3,
+      variants: [
+        { id: 'v5_1', color: 'Milk White', ram: '8GB', storage: '128GB', quantity: 0, buyingPrice: 31000, sellingPrice: 36000 },
+        { id: 'v5_2', color: 'Dark Grey', ram: '12GB', storage: '256GB', quantity: 2, buyingPrice: 36000, sellingPrice: 42000 }
+      ]
+    }
   ]);
 
   const steps = [
@@ -464,27 +526,38 @@ export default function DashboardPage() {
                     </div>
 
                     <div className="bg-white overflow-hidden">
+                      {/* Product Status Tabs */}
                       <div className="flex border-b border-gray-100 px-4">
                         {['All', 'Low Stock', 'Out of Stock'].map((tab) => (
                           <button
                             key={tab}
                             onClick={() => setActiveProductFilter(tab)}
-                            className={`py-4 px-2 text-[9px] whitespace-nowrap font-bold uppercase tracking-widest transition-all relative
-                              ${activeProductFilter === tab ? 'text-[#1a1c1d]' : 'text-gray-500 hover:text-gray-600'}`}
+                            className={`py-4 px-1.5 text-[10px] whitespace-nowrap font-bold uppercase tracking-widest transition-all relative
+                              ${activeProductFilter === tab ? 'text-neutral-900' : 'text-neutral-500 hover:text-neutral-700'}`}
                           >
                             <div className="flex items-center gap-2">
                               <span>{tab}</span>
-                              <span className="bg-gray-100 px-1.5 py-0.5 rounded text-[10px] text-gray-500">
-                                {tab === 'All' ? productList.length : tab === 'Published' ? productList.filter(p => p.status === 'Published').length : 0}
+                              <span className="bg-neutral-50 border border-brand-divider px-1.5 py-0.5 rounded text-[10px] font-bold text-neutral-500">
+                                {tab === 'All' ? productList.length : 
+                                 tab === 'Low Stock' ? productList.filter(p => {
+                                    const threshold = p.lowStockThreshold || 5;
+                                    const hasLowStockVariant = p.variants?.some(v => v.quantity > 0 && v.quantity <= threshold);
+                                    return hasLowStockVariant || (p.stock > 0 && p.stock <= threshold);
+                                 }).length : 
+                                 tab === 'Out of Stock' ? productList.filter(p => {
+                                    const allVariantsOut = p.variants && p.variants.length > 0 ? p.variants.every(v => v.quantity === 0) : false;
+                                    return p.stock === 0 || allVariantsOut;
+                                 }).length : 0}
                               </span>
                             </div>
                             {activeProductFilter === tab && (
-                              <motion.div layoutId="product-tab-underline" className="absolute bottom-0 left-0 w-full h-0.5 bg-[#1a1c1d]" />
+                              <motion.div layoutId="product-tab-underline" className="absolute bottom-0 left-0 w-full h-0.5 bg-primary-500" />
                             )}
                           </button>
                         ))}
                       </div>
 
+                      {/* Search & Action Controls */}
                       <div className="p-4 px-6 flex flex-col md:flex-row items-center justify-between gap-4">
                         <div className="relative flex-1 w-full max-w-sm">
                           <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -508,75 +581,128 @@ export default function DashboardPage() {
                         </div>
                       </div>
 
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse">
-                          {/* <thead>
-                            <tr className="bg-gray-50/50 border-y border-gray-100">
-                              <th className="p-4 w-10">
-                                <input type="checkbox" className="rounded border-gray-300 text-shopify-green focus:ring-shopify-green" />
-                              </th>
-                              <th className="p-2 text-[9px] font-black uppercase tracking-[0.2em] text-gray-400">Image</th>
-                              <th className="p-2 text-[9px] font-black uppercase tracking-[0.2em] text-gray-400">Product Name</th>
-                              <th className="p-2 text-[9px] font-black uppercase tracking-[0.2em] text-gray-400">Availability</th>
-                              <th className="p-2 text-[9px] font-black uppercase tracking-[0.2em] text-gray-400">Status</th>
-                              <th className="p-2 pr-6 text-[9px] font-black uppercase tracking-[0.2em] text-gray-400 text-right">Actions</th>
-                            </tr>
-                          </thead> */}
-                          <tbody className="divide-y divide-gray-50">
-                            {productList.filter(p => {
-                              if (activeProductFilter === 'All') return true;
-                              if (activeProductFilter === 'Published') return p.status === 'Published';
-                              if (activeProductFilter === 'Drafts') return p.status === 'Draft';
-                              return true;
-                            }).filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase())).map(product => (
-                              <motion.tr 
-                                key={product.id} 
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                className="group hover:bg-gray-50/50 transition-colors cursor-pointer"
-                              >
-                                <td className="pl-4">
-                                  <div className="w-10 h-10 border border-gray-100 overflow-hidden shadow-sm bg-white">
-                                    <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
-                                  </div>
-                                </td>
-                                <td className="p-4 max-w-xs">
-                                  <div className="flex flex-col">
-                                    <span className="text-[14px] font-bold text-[#1a1c1d] group-hover:text-shopify-green transition-colors leading-tight">
-                                      {product.name}
-                                    </span>
-                                    <button className="flex items-center gap-1.5 text-[10px] text-gray-400 hover:text-shopify-green font-bold uppercase tracking-widest mt-2 transition-colors w-fit">
-                                      <ExternalLink size={12} className="stroke-[2.5]" />
-                                      <span>Preview</span>
-                                    </button>
-                                  </div>
-                                </td>
-                                <td className="p-4">
-                                  <span className={`text-[13px] font-bold ${product.stock > 0 ? 'text-[#1a1c1d]' : 'text-red-500'}`}>
-                                    {product.stock > 0 ? 'Available' : 'Out of stock'}
-                                    <span className="text-gray-400 ml-1 font-medium">({product.stock})</span>
+                      {/* Cards Container */}
+                      <div className="p-4 md:p-6 flex flex-col gap-3.5">
+                        {productList.filter(p => {
+                          if (activeProductFilter === 'All') return true;
+                          if (activeProductFilter === 'Low Stock') {
+                            const threshold = p.lowStockThreshold || 5;
+                            const hasLowStockVariant = p.variants?.some(v => v.quantity > 0 && v.quantity <= threshold);
+                            return hasLowStockVariant || (p.stock > 0 && p.stock <= threshold);
+                          }
+                          if (activeProductFilter === 'Out of Stock') {
+                            const allVariantsOut = p.variants && p.variants.length > 0 ? p.variants.every(v => v.quantity === 0) : false;
+                            return p.stock === 0 || allVariantsOut;
+                          }
+                          return true;
+                        }).filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase())).map(product => (
+                          <motion.div 
+                            key={product.id} 
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="bg-white border border-brand-divider p-4 md:p-5 flex gap-4 items-start relative hover:shadow-[0_4px_20px_rgba(0,0,0,0.015)] transition-all group"
+                          >
+                            {/* Product Image Thumbnail */}
+                            <div className="w-16 h-16 border border-brand-divider overflow-hidden flex-shrink-0 bg-neutral-50 shadow-sm">
+                              <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                            </div>
+
+                            {/* Details Column */}
+                            <div className="flex-1 min-w-0">
+                              {/* 1st Line: Model Name & Brand */}
+                              <div className="flex flex-col">
+                                <span className="text-[14px] font-bold text-neutral-900 leading-snug group-hover:text-primary-500 transition-colors">
+                                  {product.name}
+                                </span>
+                                {product.brand && (
+                                  <span className="text-[11px] text-neutral-400 font-bold uppercase tracking-wider mt-0.5">
+                                    {product.brand}
                                   </span>
-                                </td>
-                                <td className="p-4">
-                                  <span className={`px-2 py-1 rounded text-[10px] font-bold tracking-wider uppercase
-                                    ${product.status === 'Published' 
-                                      ? 'bg-[#f0edff] text-[#5438ff]' 
-                                      : 'bg-[#fef4e6] text-[#b45d00]'}`}
-                                  >
-                                    {product.status}
-                                  </span>
-                                </td>
-                                <td className="p-4 pr-6 text-right">
-                                  <button className="p-2 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-[#1a1c1d] transition-all">
-                                    <Layers size={16} />
-                                  </button>
-                                </td>
-                              </motion.tr>
-                            ))}
-                          </tbody>
-                        </table>
+                                )}
+                              </div>
+
+                              {/* 2nd Line: Variant Chips with Smart Threshold Colors */}
+                              <div className="flex flex-wrap gap-1.5 mt-2.5">
+                                {product.variants && product.variants.length > 0 ? (
+                                  product.variants.map((variant) => {
+                                    const threshold = product.lowStockThreshold || 5;
+                                    const isOutOfStock = variant.quantity === 0;
+                                    const isLowStock = variant.quantity > 0 && variant.quantity <= threshold;
+
+                                    let chipClass = "bg-neutral-50 text-neutral-600 border-brand-divider";
+                                    if (isOutOfStock) {
+                                      chipClass = "bg-neutral-50 text-neutral-400 border-neutral-200";
+                                    } else if (isLowStock) {
+                                      chipClass = "bg-red-50 text-red-700 border-red-200";
+                                    }
+
+                                    return (
+                                      <span 
+                                        key={variant.id} 
+                                        className={`text-[12px] font-normal px-2.5 py-1 flex items-center gap-1.5 border transition-all ${chipClass}`}
+                                      >
+                                        <span>
+                                          {variant.color} {variant.ram.replace('GB', '')}/{variant.storage.replace('GB', '')}
+                                        </span>
+                                        <span className={`px-1.5 py-0.2 rounded text-[9px] font-black ${
+                                          isOutOfStock ? 'bg-neutral-100 text-neutral-400' :
+                                          isLowStock ? 'bg-red-100 text-red-700' : 'bg-brand-100 text-primary-600'
+                                        }`}>
+                                          {variant.quantity}
+                                        </span>
+                                      </span>
+                                    );
+                                  })
+                                ) : (
+                                  /* Fallback if no specific variants list exists */
+                                  (() => {
+                                    const threshold = product.lowStockThreshold || 5;
+                                    const isOutOfStock = product.stock === 0;
+                                    const isLowStock = product.stock > 0 && product.stock <= threshold;
+
+                                    let chipClass = "bg-neutral-50 text-neutral-600 border-brand-divider";
+                                    if (isOutOfStock) {
+                                      chipClass = "bg-neutral-50 text-neutral-400 border-neutral-200";
+                                    } else if (isLowStock) {
+                                      chipClass = "bg-red-50 text-red-700 border-red-200";
+                                    }
+
+                                    return (
+                                      <span className={`text-[10px] font-bold px-2.5 py-1 rounded-lg flex items-center gap-1.5 border ${chipClass}`}>
+                                        <span>Total Stock</span>
+                                        <span className={`px-1.5 py-0.2 rounded text-[9px] font-black ${
+                                          isOutOfStock ? 'bg-neutral-100 text-neutral-400' :
+                                          isLowStock ? 'bg-red-100 text-red-700' : 'bg-brand-100 text-primary-600'
+                                        }`}>
+                                          {product.stock}
+                                        </span>
+                                      </span>
+                                    );
+                                  })()
+                                )}
+                              </div>
+
+                              {/* 3rd Line: Preview Action & Status Indicator */}
+                              <div className="flex items-center justify-between mt-4 pt-1">
+                                <button className="flex items-center gap-1.5 text-[10px] text-primary-500 hover:text-primary-600 font-bold uppercase tracking-widest transition-colors">
+                                  <ExternalLink size={12} className="stroke-[2.5]" />
+                                  <span>Preview</span>
+                                </button>
+
+                                <span className={`px-2 py-0.5 rounded text-[9px] font-bold tracking-wider uppercase ${
+                                  product.status === 'Published' 
+                                    ? 'bg-primary-50 text-primary-600 border border-primary-100' 
+                                    : 'bg-warning-50 text-warning-800 border border-warning-100'
+                                }`}>
+                                  {product.status}
+                                </span>
+                              </div>
+                            </div>
+                          </motion.div>
+                        ))}
                       </div>
                     </div>
+
                   </div>
                 )}
               </div>
