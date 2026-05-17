@@ -1051,7 +1051,7 @@ function DashboardContent() {
                     {/* Summary Stats Grid (Polaris-Style Flat Visuals) */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-0 sm:gap-4">
                       {/* Stat 1: Products in Stock */}
-                      <div className="bg-white p-5 border border-[#efeded] rounded-sm shadow-2xs text-left hover:shadow-xs hover:border-[#dbdad9] transition-all">
+                      <div className="bg-white p-5 border border-[#efeded] shadow-2xs text-left hover:shadow-xs hover:border-[#dbdad9] transition-all">
                         <p className="text-[10px] font-bold text-[#5e5e5d] uppercase tracking-widest mb-1.5">Products in stock</p>
                         <div className="flex items-baseline justify-between">
                           <span className="text-xl md:text-2xl font-bold text-[#020302]">
@@ -1065,7 +1065,7 @@ function DashboardContent() {
                       </div>
 
                       {/* Stat 2: Total Stock Value */}
-                      <div className="bg-white p-5 border border-[#efeded] rounded-sm shadow-2xs text-left hover:shadow-xs hover:border-[#dbdad9] transition-all">
+                      <div className="bg-white p-5 border border-[#efeded] shadow-2xs text-left hover:shadow-xs hover:border-[#dbdad9] transition-all">
                         <p className="text-[10px] font-bold text-[#5e5e5d] uppercase tracking-widest mb-1.5">Asset Stock Value</p>
                         <div className="flex items-baseline justify-between">
                           <span className="text-xl md:text-2xl font-bold text-[#020302] truncate max-w-full">
@@ -1080,7 +1080,7 @@ function DashboardContent() {
                       </div>
 
                       {/* Stat 3: Units Sold */}
-                      <div className="bg-white p-5 border border-[#efeded] rounded-sm shadow-2xs text-left hover:shadow-xs hover:border-[#dbdad9] transition-all">
+                      <div className="bg-white p-5 border border-[#efeded] shadow-2xs text-left hover:shadow-xs hover:border-[#dbdad9] transition-all">
                         <p className="text-[10px] font-bold text-[#5e5e5d] uppercase tracking-widest mb-1.5">Units Sold (May)</p>
                         <div className="flex items-baseline justify-between">
                           <span className="text-xl md:text-2xl font-bold text-[#020302]">
@@ -1094,7 +1094,7 @@ function DashboardContent() {
                       </div>
 
                       {/* Stat 4: Revenue */}
-                      <div className="bg-white p-5 border border-[#efeded] rounded-sm shadow-2xs text-left hover:shadow-xs hover:border-[#dbdad9] transition-all">
+                      <div className="bg-white p-5 border border-[#efeded] shadow-2xs text-left hover:shadow-xs hover:border-[#dbdad9] transition-all">
                         <p className="text-[10px] font-bold text-[#5e5e5d] uppercase tracking-widest mb-1.5">Estimated Revenue</p>
                         <div className="flex items-baseline justify-between">
                           <span className="text-xl md:text-2xl font-bold text-[#020302] truncate max-w-full">
