@@ -281,6 +281,7 @@ function DashboardContent() {
   const [onboardingDismissed, setOnboardingDismissed] = useState<boolean>(true);
   const [onboardingCollapsed, setOnboardingCollapsed] = useState<boolean>(false);
   const [hasCelebrated, setHasCelebrated] = useState<boolean>(false);
+  const [shareBannerCollapsed, setShareBannerCollapsed] = useState<boolean>(true);
   const [checklist, setChecklist] = useState({
     addFirstProduct: false,
     setUpShopProfile: false,
@@ -302,6 +303,20 @@ function DashboardContent() {
         setOnboardingCollapsed(false);
       } else {
         setOnboardingCollapsed(collapsedStored);
+      }
+
+      // Share storefront banner: default expanded on first visit, auto-collapsed on subsequent visits
+      const shareHasSeen = localStorage.getItem('zenvy_shareBannerSeen') === 'true';
+      if (!shareHasSeen) {
+        localStorage.setItem('zenvy_shareBannerSeen', 'true');
+        setShareBannerCollapsed(false);
+      } else {
+        const stored = localStorage.getItem('zenvy_shareBannerCollapsed');
+        if (stored === 'false') {
+          setShareBannerCollapsed(false);
+        } else {
+          setShareBannerCollapsed(true);
+        }
       }
 
       const celebrated = localStorage.getItem('zenvy_onboardingCelebrated') === 'true';
@@ -1057,53 +1072,90 @@ function DashboardContent() {
                     )}
 
                     {/* Share Shop Card Hero Banner - Elegant Marketing card */}
-                    <motion.div 
-                      whileHover={{ y: -1.5 }}
-                      onClick={handleShareShopCard}
-                      className="bg-[#020302] p-6 rounded-sm flex flex-col md:flex-row md:items-center justify-between gap-5 cursor-pointer shadow-lg shadow-black/5 relative overflow-hidden group border border-[#efeded]/10"
-                    >
-                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.06),transparent)] pointer-events-none"></div>
-                      
-                      <div className="flex items-start gap-4 relative z-10">
-                        {/* Curved Mini Seal Logo Overlay */}
-                        <div className="w-14 h-14 rounded-full bg-white/10 border border-white/15 flex items-center justify-center relative select-none flex-shrink-0">
-                          {/* <svg viewBox="0 0 100 100" className="w-full h-full p-0.5 animate-[spin_35s_linear_infinite]">
-                            <path id="miniPath" d="M 20,50 a 30,30 0 1,1 60,0 a 30,30 0 1,1 -60,0" fill="none" />
-                            <text className="text-[9px] font-bold fill-white/60 tracking-[0.16em] uppercase">
-                              <textPath href="#miniPath" startOffset="50%" textAnchor="middle">
-                                {storeName ? storeName.substring(0, 8) : 'HW'} · CATALOG ·
-                              </textPath>
-                            </text>
-                          </svg> */}
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <EarthIcon size={39} className="text-white fill-white/10" />
+                    {shareBannerCollapsed ? (
+                      <div className="bg-[#020302] py-2.5 px-4 rounded-sm flex items-center justify-between gap-4 border border-[#efeded]/10 shadow-xs relative overflow-hidden select-none text-left">
+                        <div className="flex items-center gap-3 relative z-10">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                          <p className="text-[11px] font-bold text-white uppercase tracking-widest">
+                            Live Storefront is Active 
+                          </p>
+                          <span className="bg-[#21c563] text-white text-[8px] font-bold uppercase tracking-widest py-0.5 px-1.5 rounded-[2px] scale-90">
+                            ONLINE
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-3.5 relative z-10">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleShareShopCard();
+                            }}
+                            className="text-[9px] font-bold text-white hover:text-gray-300 uppercase tracking-widest transition-colors cursor-pointer"
+                          >
+                            Copy Link
+                          </button>
+                          <button
+                            onClick={() => {
+                              setShareBannerCollapsed(false);
+                              localStorage.setItem('zenvy_shareBannerCollapsed', 'false');
+                            }}
+                            className="text-[9px] font-bold text-white/50 hover:text-white uppercase tracking-widest transition-colors cursor-pointer border-l border-white/10 pl-3.5"
+                          >
+                            Details
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <motion.div 
+                        whileHover={{ y: -1.5 }}
+                        onClick={handleShareShopCard}
+                        className="bg-[#020302] p-6 rounded-sm flex flex-col md:flex-row md:items-center justify-between gap-5 cursor-pointer shadow-lg shadow-black/5 relative overflow-hidden group border border-[#efeded]/10"
+                      >
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShareBannerCollapsed(true);
+                            localStorage.setItem('zenvy_shareBannerCollapsed', 'true');
+                          }}
+                          className="absolute top-3.5 right-4 text-[9px] font-bold text-white/40 hover:text-white uppercase tracking-widest transition-colors cursor-pointer z-20"
+                        >
+                          Collapse
+                        </button>
+                        
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.06),transparent)] pointer-events-none"></div>
+                        
+                        <div className="flex items-start gap-4 relative z-10">
+                          {/* Curved Mini Seal Logo Overlay */}
+                          <div className="w-14 h-14 rounded-full bg-white/10 border border-white/15 flex items-center justify-center relative select-none flex-shrink-0">
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <EarthIcon size={39} className="text-white fill-white/10" />
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-1">
+                            <p className="text-[15px] font-bold text-white tracking-tight flex items-center gap-2">
+                              Live Storefront is Active 
+                              <span className="bg-[#21c563] text-white text-[9px] font-medium uppercase tracking-wider py-0.5 px-2 rounded-[3px]">
+                                ONLINE
+                              </span>
+                            </p>
+                            <p className="text-xs text-gray-300 font-medium leading-relaxed max-w-md">
+                              Anyone visiting your storefront can view live catalog quantities & inquire instantly via WhatsApp.
+                            </p>
                           </div>
                         </div>
                         
-                        <div className="space-y-1">
-                          <p className="text-[15px] font-bold text-white tracking-tight flex items-center gap-2">
-                            Live Storefront is Active 
-                            <span className="bg-[#21c563] text-white text-[9px] font-medium uppercase tracking-wider py-0.5 px-2 rounded-[3px]">
-                              ONLINE
-                            </span>
-                          </p>
-                          <p className="text-xs text-gray-300 font-medium leading-relaxed max-w-md">
-                            Anyone visiting your storefront can view live catalog quantities & inquire instantly via WhatsApp.
-                          </p>
-                        </div>
-                      </div>
-                      
-                      <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleShareShopCard();
-                        }}
-                        className="bg-white hover:bg-neutral-50 text-black py-3 px-5 text-xs font-bold uppercase tracking-wider rounded-sm flex items-center justify-center gap-2 self-start md:self-auto shadow-md transition-all active:scale-98 relative z-10 cursor-pointer"
-                      >
-                        <Share2 size={13} className="stroke-[2.5]" />
-                        Get Share Link
-                      </button>
-                    </motion.div>
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleShareShopCard();
+                          }}
+                          className="bg-white hover:bg-neutral-50 text-black py-3 px-5 text-xs font-bold uppercase tracking-wider rounded-sm flex items-center justify-center gap-2 self-start md:self-auto shadow-md transition-all active:scale-98 relative z-10 cursor-pointer"
+                        >
+                          <Share2 size={13} className="stroke-[2.5]" />
+                          Get Share Link
+                        </button>
+                      </motion.div>
+                    )}
 
                     {/* Summary Stats Grid (Polaris-Style Flat Visuals) */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-0 sm:gap-4">
