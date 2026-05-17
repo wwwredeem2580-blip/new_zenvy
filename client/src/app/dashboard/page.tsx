@@ -34,7 +34,11 @@ import {
   GlobeLock,
   WebhookIcon,
   EarthIcon,
-  CheckSquare
+  CheckSquare,
+  Settings,
+  BarChart3,
+  HelpCircle,
+  User
 } from 'lucide-react';
 import { useZenvy } from '@/context/ZenvyContext';
 import { SidebarSection, SidebarItem, SidebarSubItem, NavItem } from '@/components/SidebarComponents';
@@ -413,155 +417,138 @@ function DashboardContent() {
       className="flex h-screen bg-[#fbf9f9] text-[#1b1c1c] font-sans overflow-hidden"
     >
       {/* Desktop Sidebar Navigation */}
-      <aside className="hidden lg:flex flex-col w-64 bg-white border-r border-[#efeded] h-full z-20 flex-shrink-0">
-        <div className="pt-10 px-6 mb-8 flex-shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-[#020302] flex items-center justify-center text-white font-bold text-sm flex-shrink-0 shadow-sm">
-              {storeName ? storeName.substring(0, 2).toUpperCase() : 'HW'}
-            </div>
-            <div className="min-w-0">
-              <h1 className="text-[14px] font-bold leading-tight text-[#020302] truncate">Zenvy</h1>
-              <p className="text-[9px] uppercase tracking-widest text-[#5e5e5d] opacity-60 font-bold mt-0.5">SS26 Collection</p>
-            </div>
-          </div>
-        </div>
-
-        <nav className="flex-grow overflow-y-auto min-h-0">
-          <div className="px-4 mb-6 flex-shrink-0">
-            <button 
-              onClick={() => router.push('/dashboard/products/new')}
-              className="w-full bg-[#020302] hover:bg-neutral-900 text-white py-3 px-4 rounded-sm text-xs font-bold hover:opacity-90 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs active:scale-98"
-            >
-              <Plus size={14} className="stroke-[2.5]" />
-              <span>Add New Product</span>
-            </button>
-          </div>
-
+      <aside className="hidden lg:flex flex-col w-64 bg-white border-r border-[#efeded] h-full z-20 flex-shrink-0 text-left select-none">
+        <nav className="flex-grow overflow-y-auto min-h-0 pt-8">
+          {/* General Section */}
           <div className="space-y-1">
-            <p className="px-6 text-[9px] uppercase tracking-[0.2em] text-[#5e5e5d] mb-2 opacity-50 font-bold">General</p>
+            <p className="px-6 text-[10px] uppercase tracking-[0.16em] text-[#a3a3a3] font-bold mb-2.5">General</p>
+            
             <button 
               onClick={() => handleTabChange('Home')}
-              className={`w-full flex items-center gap-3 py-3 px-6 transition-all text-left cursor-pointer border-r-2 text-xs font-semibold ${
+              className={`w-full flex items-center gap-3.5 py-2.5 px-6 transition-all text-left cursor-pointer border-r-[3.5px] text-[13px] tracking-tight relative group ${
                 activeTab === 'Home' 
-                  ? 'text-[#020302] font-bold bg-[#f5f3f3] border-[#020302]' 
-                  : 'text-[#5e5e5d] hover:bg-[#f5f3f3]/50 border-transparent font-medium'
+                  ? 'text-[#020302] font-semibold bg-[#f4f4f5] border-[#020302]' 
+                  : 'text-[#5e5e5d] hover:text-[#020302] hover:bg-[#f4f4f5]/30 border-transparent font-medium'
               }`}
             >
-              <Home size={16} className="stroke-[2]" />
+              <Home size={16} className={`stroke-[1.8] ${activeTab === 'Home' ? 'text-[#020302]' : 'text-[#5e5e5d] group-hover:text-[#020302]'}`} />
               <span>Home</span>
             </button>
 
             <button 
               onClick={() => handleTabChange('Products')}
-              className={`w-full flex items-center gap-3 py-3 px-6 transition-all text-left cursor-pointer border-r-2 text-xs font-semibold ${
+              className={`w-full flex items-center gap-3.5 py-2.5 px-6 transition-all text-left cursor-pointer border-r-[3.5px] text-[13px] tracking-tight relative group ${
                 activeTab === 'Products' 
-                  ? 'text-[#020302] font-bold bg-[#f5f3f3] border-[#020302]' 
-                  : 'text-[#5e5e5d] hover:bg-[#f5f3f3]/50 border-transparent font-medium'
+                  ? 'text-[#020302] font-semibold bg-[#f4f4f5] border-[#020302]' 
+                  : 'text-[#5e5e5d] hover:text-[#020302] hover:bg-[#f4f4f5]/30 border-transparent font-medium'
               }`}
             >
-              <Package size={16} className="stroke-[2]" />
+              <Package size={16} className={`stroke-[1.8] ${activeTab === 'Products' ? 'text-[#020302]' : 'text-[#5e5e5d] group-hover:text-[#020302]'}`} />
               <span>Products</span>
             </button>
 
             <button 
               onClick={() => handleTabChange('Orders')}
-              className={`w-full flex items-center gap-3 py-3 px-6 transition-all text-left cursor-pointer border-r-2 text-xs font-semibold ${
+              className={`w-full flex items-center gap-3.5 py-2.5 px-6 transition-all text-left cursor-pointer border-r-[3.5px] text-[13px] tracking-tight relative group ${
                 activeTab === 'Orders' 
-                  ? 'text-[#020302] font-bold bg-[#f5f3f3] border-[#020302]' 
-                  : 'text-[#5e5e5d] hover:bg-[#f5f3f3]/50 border-transparent font-medium'
+                  ? 'text-[#020302] font-semibold bg-[#f4f4f5] border-[#020302]' 
+                  : 'text-[#5e5e5d] hover:text-[#020302] hover:bg-[#f4f4f5]/30 border-transparent font-medium'
               }`}
             >
-              <ShoppingBag size={16} className="stroke-[2]" />
+              <ShoppingBag size={16} className={`stroke-[1.8] ${activeTab === 'Orders' ? 'text-[#020302]' : 'text-[#5e5e5d] group-hover:text-[#020302]'}`} />
               <span>Orders</span>
-              <span className="ml-auto bg-blue-50 text-blue-600 text-[10px] px-2 py-0.5 rounded-full font-bold">12</span>
+              <span className="ml-auto bg-[#e0e7ff]/70 text-[#3730a3] text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">12</span>
             </button>
 
             <button 
               onClick={handleOpenCheckout}
-              className="w-full flex items-center gap-3 py-3 px-6 text-[#5e5e5d] hover:bg-[#f5f3f3]/50 border-transparent transition-all text-left cursor-pointer border-r-2 text-xs font-semibold font-medium"
+              className="w-full flex items-center gap-3.5 py-2.5 px-6 transition-all text-left cursor-pointer border-r-[3.5px] border-transparent text-[#5e5e5d] hover:text-[#020302] hover:bg-[#f4f4f5]/30 font-medium text-[13px] tracking-tight relative group"
             >
-              <ShoppingBag size={16} className="stroke-[2] text-emerald-600" />
-              <span>POS Checkout</span>
-              <span className="ml-auto bg-emerald-50 text-emerald-600 text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">POS</span>
+              <ShoppingBag size={16} className="stroke-[1.8] text-emerald-600" />
+              <span>POS Terminal</span>
+              <span className="ml-auto bg-emerald-50 text-emerald-700 text-[8px] px-1.5 py-0.5 rounded-[3px] font-bold uppercase tracking-wider">POS</span>
             </button>
           </div>
 
-          <div className="mt-6">
-            <p className="px-6 text-[9px] uppercase tracking-[0.2em] text-[#5e5e5d] mb-2 opacity-50 font-bold">Favorites</p>
-            <div className="space-y-1">
-              <button 
-                onClick={() => {}}
-                className="w-full text-left font-semibold text-[#5e5e5d] hover:text-[#020302] py-2 px-6 transition-colors text-xs cursor-pointer block font-medium"
-              >
-                Sales analytics
-              </button>
-              <button 
-                onClick={() => {}}
-                className="w-full text-left font-semibold text-[#5e5e5d] hover:text-[#020302] py-2 px-6 transition-colors text-xs cursor-pointer block font-medium"
-              >
-                Inventory reports
-              </button>
-            </div>
+          {/* Favorites Section */}
+          <div className="mt-8 space-y-1">
+            <p className="px-6 text-[10px] uppercase tracking-[0.16em] text-[#a3a3a3] font-bold mb-2.5">Favorites</p>
+            <button 
+              onClick={() => {}}
+              className="w-full text-left py-2 px-6 pl-[52px] text-[#5e5e5d] hover:text-[#020302] hover:bg-[#f4f4f5]/30 transition-colors text-[13px] font-medium tracking-tight cursor-pointer block"
+            >
+              Sales analytics
+            </button>
+            <button 
+              onClick={() => {}}
+              className="w-full text-left py-2 px-6 pl-[52px] text-[#5e5e5d] hover:text-[#020302] hover:bg-[#f4f4f5]/30 transition-colors text-[13px] font-medium tracking-tight cursor-pointer block"
+            >
+              Inventory reports
+            </button>
           </div>
 
-          <div className="mt-6">
-            <p className="px-6 text-[9px] uppercase tracking-[0.2em] text-[#5e5e5d] mb-2 opacity-50 font-bold">Management</p>
-            <div className="space-y-1">
-              <button 
-                onClick={() => handleTabChange('Notifications')}
-                className={`w-full flex items-center gap-3 py-3 px-6 transition-all text-left cursor-pointer border-r-2 text-xs font-semibold ${
-                  activeTab === 'Notifications' 
-                    ? 'text-[#020302] font-bold bg-[#f5f3f3] border-[#020302]' 
-                    : 'text-[#5e5e5d] hover:bg-[#f5f3f3]/50 border-transparent font-medium'
-                }`}
-              >
-                <Bell size={16} className="stroke-[2]" />
-                <span>Notifications</span>
-                {notifications.filter(n => n.unread).length > 0 && (
-                  <span className="ml-auto bg-[#ba1a1a] text-white text-[9px] px-1.5 py-0.5 rounded-full font-bold">
-                    {notifications.filter(n => n.unread).length}
-                  </span>
-                )}
-              </button>
-              <button 
-                onClick={() => {}}
-                className="w-full flex items-center gap-3 text-[#5e5e5d] hover:bg-[#f5f3f3]/50 py-3 px-6 transition-all text-left text-xs cursor-pointer font-semibold font-medium"
-              >
-                <Layers size={16} className="stroke-[2]" />
-                <span>Analytics</span>
-              </button>
-              <button 
-                onClick={() => handleTabChange('Settings')}
-                className={`w-full flex items-center gap-3 py-3 px-6 transition-all text-left cursor-pointer border-r-2 text-xs font-semibold ${
-                  activeTab === 'Settings' 
-                    ? 'text-[#020302] font-bold bg-[#f5f3f3] border-[#020302]' 
-                    : 'text-[#5e5e5d] hover:bg-[#f5f3f3]/50 border-transparent font-medium'
-                }`}
-              >
-                <MoreHorizontal size={16} className="stroke-[2]" />
-                <span>Settings</span>
-              </button>
-            </div>
+          {/* Management Section */}
+          <div className="mt-8 space-y-1">
+            <p className="px-6 text-[10px] uppercase tracking-[0.16em] text-[#a3a3a3] font-bold mb-2.5">Management</p>
+            
+            <button 
+              onClick={() => handleTabChange('Notifications')}
+              className={`w-full flex items-center gap-3.5 py-2.5 px-6 transition-all text-left cursor-pointer border-r-[3.5px] text-[13px] tracking-tight relative group ${
+                activeTab === 'Notifications' 
+                  ? 'text-[#020302] font-semibold bg-[#f4f4f5] border-[#020302]' 
+                  : 'text-[#5e5e5d] hover:text-[#020302] hover:bg-[#f4f4f5]/30 border-transparent font-medium'
+              }`}
+            >
+              <Bell size={16} className={`stroke-[1.8] ${activeTab === 'Notifications' ? 'text-[#020302]' : 'text-[#5e5e5d] group-hover:text-[#020302]'}`} />
+              <span>Notifications</span>
+              {notifications.filter(n => n.unread).length > 0 && (
+                <span className="ml-auto bg-[#ba1a1a]/10 text-[#ba1a1a] text-[10px] font-bold px-2 py-0.5 rounded-full">
+                  {notifications.filter(n => n.unread).length}
+                </span>
+              )}
+            </button>
+
+            <button 
+              onClick={() => {}}
+              className="w-full flex items-center gap-3.5 py-2.5 px-6 transition-all text-left cursor-pointer border-r-[3.5px] border-transparent text-[#5e5e5d] hover:text-[#020302] hover:bg-[#f4f4f5]/30 font-medium text-[13px] tracking-tight relative group"
+            >
+              <BarChart3 size={16} className="stroke-[1.8] text-[#5e5e5d] group-hover:text-[#020302]" />
+              <span>Analytics</span>
+            </button>
+
+            <button 
+              onClick={() => handleTabChange('Settings')}
+              className={`w-full flex items-center gap-3.5 py-2.5 px-6 transition-all text-left cursor-pointer border-r-[3.5px] text-[13px] tracking-tight relative group ${
+                activeTab === 'Settings' 
+                  ? 'text-[#020302] font-semibold bg-[#f4f4f5] border-[#020302]' 
+                  : 'text-[#5e5e5d] hover:text-[#020302] hover:bg-[#f4f4f5]/30 border-transparent font-medium'
+              }`}
+            >
+              <Settings size={16} className={`stroke-[1.8] ${activeTab === 'Settings' ? 'text-[#020302]' : 'text-[#5e5e5d] group-hover:text-[#020302]'}`} />
+              <span>Settings</span>
+            </button>
           </div>
         </nav>
 
-        <footer className="mt-auto border-t border-[#efeded] p-6 bg-white flex-shrink-0">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-8 h-8 rounded bg-[#020302] text-white flex items-center justify-center font-bold text-xs">
+        {/* Footer block */}
+        <footer className="mt-auto border-t border-[#efeded] p-6 bg-white flex-shrink-0 flex flex-col gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded bg-[#020302] text-white flex items-center justify-center font-bold text-xs select-none">
               {storeName ? storeName.substring(0, 2).toUpperCase() : 'HW'}
             </div>
             <div className="min-w-0">
               <p className="text-xs text-[#020302] leading-none font-bold truncate">{storeName || 'My Store'}</p>
-              <p className="text-[9px] text-[#5e5e5d] opacity-60 uppercase tracking-tighter mt-1 font-semibold">Premium Plan</p>
+              <p className="text-[8px] text-[#a3a3a3] font-bold uppercase tracking-widest mt-1">PREMIUM PLAN</p>
             </div>
           </div>
-          <div className="flex flex-col gap-3">
-            <button className="flex items-center gap-3 text-[#5e5e5d] hover:text-[#020302] transition-colors text-left text-xs cursor-pointer font-semibold font-medium">
-              <svg className="w-4 h-4 stroke-[2] text-[#5e5e5d]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          
+          <div className="flex flex-col gap-2.5 pt-2">
+            <button className="w-full flex items-center gap-3.5 py-1 text-[#5e5e5d] hover:text-[#020302] transition-colors text-left text-[13px] font-medium tracking-tight cursor-pointer">
+              <HelpCircle size={16} className="stroke-[1.8]" />
               <span>Support</span>
             </button>
-            <button className="flex items-center gap-3 text-[#5e5e5d] hover:text-[#020302] transition-colors text-left text-xs cursor-pointer font-semibold font-medium">
-              <svg className="w-4 h-4 stroke-[2] text-[#5e5e5d]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <button className="w-full flex items-center gap-3.5 py-1 text-[#5e5e5d] hover:text-[#020302] transition-colors text-left text-[13px] font-medium tracking-tight cursor-pointer">
+              <User size={16} className="stroke-[1.8]" />
               <span>Account</span>
             </button>
           </div>
