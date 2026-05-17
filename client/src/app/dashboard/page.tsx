@@ -326,8 +326,8 @@ export default function DashboardPage() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
-                      <div className="bg-brand-card p-0 border border-brand-divider rounded-3xl flex flex-col gap-5 relative overflow-hidden">
-                        <div className="p-8 pb-0">
+                      <div className="bg-brand-card pb-8 border border-brand-divider rounded-3xl flex flex-col gap-2 relative overflow-hidden">
+                        <div className="px-8 pt-8 pb-0">
                           <div className="flex items-baseline justify-between mb-2">
                             <h3 className="font-sans font-bold text-[#1a1c1d] text-xl md:text-2xl">Get ready to sell</h3>
                             <button className="text-[10px] md:text-xs font-bold text-gray-400 hover:text-[#1a1c1d] transition-colors uppercase tracking-widest">Hide guide</button>
@@ -346,7 +346,7 @@ export default function DashboardPage() {
                           {steps.map((step, i) => (
                             <div key={i} 
                               onClick={() => step.onClick?.()}
-                              className="flex items-center justify-between py-6 px-8 border-t border-gray-50 hover:bg-white cursor-pointer transition-all group"
+                              className="flex items-center justify-between py-4 px-8 border-t border-gray-50 hover:bg-white cursor-pointer transition-all group"
                             >
                               <div className="flex items-center gap-6">
                                 <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-500
@@ -390,6 +390,62 @@ export default function DashboardPage() {
                         <ArrowRight size={20} />
                       </button>
                     </div> */}
+
+                    {/* Recent Activity Feed */}
+                    <div className="bg-white overflow-hidden">
+                      {/* Header */}
+                      <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+                        <div>
+                          <h3 className="font-sans font-bold text-neutral-900 text-[15px]">Recent Activity</h3>
+                          <p className="text-[11px] text-neutral-400 mt-0.5 font-normal">Last 10 stock actions</p>
+                        </div>
+                        <button className="text-[11px] font-bold text-primary-500 hover:text-primary-600 uppercase tracking-widest transition-colors">
+                          View all
+                        </button>
+                      </div>
+
+                      {/* Chronological Scannable Activity List */}
+                      <div className="divide-y divide-brand-divider">
+                        {[
+                          { type: 'added',  text: 'Added 5 units',   product: 'Samsung A35 Blue 8/256',        time: '2 min ago'  },
+                          { type: 'sold',   text: 'Marked sold',     product: 'iPhone 15 Black 128GB',          time: '18 min ago' },
+                          { type: 'added',  text: 'Added 12 units',  product: 'Redmi Note 13 White 6/128',      time: '1 hr ago'   },
+                          { type: 'sold',   text: 'Marked sold',     product: 'Samsung S24 Violet 8/256',       time: '2 hr ago'   },
+                          { type: 'edited', text: 'Price updated',   product: 'Oppo Reno 11 Sky Blue',          time: '3 hr ago'   },
+                          { type: 'sold',   text: 'Marked sold',     product: 'iPhone 14 Midnight 256GB',       time: '5 hr ago'   },
+                          { type: 'added',  text: 'Added 8 units',   product: 'Xiaomi 14T Pro Black 12/512',    time: 'Yesterday'  },
+                          { type: 'edited', text: 'Stock adjusted',  product: 'Nothing Phone 2a White',         time: 'Yesterday'  },
+                          { type: 'sold',   text: 'Marked sold',     product: 'OnePlus 12 Silky Black',         time: 'Yesterday'  },
+                          { type: 'added',  text: 'Added 20 units',  product: 'Realme GT 6T Racing Yellow',     time: '2 days ago' },
+                        ].map((item, i) => (
+                          <div key={i} className="flex items-center justify-between px-6 py-4 hover:bg-neutral-50 transition-colors cursor-default">
+                            {/* Left Side: Indicator Dot & Log Entry */}
+                            <div className="flex items-center gap-3 min-w-0">
+                              <span className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                                item.type === 'added'  ? 'bg-primary-500' :
+                                item.type === 'sold'   ? 'bg-warning-500' : 'bg-neutral-300'
+                              }`} />
+                              <p className="text-[13px] text-neutral-700 leading-snug truncate">
+                                <span className="font-semibold text-neutral-900">{item.text}</span>
+                                <span className="text-neutral-400 mx-1.5">—</span>
+                                <span>{item.product}</span>
+                              </p>
+                            </div>
+                            
+                            {/* Right Side: Type Badge & Timestamp */}
+                            <div className="flex items-center gap-3 flex-shrink-0 ml-4">
+                              <span className={`hidden sm:inline-block text-[10px] font-bold px-2.5 py-1 rounded-lg uppercase tracking-wider ${
+                                item.type === 'added'  ? 'bg-primary-50 text-primary-600' :
+                                item.type === 'sold'   ? 'bg-warning-50 text-warning-800' : 'bg-neutral-100 text-neutral-500'
+                              }`}>
+                                {item.type === 'added' ? 'Restock' : item.type === 'sold' ? 'Sale' : 'Edit'}
+                              </span>
+                              <span className="text-[11px] text-neutral-400 whitespace-nowrap">{item.time}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 )}
 
