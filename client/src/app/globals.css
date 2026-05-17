@@ -136,7 +136,23 @@
   body {
     @apply bg-white font-sans m-0 p-0;
     color: #333333;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    -webkit-text-size-adjust: 100%;
+    letter-spacing: -0.01em;
   }
+
+  /* Premium Typography Polishment */
+  h1, h2, h3, h4, h5, h6 {
+    text-rendering: optimizeLegibility;
+    letter-spacing: -0.02em;
+  }
+
+  p, span, button, a, input, select, textarea {
+    text-rendering: optimizeLegibility;
+  }
+
   /* Do NOT force serif on all headings — dashboard uses sans-serif headings */
   .font-serif {
     font-family: "Lora", serif;

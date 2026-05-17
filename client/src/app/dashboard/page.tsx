@@ -28,7 +28,11 @@ import {
   ShoppingBag,
   MessageCircle,
   Check,
-  Trash2
+  Trash2,
+  Globe,
+  GlobeLock,
+  WebhookIcon,
+  EarthIcon
 } from 'lucide-react';
 import { useZenvy } from '@/context/ZenvyContext';
 import { SidebarSection, SidebarItem, SidebarSubItem, NavItem } from '@/components/SidebarComponents';
@@ -264,7 +268,7 @@ function DashboardContent() {
               {storeName ? storeName.substring(0, 2).toUpperCase() : 'HW'}
             </div>
             <div className="min-w-0">
-              <h1 className="text-[14px] font-bold leading-tight text-[#020302] truncate">Inventory Manager</h1>
+              <h1 className="text-[14px] font-bold leading-tight text-[#020302] truncate">Zenvy</h1>
               <p className="text-[9px] uppercase tracking-widest text-[#5e5e5d] opacity-60 font-bold mt-0.5">SS26 Collection</p>
             </div>
           </div>
@@ -573,7 +577,7 @@ function DashboardContent() {
                     
                     {/* Welcome Greeting Header */}
                     <div className="flex flex-col gap-1 pb-1">
-                      <h2 className="text-xl md:text-2xl font-bold text-[#020302] tracking-tight font-sans">
+                      <h2 className="text-xl md:text-2xl font-medium text-[#020302] tracking-tight font-sans">
                         {(() => {
                           const hour = new Date().getHours();
                           if (hour < 12) return 'Good morning';
@@ -597,23 +601,23 @@ function DashboardContent() {
                       <div className="flex items-start gap-4 relative z-10">
                         {/* Curved Mini Seal Logo Overlay */}
                         <div className="w-14 h-14 rounded-full bg-white/10 border border-white/15 flex items-center justify-center relative select-none flex-shrink-0">
-                          <svg viewBox="0 0 100 100" className="w-full h-full p-0.5 animate-[spin_35s_linear_infinite]">
+                          {/* <svg viewBox="0 0 100 100" className="w-full h-full p-0.5 animate-[spin_35s_linear_infinite]">
                             <path id="miniPath" d="M 20,50 a 30,30 0 1,1 60,0 a 30,30 0 1,1 -60,0" fill="none" />
                             <text className="text-[9px] font-bold fill-white/60 tracking-[0.16em] uppercase">
                               <textPath href="#miniPath" startOffset="50%" textAnchor="middle">
                                 {storeName ? storeName.substring(0, 8) : 'HW'} · CATALOG ·
                               </textPath>
                             </text>
-                          </svg>
+                          </svg> */}
                           <div className="absolute inset-0 flex items-center justify-center">
-                            <Sparkles size={16} className="text-white fill-white/10" />
+                            <EarthIcon size={39} className="text-white fill-white/10" />
                           </div>
                         </div>
                         
                         <div className="space-y-1">
                           <p className="text-[15px] font-bold text-white tracking-tight flex items-center gap-2">
                             Live Storefront is Active 
-                            <span className="bg-white text-black text-[9px] font-bold uppercase tracking-wider py-0.5 px-2 rounded-sm">
+                            <span className="bg-white text-black text-[9px] font-bold uppercase tracking-wider py-0.5 px-2 rounded-xs">
                               ONLINE
                             </span>
                           </p>
