@@ -1895,35 +1895,40 @@ export default function DashboardPage() {
                 )}
 
                 {activeTab === 'Products' && (
-                  <div className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                      <div className="md:col-span-3 flex justify-end">
-                        <button 
-                          onClick={() => setIsCreatingProduct(true)}
-                          className="bg-[#5438ff] hidden text-white px-6 py-2.5 rounded-xl font-bold text-[13px] flex items-center gap-2 hover:opacity-90 transition-all shadow-lg shadow-[#5438ff]/10"
-                        >
-                          <Plus size={18} strokeWidth={3} />
-                          <span>Add product</span>
-                        </button>
+                  <div className="space-y-6 text-left">
+                    
+                    {/* Header Action Toolbar */}
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-1">
+                      <div className="space-y-0.5">
+                        <h2 className="text-xl font-medium text-[#1a1c1d] tracking-tight">Active Inventory</h2>
+                        <p className="text-xs text-gray-500 font-light">Manage smartphone models, colors, storage capacities, and sales pipelines.</p>
                       </div>
+                      
+                      <button 
+                        onClick={() => setIsCreatingProduct(true)}
+                        className="bg-black hover:bg-neutral-900 text-white px-5 py-2.5 rounded-lg text-xs font-semibold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-sm active:scale-98 self-start md:self-auto cursor-pointer"
+                      >
+                        <Plus size={14} className="stroke-[3]" />
+                        <span>Add Product</span>
+                      </button>
                     </div>
 
-                    <div className="bg-white overflow-hidden">
+                    <div className="bg-white border border-gray-100 rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.01)] overflow-hidden">
                       {/* Product Status Tabs */}
                       <div className="flex border-b border-gray-100 px-4">
                         {['All', 'Low Stock', 'Out of Stock'].map((tab) => (
                           <button
                             key={tab}
                             onClick={() => setActiveProductFilter(tab)}
-                            className={`py-4 px-1.5 text-[10px] whitespace-nowrap font-bold uppercase tracking-widest transition-all relative
+                            className={`py-4 px-3 text-[10px] whitespace-nowrap font-bold uppercase tracking-widest transition-all relative cursor-pointer
                               ${activeProductFilter === tab ? 'text-neutral-900' : 'text-neutral-500 hover:text-neutral-700'}`}
                           >
                             <div className="flex items-center gap-2">
                               <span>{tab}</span>
-                              <span className="bg-neutral-50 border border-brand-divider px-1.5 py-0.5 rounded text-[10px] font-bold text-neutral-500">
+                              <span className="bg-neutral-50 border border-neutral-200 px-1.5 py-0.5 rounded text-[10px] font-bold text-neutral-500">
                                 {tab === 'All' ? productList.length : 
                                  tab === 'Low Stock' ? productList.filter(p => {
-                                    const threshold = p.lowStockThreshold || 5;
+                                    const threshold = p.lowStockThreshold || 4;
                                     const hasLowStockVariant = p.variants?.some(v => v.quantity > 0 && v.quantity <= threshold);
                                     return hasLowStockVariant || (p.stock > 0 && p.stock <= threshold);
                                  }).length : 
@@ -1934,42 +1939,44 @@ export default function DashboardPage() {
                               </span>
                             </div>
                             {activeProductFilter === tab && (
-                              <motion.div layoutId="product-tab-underline" className="absolute bottom-0 left-0 w-full h-0.5 bg-primary-500" />
+                              <motion.div layoutId="product-tab-underline" className="absolute bottom-0 left-0 w-full h-0.5 bg-black" />
                             )}
                           </button>
                         ))}
                       </div>
 
                       {/* Search & Action Controls */}
-                      <div className="p-4 px-6 flex flex-col md:flex-row items-center justify-between gap-4">
+                      <div className="p-4 px-6 flex flex-col md:flex-row items-center justify-between gap-4 border-b border-gray-50 bg-neutral-50/30">
                         <div className="relative flex-1 w-full max-w-sm">
                           <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
                           <input 
                             type="text" 
-                            placeholder="Search products" 
+                            placeholder="Search by brand, name or specs..." 
                             className="w-full bg-[#f6f6f7] py-2.5 pl-10 pr-4 rounded-xl text-[13px] font-medium border-none outline-none focus:ring-1 focus:ring-gray-200"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                           />
                         </div>
+                        
                         <div className="flex items-center gap-3 w-full md:w-auto">
-                          <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-100 rounded-xl text-[11px] font-bold uppercase tracking-widest text-[#1a1c1d] hover:bg-gray-50 transition-colors">
-                            <ArrowRight size={14} className="rotate-90" />
+                          <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-[10px] font-bold uppercase tracking-widest text-[#1a1c1d] hover:bg-gray-50 transition-colors cursor-pointer bg-white">
+                            <ArrowRight size={13} className="rotate-90 text-gray-500" />
                             <span>Sort: A-Z</span>
                           </button>
-                          <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-100 rounded-xl text-[11px] font-bold uppercase tracking-widest text-[#1a1c1d] hover:bg-gray-50 transition-colors">
-                            <Filter size={14} />
+                          
+                          <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-[10px] font-bold uppercase tracking-widest text-[#1a1c1d] hover:bg-gray-50 transition-colors cursor-pointer bg-white">
+                            <Filter size={13} className="text-gray-500" />
                             <span>Filter</span>
                           </button>
                         </div>
                       </div>
 
-                      {/* Cards Container */}
-                      <div className="p-4 md:p-6 flex flex-col gap-3.5">
+                      {/* Frameless Catalog Row Container */}
+                      <div className="p-6 divide-y divide-gray-100">
                         {productList.filter(p => {
                           if (activeProductFilter === 'All') return true;
                           if (activeProductFilter === 'Low Stock') {
-                            const threshold = p.lowStockThreshold || 5;
+                            const threshold = p.lowStockThreshold || 4;
                             const hasLowStockVariant = p.variants?.some(v => v.quantity > 0 && v.quantity <= threshold);
                             return hasLowStockVariant || (p.stock > 0 && p.stock <= threshold);
                           }
@@ -1981,113 +1988,123 @@ export default function DashboardPage() {
                         }).filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase())).map(product => (
                           <motion.div 
                             key={product.id} 
-                            initial={{ opacity: 0, y: 10 }}
+                            initial={{ opacity: 0, y: 8 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="bg-white border border-brand-divider p-4 md:p-5 flex gap-4 items-start relative hover:shadow-[0_4px_20px_rgba(0,0,0,0.015)] transition-all group"
+                            className="py-6 first:pt-0 last:pb-0 flex flex-col sm:flex-row gap-5 items-start relative hover:bg-neutral-50/30 transition-colors group rounded-xl px-2 -mx-2"
                           >
                             {/* Product Image Thumbnail */}
-                            <div className="w-16 h-16 border border-brand-divider overflow-hidden flex-shrink-0 bg-neutral-50 shadow-sm">
-                              <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                            <div className="w-20 h-20 rounded-xl border border-neutral-100 overflow-hidden flex-shrink-0 bg-neutral-50 shadow-xs flex items-center justify-center relative select-none">
+                              <img src={product.image} alt={product.name} className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-300" />
                             </div>
 
                             {/* Details Column */}
-                            <div className="flex-1 min-w-0">
-                              {/* 1st Line: Model Name & Brand */}
-                              <div className="flex flex-col">
-                                <span className="text-[14px] font-bold text-neutral-900 leading-snug group-hover:text-primary-500 transition-colors">
-                                  {product.name}
+                            <div className="flex-1 min-w-0 w-full space-y-3">
+                              {/* 1st Line: Brand and Name & BDT dynamic price ranges */}
+                              <div className="space-y-1">
+                                <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest block leading-none">
+                                  {product.brand || 'SMARTPHONE'}
                                 </span>
-                                {product.brand && (
-                                  <span className="text-[11px] text-neutral-400 font-bold uppercase tracking-wider mt-0.5">
-                                    {product.brand}
+                                
+                                <div className="flex items-baseline justify-between gap-4">
+                                  <h3 className="text-[15px] font-medium text-black leading-snug group-hover:text-[#5438ff] transition-colors truncate">
+                                    {product.name}
+                                  </h3>
+                                  
+                                  <span className="text-xs font-semibold text-neutral-850 whitespace-nowrap">
+                                    {(() => {
+                                      const prices = product.variants?.map(v => v.sellingPrice) || [];
+                                      if (prices.length === 0) return 'MSRP N/A';
+                                      const min = Math.min(...prices);
+                                      const max = Math.max(...prices);
+                                      return min === max ? `৳${min.toLocaleString()}` : `৳${min.toLocaleString()} - ৳${max.toLocaleString()}`;
+                                    })()}
                                   </span>
-                                )}
+                                </div>
                               </div>
 
-                              {/* 2nd Line: Variant Chips with Smart Threshold Colors */}
-                              <div className="flex flex-wrap gap-1.5 mt-2.5">
+                              {/* 2nd Line: Dynamic Variant Capsules */}
+                              <div className="flex flex-wrap gap-2 pt-0.5">
                                 {product.variants && product.variants.length > 0 ? (
                                   product.variants.map((variant) => {
-                                    const threshold = product.lowStockThreshold || 5;
+                                    const threshold = product.lowStockThreshold || 4;
                                     const isOutOfStock = variant.quantity === 0;
                                     const isLowStock = variant.quantity > 0 && variant.quantity <= threshold;
-
-                                    let chipClass = "bg-neutral-50 text-neutral-600 border-brand-divider";
-                                    if (isOutOfStock) {
-                                      chipClass = "bg-neutral-50 text-neutral-400 border-neutral-200";
-                                    } else if (isLowStock) {
-                                      chipClass = "bg-red-50 text-red-700 border-red-200";
-                                    }
 
                                     return (
                                       <span 
                                         key={variant.id} 
-                                        className={`text-[12px] font-normal px-2.5 py-1 flex items-center gap-1.5 border transition-all ${chipClass}`}
+                                        className={`inline-flex items-center gap-1.5 text-[11px] font-normal px-2.5 py-1 rounded-full border transition-all
+                                          ${isOutOfStock ? 'bg-neutral-50 text-neutral-400 border-neutral-100' :
+                                            isLowStock ? 'bg-rose-50 text-rose-700 border-rose-200/50' :
+                                            'bg-neutral-50 text-neutral-800 border-neutral-200'}`}
                                       >
+                                        <span className={`w-1.5 h-1.5 rounded-full ${
+                                          isOutOfStock ? 'bg-neutral-300' :
+                                          isLowStock ? 'bg-rose-500 animate-pulse' : 'bg-green-500'
+                                        }`} />
                                         <span>
                                           {variant.color} {variant.ram.replace('GB', '')}/{variant.storage.replace('GB', '')}
                                         </span>
-                                        <span className={`px-1.5 py-0.2 rounded text-[9px] font-black ${
-                                          isOutOfStock ? 'bg-neutral-100 text-neutral-400' :
-                                          isLowStock ? 'bg-red-100 text-red-700' : 'bg-brand-100 text-primary-600'
-                                        }`}>
-                                          {variant.quantity}
-                                        </span>
+                                        <span className="font-bold text-[10px] ml-0.5 opacity-90">({variant.quantity})</span>
                                       </span>
                                     );
                                   })
                                 ) : (
                                   /* Fallback if no specific variants list exists */
                                   (() => {
-                                    const threshold = product.lowStockThreshold || 5;
+                                    const threshold = product.lowStockThreshold || 4;
                                     const isOutOfStock = product.stock === 0;
                                     const isLowStock = product.stock > 0 && product.stock <= threshold;
 
-                                    let chipClass = "bg-neutral-50 text-neutral-600 border-brand-divider";
-                                    if (isOutOfStock) {
-                                      chipClass = "bg-neutral-50 text-neutral-400 border-neutral-200";
-                                    } else if (isLowStock) {
-                                      chipClass = "bg-red-50 text-red-700 border-red-200";
-                                    }
-
                                     return (
-                                      <span className={`text-[10px] font-bold px-2.5 py-1 rounded-lg flex items-center gap-1.5 border ${chipClass}`}>
+                                      <span 
+                                        className={`inline-flex items-center gap-1.5 text-[11px] font-normal px-2.5 py-1 rounded-full border transition-all
+                                          ${isOutOfStock ? 'bg-neutral-50 text-neutral-400 border-neutral-100' :
+                                            isLowStock ? 'bg-rose-50 text-rose-700 border-rose-200/50' :
+                                            'bg-neutral-50 text-neutral-800 border-neutral-200'}`}
+                                      >
+                                        <span className={`w-1.5 h-1.5 rounded-full ${
+                                          isOutOfStock ? 'bg-neutral-300' :
+                                          isLowStock ? 'bg-rose-500 animate-pulse' : 'bg-green-500'
+                                        }`} />
                                         <span>Total Stock</span>
-                                        <span className={`px-1.5 py-0.2 rounded text-[9px] font-black ${
-                                          isOutOfStock ? 'bg-neutral-100 text-neutral-400' :
-                                          isLowStock ? 'bg-red-100 text-red-700' : 'bg-brand-100 text-primary-600'
-                                        }`}>
-                                          {product.stock}
-                                        </span>
+                                        <span className="font-bold text-[10px] ml-0.5 opacity-90">({product.stock})</span>
                                       </span>
                                     );
                                   })()
                                 )}
                               </div>
 
-                              {/* 3rd Line: Preview Action & Status Indicator */}
-                              <div className="flex items-center justify-between mt-4 pt-1.5 border-t border-gray-100">
-                                <div className="flex items-center gap-3">
+                              {/* 3rd Line: Action Toolbar (Mark Sold, Preview, restock edit) */}
+                              <div className="flex items-center justify-between pt-3 border-t border-gray-100/60">
+                                <div className="flex items-center gap-4">
                                   <button 
                                     onClick={() => setPreviewingProduct(product)}
-                                    className="flex items-center gap-1 text-[10px] text-primary-500 hover:text-primary-600 font-bold uppercase tracking-widest transition-colors"
+                                    className="flex items-center gap-1.5 text-[10px] text-gray-500 hover:text-black font-bold uppercase tracking-widest transition-colors cursor-pointer"
                                   >
                                     <ExternalLink size={12} className="stroke-[2.5]" />
                                     <span>Preview</span>
                                   </button>
 
                                   <button 
-                                    onClick={() => handleMarkAsSoldClick(product)}
-                                    disabled={product.stock === 0}
-                                    className={`flex items-center gap-1 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider transition-colors rounded-xs
-                                      ${product.stock === 0 
-                                        ? 'bg-neutral-100 text-neutral-400 border border-neutral-200 cursor-not-allowed line-through' 
-                                        : 'bg-[#5438ff] text-white hover:bg-[#4324ff]'}`}
+                                    onClick={() => setEditingProduct(product)}
+                                    className="flex items-center gap-1.5 text-[10px] text-gray-500 hover:text-black font-bold uppercase tracking-widest transition-colors cursor-pointer"
                                   >
-                                    <Plus size={10} className="stroke-[3]" />
-                                    <span>Mark Sold</span>
+                                    <span>Modify Specs</span>
                                   </button>
                                 </div>
+
+                                <button 
+                                  onClick={() => handleMarkAsSoldClick(product)}
+                                  disabled={product.stock === 0}
+                                  className={`flex items-center gap-1.5 px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest transition-all rounded-md cursor-pointer shadow-xs
+                                    ${product.stock === 0 
+                                      ? 'bg-neutral-100 text-neutral-400 border border-neutral-200 cursor-not-allowed line-through shadow-none' 
+                                      : 'bg-[#5438ff] text-white hover:bg-[#4324ff]'}`}
+                                >
+                                  <Plus size={11} className="stroke-[3]" />
+                                  <span>Mark Sold</span>
+                                </button>
                               </div>
                             </div>
                           </motion.div>
