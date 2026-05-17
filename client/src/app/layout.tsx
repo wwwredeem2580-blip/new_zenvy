@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import { DM_Sans, Noto_Serif_Bengali } from "next/font/google";
+import { DM_Sans, Lora } from "next/font/google";
 import "./globals.css";
+import { Toaster } from "sonner";
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -8,18 +9,18 @@ const dmSans = DM_Sans({
   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900", "1000"],
 });
 
-const notoBengali = Noto_Serif_Bengali({
-  subsets: ["bengali"],
-  variable: "--font-bengali",
-  weight: ["300", "400", "500", "600", "700"],
+const lora = Lora({
+  subsets: ["latin"],
+  variable: "--font-lora",
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
-  title: "খবর ২৪ | সত্যের সন্ধানে অবিচল",
-  description: "বাংলাদেশের অগ্রগামী একটি ডিজিটাল নিউজ প্ল্যাটফর্ম।",
+  title: "ZENVY",
+  description: "Modern E-commerce Dashboard",
 };
 
-import { Toaster } from "sonner";
+import { ZenvyProvider } from "@/context/ZenvyContext";
 
 export default function RootLayout({
   children,
@@ -27,9 +28,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="bn" className={`${dmSans.variable} ${notoBengali.variable}`}>
-       <body className="antialiased">
-         {children}
+    <html lang="en" className={`${dmSans.variable} ${lora.variable}`}>
+       <body className="antialiased font-sans">
+         <ZenvyProvider>
+           {children}
+         </ZenvyProvider>
          <Toaster position="top-center" richColors />
        </body>
     </html>

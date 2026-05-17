@@ -1,54 +1,27 @@
 @import "tailwindcss";
-@import "react-quill-new/dist/quill.snow.css";
-
 
 @theme {
-  --font-sans: "DM Sans", "Noto Serif Bengali", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "DM Sans", sans-serif;
-}
-
-@layer utilities {
-  .publish-editor .ql-container {
-    height: 350px;
-    font-family: inherit;
-    font-size: 1.125rem;
-  }
-  .publish-editor .ql-toolbar.ql-snow {
-    border-top: none !important;
-    border-left: none !important;
-    border-right: none !important;
-    border-bottom: 1px solid #f3f4f6 !important;
-    background: #f9fafb;
-    padding: 1rem !important;
-  }
-  .publish-editor .ql-container.ql-snow {
-    border: none !important;
-  }
-  .publish-editor .ql-editor {
-     padding: 1.5rem !important;
-  }
-  .publish-editor .ql-picker-options {
-    z-index: 100 !important;
-    border-radius: 4px !important;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
-    border: 1px solid #f3f4f6 !important;
-  }
-  .publish-editor .ql-tooltip {
-    z-index: 100 !important;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
-    border: 1px solid #f3f4f6 !important;
-    border-radius: 4px !important;
-  }
+  --font-serif: "Lora", serif;
+  --font-sans: "DM Sans", sans-serif;
+  --color-accent: #333333;
+  --color-shopify-green: #5438ff;
 }
 
 @layer base {
   body {
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    @apply text-black bg-white;
+    @apply bg-white text-[#333333] font-sans m-0 p-0;
+  }
+  h1, h2, h3, h4, .font-serif {
+    @apply font-serif;
   }
 }
 
-.breaking-news-glow {
-  text-shadow: 0 0 8px rgba(255, 0, 0, 0.2);
+@layer utilities {
+  .max-w-xs { max-width: 320px; }
+  .max-w-sm { max-width: 384px; }
+  .max-w-md { max-width: 448px; }
+  .max-w-lg { max-width: 512px; }
+  .max-w-xl { max-width: 576px; }
+  .max-w-2xl { max-width: 672px; }
+  .max-w-5xl { max-width: 1024px; }
 }
