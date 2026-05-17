@@ -863,42 +863,45 @@ export default function DashboardPage() {
             {/* Modal 1: Mark as Sold Dialog */}
             <AnimatePresence>
               {activeMarkSoldProduct && (
-                <div className="fixed inset-0 bg-black/60 z-[200] flex items-center justify-center p-4 backdrop-blur-xs">
+                <div className="fixed inset-0 bg-black/60 z-[200] flex items-center justify-center p-4 backdrop-blur-sm">
+                  {/* Backdrop Click to Close */}
+                  <div className="absolute inset-0" onClick={() => setActiveMarkSoldProduct(null)} />
+                  
                   <motion.div 
-                    initial={{ scale: 0.95, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0.95, opacity: 0 }}
-                    className="bg-white max-w-md w-full border border-gray-300 shadow-2xl p-6 relative text-left"
+                    initial={{ scale: 0.95, opacity: 0, y: 10 }}
+                    animate={{ scale: 1, opacity: 1, y: 0 }}
+                    exit={{ scale: 0.95, opacity: 0, y: 10 }}
+                    className="bg-white max-w-md w-full shadow-2xl relative text-left border border-gray-100 flex flex-col p-6 rounded-2xl overflow-hidden z-10"
                   >
                     {/* Header */}
-                    <div className="flex items-center justify-between border-b border-gray-150 pb-3.5 mb-5">
-                      <h3 className="text-[13px] font-sans font-bold text-neutral-900 uppercase tracking-widest">Record Smartphone Sale</h3>
+                    <div className="flex items-center justify-between border-b border-gray-100 pb-4 mb-5">
+                      <h3 className="text-base font-sans font-semibold text-[#1a1c1d] tracking-tight">Record Smartphone Sale</h3>
                       <button 
                         onClick={() => setActiveMarkSoldProduct(null)} 
-                        className="text-gray-400 hover:text-neutral-900 transition-colors cursor-pointer"
+                        className="text-gray-400 hover:text-neutral-900 transition-colors cursor-pointer p-1 hover:bg-neutral-50 rounded-full"
                       >
                         <X size={18} />
                       </button>
                     </div>
 
                     {/* Product Specs Showcase */}
-                    <div className="flex gap-3 bg-neutral-50 border border-gray-200 p-3 mb-5 rounded-sm">
-                      <div className="w-12 h-12 bg-white border border-gray-200 overflow-hidden flex-shrink-0">
+                    <div className="flex gap-3 bg-[#f6f6f7] border border-gray-100 p-3 mb-5 rounded-xl">
+                      <div className="w-12 h-12 bg-white border border-gray-150 rounded-lg overflow-hidden flex-shrink-0 flex items-center justify-center">
                         <img 
                           src={activeMarkSoldProduct.image} 
                           alt={activeMarkSoldProduct.name} 
                           className="w-full h-full object-cover" 
                         />
                       </div>
-                      <div className="min-w-0">
+                      <div className="min-w-0 flex flex-col justify-center">
                         <h4 className="text-xs font-bold text-neutral-900 leading-snug">{activeMarkSoldProduct.name}</h4>
-                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mt-0.5">{activeMarkSoldProduct.brand}</p>
+                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-0.5">{activeMarkSoldProduct.brand}</p>
                       </div>
                     </div>
 
                     {/* Select Variant */}
                     <div className="space-y-2 mb-5">
-                      <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block">Select Sold Variant</label>
+                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Select Sold Variant</label>
                       <div className="grid grid-cols-2 gap-2 max-h-[160px] overflow-y-auto pr-1">
                         {activeMarkSoldProduct.variants?.map((v) => {
                           const isSelected = selectedMarkSoldVariant?.id === v.id;
@@ -912,15 +915,15 @@ export default function DashboardPage() {
                                 setSelectedMarkSoldVariant(v);
                                 setSoldQty(1); // reset qty limits
                               }}
-                              className={`p-3 text-left border transition-all flex flex-col justify-between rounded-sm relative cursor-pointer
+                              className={`p-3 text-left border transition-all flex flex-col justify-between rounded-xl relative cursor-pointer h-[66px]
                                 ${isOutOfStock 
-                                  ? 'opacity-40 bg-neutral-50 border-neutral-200 cursor-not-allowed' 
+                                  ? 'opacity-30 bg-[#f6f6f7] border-gray-100 cursor-not-allowed line-through' 
                                   : isSelected 
-                                    ? 'border-neutral-950 bg-neutral-950 text-white' 
-                                    : 'border-gray-300 bg-white hover:border-gray-400'}`}
+                                    ? 'border-black bg-black text-white shadow-sm' 
+                                    : 'border-gray-200 bg-white hover:border-gray-400 hover:shadow-xs'}`}
                             >
                               <span className="text-xs font-bold truncate block w-full">{v.color}</span>
-                              <span className="text-[10px] opacity-75 font-semibold mt-1 block">
+                              <span className={`text-[10px] font-semibold mt-0.5 block ${isSelected ? 'text-gray-300' : 'text-gray-500'}`}>
                                 {v.ram}/{v.storage} • {isOutOfStock ? '0 Stock' : `${v.quantity} Stock`}
                               </span>
                             </button>
@@ -934,8 +937,8 @@ export default function DashboardPage() {
                       <div className="grid grid-cols-2 gap-4 mb-6">
                         {/* Stepper */}
                         <div className="space-y-2">
-                          <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block">Quantity</label>
-                          <div className="flex items-center border border-gray-300 h-[42px] rounded-sm">
+                          <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Quantity</label>
+                          <div className="flex items-center border border-gray-200 h-[42px] rounded-xl bg-white">
                             <button
                               type="button"
                               onClick={() => setSoldQty(q => Math.max(1, q - 1))}
@@ -943,7 +946,7 @@ export default function DashboardPage() {
                             >
                               <Minus size={12} strokeWidth={2.5} />
                             </button>
-                            <span className="flex-1 text-center font-bold text-sm text-neutral-950">{soldQty}</span>
+                            <span className="flex-1 text-center font-bold text-xs text-neutral-950">{soldQty}</span>
                             <button
                               type="button"
                               onClick={() => setSoldQty(q => Math.min(selectedMarkSoldVariant.quantity, q + 1))}
@@ -956,24 +959,24 @@ export default function DashboardPage() {
 
                         {/* Buyer Name */}
                         <div className="space-y-2">
-                          <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block">Buyer (Optional)</label>
+                          <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Buyer (Optional)</label>
                           <input
                             type="text"
                             value={buyerName}
                             onChange={(e) => setBuyerName(e.target.value)}
                             placeholder="e.g. John Doe"
-                            className="w-full border border-gray-300 px-3 h-[42px] text-xs font-semibold focus:outline-none focus:border-neutral-900 rounded-sm"
+                            className="w-full border border-gray-200 px-3.5 h-[42px] text-xs font-semibold focus:outline-none focus:border-black focus:ring-1 focus:ring-black/5 rounded-xl transition-all"
                           />
                         </div>
                       </div>
                     )}
 
                     {/* Footer Actions */}
-                    <div className="flex gap-3.5 border-t border-gray-150 pt-4 mt-6">
+                    <div className="flex gap-3.5 border-t border-gray-100 pt-4 mt-6">
                       <button
                         type="button"
                         onClick={() => setActiveMarkSoldProduct(null)}
-                        className="flex-1 py-3 text-xs border border-gray-350 hover:bg-gray-50 text-neutral-850 font-bold uppercase tracking-wider rounded-sm transition-all cursor-pointer"
+                        className="flex-1 py-3 text-xs bg-gray-50 hover:bg-gray-100 text-gray-700 font-bold uppercase tracking-wider rounded-xl transition-all cursor-pointer text-center"
                       >
                         Cancel
                       </button>
@@ -981,10 +984,10 @@ export default function DashboardPage() {
                         type="button"
                         disabled={!selectedMarkSoldVariant || selectedMarkSoldVariant.quantity === 0}
                         onClick={handleConfirmSale}
-                        className={`flex-1 py-3 text-xs text-white font-bold uppercase tracking-wider rounded-sm transition-all cursor-pointer shadow-md shadow-brand-100/10
+                        className={`flex-1 py-3 text-xs text-white font-bold uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-sm text-center
                           ${(!selectedMarkSoldVariant || selectedMarkSoldVariant.quantity === 0)
-                            ? 'bg-neutral-350 cursor-not-allowed opacity-50 shadow-none'
-                            : 'bg-[#5438ff] hover:bg-[#4324ff]'}`}
+                            ? 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-none'
+                            : 'bg-black hover:bg-neutral-900'}`}
                       >
                         Confirm Sale
                       </button>
@@ -998,30 +1001,33 @@ export default function DashboardPage() {
             {/* Modal 2: Invoice Receipt Success Panel */}
             <AnimatePresence>
               {invoiceSaleData && (
-                <div className="fixed inset-0 bg-black/60 z-[200] flex items-center justify-center p-4 backdrop-blur-xs">
+                <div className="fixed inset-0 bg-black/60 z-[200] flex items-center justify-center p-4 backdrop-blur-sm">
+                  {/* Backdrop Click to Close */}
+                  <div className="absolute inset-0" onClick={() => setInvoiceSaleData(null)} />
+                  
                   <motion.div 
-                    initial={{ scale: 0.95, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0.95, opacity: 0 }}
-                    className="bg-white max-w-sm w-full border border-gray-300 shadow-2xl p-6 relative text-left"
+                    initial={{ scale: 0.95, opacity: 0, y: 10 }}
+                    animate={{ scale: 1, opacity: 1, y: 0 }}
+                    exit={{ scale: 0.95, opacity: 0, y: 10 }}
+                    className="bg-white max-w-sm w-full shadow-2xl relative text-left border border-gray-100 flex flex-col p-6 rounded-2xl overflow-hidden z-10"
                   >
-                    {/* Visual Green Badge */}
-                    <div className="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-3 text-green-600">
-                      <CheckCircle2 size={28} />
+                    {/* Visual Success Icon */}
+                    <div className="w-12 h-12 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-3 text-emerald-600 shadow-inner">
+                      <CheckCircle2 size={24} className="stroke-[2.5]" />
                     </div>
 
-                    <h3 className="text-base font-sans font-bold text-neutral-900 text-center uppercase tracking-wider">Sale Recorded!</h3>
-                    <p className="text-[11px] text-neutral-500 text-center mt-1 font-light leading-relaxed">
+                    <h3 className="text-base font-sans font-semibold text-neutral-900 text-center tracking-tight">Sale Recorded!</h3>
+                    <p className="text-[11px] text-gray-500 text-center mt-1 font-light leading-relaxed">
                       Inventory has been adjusted. Print or share a digital receipt.
                     </p>
 
                     {/* Receipt Mock Paper Preview */}
-                    <div className="my-5 p-4 border border-dashed border-gray-300 bg-neutral-50 font-mono text-[10px] text-neutral-800 space-y-3 shadow-inner relative overflow-hidden">
+                    <div className="my-5 p-4 bg-[#f8f8f9] rounded-2xl border border-gray-150 font-mono text-[10px] text-neutral-800 space-y-3 relative overflow-hidden shadow-xs">
                       
                       {/* Receipt Header */}
-                      <div className="text-center border-b border-dashed border-gray-300 pb-2">
+                      <div className="text-center border-b border-dashed border-gray-200 pb-2.5">
                         <p className="font-bold text-xs uppercase tracking-widest text-neutral-900">{invoiceSaleData.shopName}</p>
-                        <p className="text-[8px] text-gray-500 font-sans mt-0.5 uppercase tracking-wider">Smartphone Merchant Terminal</p>
+                        <p className="text-[8px] text-gray-400 font-sans mt-0.5 uppercase tracking-wider">Smartphone Merchant Terminal</p>
                       </div>
 
                       {/* Info Block */}
@@ -1041,7 +1047,7 @@ export default function DashboardPage() {
                       </div>
 
                       {/* Items block */}
-                      <div className="border-t border-b border-dashed border-gray-300 py-2">
+                      <div className="border-t border-b border-dashed border-gray-200 py-2">
                         <div className="flex justify-between font-bold text-neutral-900 mb-1 text-[9px] uppercase tracking-wider">
                           <span>Item / Description</span>
                           <span>Qty / Total</span>
@@ -1073,7 +1079,7 @@ export default function DashboardPage() {
                     <div className="space-y-2">
                       <button
                         onClick={() => handleDownloadPDF(invoiceSaleData)}
-                        className="w-full py-3 bg-neutral-950 hover:bg-black text-white font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5 rounded-sm transition-all cursor-pointer shadow-md"
+                        className="w-full py-3 bg-black hover:bg-neutral-900 text-white font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5 rounded-xl transition-all cursor-pointer shadow-sm"
                       >
                         <Receipt size={13} />
                         <span>Download PDF Receipt</span>
@@ -1081,7 +1087,7 @@ export default function DashboardPage() {
                       
                       <button
                         onClick={() => handleShareWhatsApp(invoiceSaleData)}
-                        className="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5 rounded-sm transition-all cursor-pointer shadow-md shadow-green-600/10"
+                        className="w-full py-3 bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5 rounded-xl transition-all cursor-pointer shadow-sm shadow-[#25D366]/10"
                       >
                         <Share2 size={13} />
                         <span>Share via WhatsApp</span>
@@ -1089,7 +1095,7 @@ export default function DashboardPage() {
 
                       <button
                         onClick={() => setInvoiceSaleData(null)}
-                        className="w-full py-2.5 bg-gray-50 text-gray-500 border border-gray-300 hover:bg-gray-100 text-[10px] font-bold uppercase tracking-wider transition-all rounded-sm cursor-pointer"
+                        className="w-full py-2.5 bg-gray-50 hover:bg-gray-100 text-gray-500 hover:text-gray-700 text-[10px] font-bold uppercase tracking-wider transition-all rounded-xl cursor-pointer"
                       >
                         Done / Close
                       </button>
