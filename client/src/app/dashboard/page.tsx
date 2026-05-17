@@ -32,7 +32,8 @@ import {
   Globe,
   GlobeLock,
   WebhookIcon,
-  EarthIcon
+  EarthIcon,
+  CheckSquare
 } from 'lucide-react';
 import { useZenvy } from '@/context/ZenvyContext';
 import { SidebarSection, SidebarItem, SidebarSubItem, NavItem } from '@/components/SidebarComponents';
@@ -617,12 +618,12 @@ function DashboardContent() {
                         <div className="space-y-1">
                           <p className="text-[15px] font-bold text-white tracking-tight flex items-center gap-2">
                             Live Storefront is Active 
-                            <span className="bg-white text-black text-[9px] font-bold uppercase tracking-wider py-0.5 px-2 rounded-xs">
+                            <span className="bg-[#21c563] text-white text-[9px] font-medium uppercase tracking-wider py-0.5 px-2 rounded-[3px]">
                               ONLINE
                             </span>
                           </p>
                           <p className="text-xs text-gray-300 font-medium leading-relaxed max-w-md">
-                            Anyone visiting your storefront can view live catalog quantities & inquire instantly via WhatsApp. Zero downloads or logins required.
+                            Anyone visiting your storefront can view live catalog quantities & inquire instantly via WhatsApp.
                           </p>
                         </div>
                       </div>
@@ -640,7 +641,7 @@ function DashboardContent() {
                     </motion.div>
 
                     {/* Summary Stats Grid (Polaris-Style Flat Visuals) */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-0 sm:gap-4">
                       {/* Stat 1: Products in Stock */}
                       <div className="bg-white p-5 border border-[#efeded] rounded-sm shadow-2xs text-left hover:shadow-xs hover:border-[#dbdad9] transition-all">
                         <p className="text-[10px] font-bold text-[#5e5e5d] uppercase tracking-widest mb-1.5">Products in stock</p>
@@ -648,7 +649,7 @@ function DashboardContent() {
                           <span className="text-xl md:text-2xl font-bold text-[#020302]">
                             {productList.reduce((sum, p) => sum + p.stock, 0)}
                           </span>
-                          <span className="flex items-center text-[10px] font-bold text-emerald-600 gap-0.5">
+                          <span className="sm:flex hidden items-center text-[10px] font-bold text-emerald-600 gap-0.5">
                             <ArrowUpRight size={11} className="stroke-[2.5]" />
                             <span>+4.2%</span>
                           </span>
@@ -663,7 +664,7 @@ function DashboardContent() {
                             <span className="text-[13px] text-[#5e5e5d] font-semibold mr-0.5">৳</span>
                             {productList.reduce((sum, p) => sum + (p.variants?.reduce((vSum, v) => vSum + (v.sellingPrice * v.quantity), 0) || 0), 0).toLocaleString()}
                           </span>
-                          <span className="flex items-center text-[10px] font-bold text-emerald-600 gap-0.5">
+                          <span className="sm:flex hidden items-center text-[10px] font-bold text-emerald-600 gap-0.5">
                             <ArrowUpRight size={11} className="stroke-[2.5]" />
                             <span>+8.1%</span>
                           </span>
@@ -677,7 +678,7 @@ function DashboardContent() {
                           <span className="text-xl md:text-2xl font-bold text-[#020302]">
                             {recentActivities.filter(a => a.type === 'sold').length + 8}
                           </span>
-                          <span className="flex items-center text-[10px] font-bold text-emerald-600 gap-0.5">
+                          <span className="sm:flex hidden items-center text-[10px] font-bold text-emerald-600 gap-0.5">
                             <ArrowUpRight size={11} className="stroke-[2.5]" />
                             <span>+15.2%</span>
                           </span>
@@ -692,7 +693,7 @@ function DashboardContent() {
                             <span className="text-[13px] text-[#5e5e5d] font-semibold mr-0.5">৳</span>
                             {((recentActivities.filter(a => a.type === 'sold').length + 8) * 35000).toLocaleString()}
                           </span>
-                          <span className="flex items-center text-[10px] font-bold text-emerald-600 gap-0.5">
+                          <span className="sm:flex hidden items-center text-[10px] font-bold text-emerald-600 gap-0.5">
                             <ArrowUpRight size={11} className="stroke-[2.5]" />
                             <span>+19.8%</span>
                           </span>
@@ -771,7 +772,7 @@ function DashboardContent() {
                       {/* Header */}
                       <div className="flex items-center justify-between px-6 py-5 border-b border-[#efeded]">
                         <div>
-                          <h3 className="font-bold text-[#020302] text-[14px]">Recent Log Activity</h3>
+                          <h3 className="font-[400] text-[#020302] text-[18px]">Recent Log Activity</h3>
                           <p className="text-[11px] text-[#5e5e5d] opacity-60 mt-0.5 font-semibold">Real-time chronicle of stock operations</p>
                         </div>
                         <button 
@@ -815,16 +816,6 @@ function DashboardContent() {
                         ))}
                       </div>
                     </div>
-
-                    {/* Global Footer */}
-                    <footer className="mt-8 pt-6 border-t border-[#efeded] flex flex-col sm:flex-row items-center justify-between gap-4 text-[#5e5e5d] opacity-80 text-[11px] font-semibold">
-                      <p>© 2026 Heritage Wholesale. All rights reserved.</p>
-                      <div className="flex items-center gap-6">
-                        <button className="hover:text-[#020302] transition-colors cursor-pointer bg-transparent border-none p-0">Privacy Policy</button>
-                        <button className="hover:text-[#020302] transition-colors cursor-pointer bg-transparent border-none p-0">Terms of Service</button>
-                        <button className="hover:text-[#020302] transition-colors cursor-pointer bg-transparent border-none p-0">Carbon Neutral Storefront</button>
-                      </div>
-                    </footer>
 
                   </div>
                 )}
@@ -915,10 +906,10 @@ function DashboardContent() {
                             key={product.id}
                             initial={{ opacity: 0, y: 8 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="bg-white border border-[#efeded] p-6 flex flex-col md:flex-row gap-8 items-start group hover:border-black transition-all duration-350 rounded-sm shadow-2xs hover:shadow-xs"
+                            className="bg-white border border-[#efeded] p-6 flex flex-col md:flex-row gap-8 items-start group hover:border-black transition-all duration-350 shadow-2xs hover:shadow-xs"
                           >
                             {/* Product Image Thumbnail */}
-                            <div className="w-full md:w-32 h-32 bg-[#f5f3f3] flex items-center justify-center overflow-hidden border border-[#efeded] rounded-sm flex-shrink-0">
+                            <div className="w-full md:w-32 h-32 bg-[#f5f3f3] flex items-center justify-center overflow-hidden border border-[#efeded] flex-shrink-0">
                               <img 
                                 src={product.image} 
                                 alt={product.name} 
@@ -958,11 +949,11 @@ function DashboardContent() {
                                       return (
                                         <span 
                                           key={variant.id} 
-                                          className={`px-3 py-1 text-[11px] font-medium border rounded-sm transition-all
+                                          className={`px-3 py-1 text-[11px] font-medium border transition-all
                                             ${isOutOfStock 
                                               ? 'bg-[#f5f3f3] border-[#efeded] text-neutral-400 opacity-55 italic' 
                                               : isLowStock 
-                                                ? 'bg-rose-50 border-rose-250 text-rose-700 font-semibold' 
+                                                ? 'bg-amber-50 border-amber-200 text-amber-700 font-semibold' 
                                                 : 'bg-[#f5f3f3] border-[#efeded] text-neutral-800'}`}
                                         >
                                           {variant.color} {variant.ram.replace('GB', '')}/{variant.storage.replace('GB', '')} ({variant.quantity})
@@ -995,25 +986,25 @@ function DashboardContent() {
                               <div className="flex md:flex-col gap-2 justify-end items-stretch md:w-32">
                                 <button 
                                   onClick={() => setPreviewingProduct(product)}
-                                  className="text-[9px] font-bold uppercase tracking-widest border border-[#efeded] px-4 py-2 hover:bg-black hover:text-white hover:border-black transition-all cursor-pointer rounded-sm text-center"
+                                  className="text-[9px] font-bold uppercase tracking-widest border-[1.85px] border-[#777776] px-4 py-2 hover:bg-black hover:text-white hover:border-black transition-all cursor-pointer text-center"
                                 >
                                   Preview
                                 </button>
                                 <button 
                                   onClick={() => router.push(`/dashboard/products/edit?id=${product.id}`)}
-                                  className="text-[9px] font-bold uppercase tracking-widest border border-[#efeded] px-4 py-2 hover:bg-black hover:text-white hover:border-black transition-all cursor-pointer rounded-sm text-center"
+                                  className="text-[9px] font-bold uppercase tracking-widest border border-gray-400 px-4 py-2 hover:bg-black hover:text-white hover:border-black transition-all cursor-pointer text-center"
                                 >
-                                  Modify Specs
+                                  Modify
                                 </button>
                                 <button 
                                   onClick={() => handleMarkAsSoldClick(product)}
                                   disabled={product.stock === 0}
-                                  className={`text-[9px] font-bold uppercase tracking-widest transition-colors py-2 text-center rounded-sm cursor-pointer
+                                  className={`text-[9px] flex gap-2 items-center border-[1.85px] border-[#ba1a1a] font-bold uppercase tracking-widest transition-colors py-2 px-3 text-center cursor-pointer
                                     ${product.stock === 0 
                                       ? 'text-neutral-350 line-through cursor-not-allowed' 
-                                      : 'text-[#5e5e5d] hover:text-[#ba1a1a]'}`}
+                                      : 'text-[#ba1a1a] hover:bg-[#ba1a1a] hover:text-white'}`}
                                 >
-                                  Mark Sold
+                                  Mark Sold <CheckSquare size={14} strokeWidth={1}/>
                                 </button>
                               </div>
                             </div>

@@ -109,10 +109,10 @@ export default function ProductDetailsScreen({
               <div className="flex md:grid md:grid-cols-4 md:grid-rows-[repeat(2,250px)] gap-[16px] overflow-x-auto snap-x snap-mandatory px-4 md:px-0 pb-4 md:pb-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                 
                 {/* Bento Item Large */}
-                <div className="flex-none w-[85vw] md:w-auto snap-center md:col-span-2 md:row-span-2 relative overflow-hidden rounded-[32px] border border-[#c7c7bf] bg-white aspect-[4/5] md:aspect-auto">
+                <div className="flex-none w-[85vw] md:w-auto snap-center md:col-span-2 md:row-span-2 relative overflow-hidden border border-[#c7c7bf] bg-white aspect-[4/5] md:aspect-auto">
                   <img 
                     className="w-full h-full object-cover transition-transform duration-500 hover:scale-105" 
-                    src={getBentoImage(0)} 
+                    src={getBentoImage(4)} 
                     alt={product.name} 
                   />
                   <div className="absolute top-4 right-4 bg-white/80 backdrop-blur-md px-3 py-1 rounded-full border border-[#c7c7bf]">
@@ -120,19 +120,19 @@ export default function ProductDetailsScreen({
                   </div>
                 </div>
 
-                <div className="flex-none w-[65vw] md:w-auto snap-center md:col-span-1 md:row-span-1 relative overflow-hidden rounded-[32px] border border-[#c7c7bf] bg-white aspect-[4/5] md:aspect-auto">
+                <div className="flex-none w-[65vw] md:w-auto snap-center md:col-span-1 md:row-span-1 relative overflow-hidden border border-[#c7c7bf] bg-white aspect-[4/5] md:aspect-auto">
                   <img className="w-full h-full object-cover" src={getBentoImage(1)} alt="Gallery 1" />
                 </div>
                 
-                <div className="flex-none w-[65vw] md:w-auto snap-center md:col-span-1 md:row-span-1 relative overflow-hidden rounded-[32px] border border-[#c7c7bf] bg-white aspect-[4/5] md:aspect-auto">
+                <div className="flex-none w-[65vw] md:w-auto snap-center md:col-span-1 md:row-span-1 relative overflow-hidden border border-[#c7c7bf] bg-white aspect-[4/5] md:aspect-auto">
                   <img className="w-full h-full object-cover" src={getBentoImage(2)} alt="Gallery 2" />
                 </div>
                 
-                <div className="flex-none w-[65vw] md:w-auto snap-center md:col-span-1 md:row-span-1 relative overflow-hidden rounded-[32px] border border-[#c7c7bf] bg-white aspect-[4/5] md:aspect-auto">
+                <div className="flex-none w-[65vw] md:w-auto snap-center md:col-span-1 md:row-span-1 relative overflow-hidden border border-[#c7c7bf] bg-white aspect-[4/5] md:aspect-auto">
                   <img className="w-full h-full object-cover" src={getBentoImage(3)} alt="Gallery 3" />
                 </div>
                 
-                <div className="flex-none w-[65vw] md:w-auto snap-center md:col-span-1 md:row-span-1 relative overflow-hidden rounded-[32px] border border-[#c7c7bf] bg-white aspect-[4/5] md:aspect-auto">
+                <div className="flex-none w-[65vw] md:w-auto snap-center md:col-span-1 md:row-span-1 relative overflow-hidden border border-[#c7c7bf] bg-white aspect-[4/5] md:aspect-auto">
                   <img className="w-full h-full object-cover" src={getBentoImage(4)} alt="Gallery 4" />
                 </div>
 
@@ -142,9 +142,9 @@ export default function ProductDetailsScreen({
             {/* Product Info */}
             <div className="lg:col-span-5 flex flex-col space-y-8">
               <div>
-                <h1 className="font-bold text-3xl md:text-4xl text-[#020302] mb-2 font-sans tracking-tight">{product.name}</h1>
+                <h1 className="font-medium text-3xl md:text-4xl text-[#020302] mb-2 font-sans tracking-tight">{product.name}</h1>
                 <div className="flex items-baseline space-x-4">
-                  <span className="text-2xl font-bold text-[#020302] font-sans">
+                  <span className="text-2xl font-medium text-[#020302] font-sans">
                     ৳{activeVariant ? activeVariant.sellingPrice.toLocaleString() : minPrice.toLocaleString()}
                   </span>
                   
@@ -201,7 +201,7 @@ export default function ProductDetailsScreen({
               <div className="flex space-x-4">
                 <button 
                   onClick={() => onEdit(product)}
-                  className="flex-1 h-12 bg-[#020302] text-[#ffffff] font-bold text-[14px] leading-[1.4] tracking-[0.04em] rounded-lg flex items-center justify-center space-x-2 hover:opacity-90 active:scale-[0.98] transition-all font-sans cursor-pointer"
+                  className="flex-1 h-12 bg-[#020302] text-[#ffffff] font-bold text-[14px] leading-[1.4] tracking-[0.04em] flex items-center justify-center space-x-2 hover:opacity-90 active:scale-[0.98] transition-all font-sans cursor-pointer"
                 >
                   <Edit2 size={16} />
                   <span>Edit Listing</span>
@@ -211,13 +211,13 @@ export default function ProductDetailsScreen({
                     navigator.clipboard.writeText(window.location.href);
                     alert("Product share link copied to clipboard!");
                   }}
-                  className="w-12 h-12 border border-[#c7c7bf] rounded-lg flex items-center justify-center text-[#020302] hover:bg-[#f5f3f3] transition-all cursor-pointer"
+                  className="w-12 h-12 border border-[#c7c7bf] rounded-2xl flex items-center justify-center text-[#020302] hover:bg-[#f5f3f3] transition-all cursor-pointer"
                 >
                   <Share2 size={18} />
                 </button>
                 <button 
                   onClick={() => setConfirmDeleteOpen(true)}
-                  className="w-12 h-12 border border-[#ba1a1a] rounded-lg flex items-center justify-center text-[#ba1a1a] hover:bg-red-50 transition-all cursor-pointer"
+                  className="w-12 h-12 border border-[#ba1a1a] rounded-2xl flex items-center justify-center text-[#ba1a1a] hover:bg-red-50 transition-all cursor-pointer"
                   title="Delete Product"
                 >
                   <Trash2 size={18} />
@@ -229,8 +229,8 @@ export default function ProductDetailsScreen({
           {/* Manage Variants */}
           <section className="mt-16">
             <div className="flex justify-between items-center mb-8">
-              <h2 className="font-bold text-2xl text-[#020302] font-sans">Manage Variants</h2>
-              <button className="text-[14px] leading-[1.4] tracking-[0.04em] font-bold text-[#020302] border-b-2 border-[#020302] hover:text-[#5e5e5d] hover:border-[#5e5e5d] transition-all pb-1 font-sans cursor-pointer">
+              <h2 className="font-medium text-xl text-[#020302] font-sans">Manage Variants</h2>
+              <button className="text-[12px] leading-[1.4] tracking-[0.04em] font-normal text-[#020302] border-b-2 border-[#020302] hover:text-[#5e5e5d] hover:border-[#5e5e5d] transition-all pb-1 font-sans cursor-pointer">
                 View All Variants
               </button>
             </div>
@@ -241,7 +241,7 @@ export default function ProductDetailsScreen({
 
                 if (isOutOfStock) {
                   return (
-                    <div key={v.id} className="bg-white border border-[#c7c7bf] rounded-xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 opacity-75">
+                    <div key={v.id} className="bg-white border border-[#c7c7bf] p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 opacity-75">
                       <div className="flex items-center space-x-4">
                         <div className="w-12 h-12 rounded-lg border border-[#c7c7bf] flex-shrink-0" style={{ backgroundColor: hex }}></div>
                         <div>
@@ -280,7 +280,7 @@ export default function ProductDetailsScreen({
                 }
 
                 return (
-                  <div key={v.id} className="bg-white border border-[#c7c7bf] rounded-xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div key={v.id} className="bg-white border border-[#c7c7bf] p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="flex items-center space-x-4">
                       <div className="w-12 h-12 rounded-lg border border-[#c7c7bf] flex-shrink-0" style={{ backgroundColor: hex }}></div>
                       <div>
