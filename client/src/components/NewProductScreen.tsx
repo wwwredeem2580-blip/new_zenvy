@@ -266,7 +266,7 @@ export default function NewProductScreen({
     <div className="flex-1 bg-[#fbf9f9] overflow-y-auto relative h-full flex flex-col font-sans text-[#1b1c1c]">
       
       {/* breadcrumbs header */}
-      <header className="fixed top-0 z-40 bg-white flex justify-between items-center w-full px-6 py-4 md:px-12 h-[64px] border-b border-[#c7c7bf]">
+      <header className="fixed top-0 z-40 bg-white flex justify-between items-center w-full px-6 py-4 md:px-12 h-[54px] md:h-[64px] border-b border-[#c7c7bf]">
         <div className="flex justify-end w-full gap-4">
           <button 
             onClick={() => {
@@ -282,7 +282,7 @@ export default function NewProductScreen({
       </header>
 
       {/* Main Container */}
-      <div className="flex-1 pt-24 px-6 md:px-12 max-w-[1440px] mx-auto w-full pb-20">
+      <div className="flex-1 pt-16 md:pt-24 px-6 md:px-12 max-w-[1440px] mx-auto w-full pb-20">
         
         {/* Onboarding Prefill Banner */}
         {!initialProduct && (
@@ -294,9 +294,6 @@ export default function NewProductScreen({
               <div className="space-y-0.5 text-left">
                 <p className="text-[10px] font-bold text-[#5e5e5d] uppercase tracking-widest">New smartphone setup</p>
                 <h3 className="text-base font-bold text-[#020302] tracking-tight">New? Let&apos;s start with a demo product!</h3>
-                <p className="text-xs text-[#5e5e5d] font-medium leading-relaxed">
-                  Prefill the form with a demo Samsung Galaxy A35 to see how variants, prices, and stock are configured.
-                </p>
               </div>
             </div>
             <button
@@ -310,7 +307,7 @@ export default function NewProductScreen({
         )}
         
         {/* Breadcrumb & Main Actions */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-4 border-b border-[#c7c7bf]/20 pb-8">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-0 md:mb-4 border-b border-[#c7c7bf]/20 pb-8">
           <div className="space-y-3">
             <nav className="flex items-center gap-2 text-[#5e5e5d] text-xs font-bold uppercase tracking-[0.15em]">
               <button onClick={onBack} className="hover:text-[#020302] transition-colors flex items-center gap-1">
@@ -319,9 +316,9 @@ export default function NewProductScreen({
               <ChevronRight size={12} className="text-[#5e5e5d]" />
               <span className="text-[#020302] font-semibold">{initialProduct ? 'Edit product' : 'New product'}</span>
             </nav>
-            <h1 className="text-3xl md:text-5xl font-medium tracking-tight text-[#020302]">
+            {/* <h1 className="text-3xl md:text-5xl font-medium tracking-tight text-[#020302]">
               {initialProduct ? 'Edit Product' : 'Create Product'}
-            </h1>
+            </h1> */}
           </div>
         </div>
 
