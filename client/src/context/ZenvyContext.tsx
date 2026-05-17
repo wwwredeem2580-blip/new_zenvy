@@ -9,6 +9,8 @@ interface ZenvyContextType {
   setStoreName: (name: string) => void;
   storeLocation: string;
   setStoreLocation: (loc: string) => void;
+  whatsAppNumber: string;
+  setWhatsAppNumber: (whatsapp: string) => void;
 }
 
 const ZenvyContext = createContext<ZenvyContextType | undefined>(undefined);
@@ -17,6 +19,7 @@ export function ZenvyProvider({ children }: { children: ReactNode }) {
   const [phoneNumber, setPhoneNumberState] = useState('');
   const [storeName, setStoreNameState] = useState('');
   const [storeLocation, setStoreLocationState] = useState('');
+  const [whatsAppNumber, setWhatsAppNumberState] = useState('');
 
   // Hydrate from localStorage on client-side mount
   useEffect(() => {
@@ -24,9 +27,11 @@ export function ZenvyProvider({ children }: { children: ReactNode }) {
       const savedPhone = localStorage.getItem('zenvy_phone');
       const savedName = localStorage.getItem('zenvy_storeName');
       const savedLoc = localStorage.getItem('zenvy_storeLocation');
+      const savedWhatsApp = localStorage.getItem('zenvy_whatsAppNumber');
       if (savedPhone) setPhoneNumberState(savedPhone);
       if (savedName) setStoreNameState(savedName);
       if (savedLoc) setStoreLocationState(savedLoc);
+      if (savedWhatsApp) setWhatsAppNumberState(savedWhatsApp);
     }
   }, []);
 
@@ -51,6 +56,13 @@ export function ZenvyProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const setWhatsAppNumber = (whatsapp: string) => {
+    setWhatsAppNumberState(whatsapp);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('zenvy_whatsAppNumber', whatsapp);
+    }
+  };
+
   return (
     <ZenvyContext.Provider value={{
       phoneNumber,
@@ -58,7 +70,9 @@ export function ZenvyProvider({ children }: { children: ReactNode }) {
       storeName,
       setStoreName,
       storeLocation,
-      setStoreLocation
+      setStoreLocation,
+      whatsAppNumber,
+      setWhatsAppNumber
     }}>
       {children}
     </ZenvyContext.Provider>

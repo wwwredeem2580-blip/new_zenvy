@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   ChevronRight, 
@@ -200,6 +201,12 @@ export default function NewProductScreen({
   };
 
   const handleSubmit = () => {
+    if (!initialProduct) {
+      localStorage.setItem('zenvy_checklist_addFirstProduct', 'true');
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('zenvy_onboarding_update'));
+      }
+    }
     onSuccess({
       id: initialProduct?.id || Date.now(),
       name: formData.name || searchQuery,
@@ -215,6 +222,33 @@ export default function NewProductScreen({
         { text: `Product created — ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`, type: 'add' }
       ]
     });
+  };
+
+  const handlePrefillDemoProduct = () => {
+    setSearchQuery('Galaxy A35');
+    
+    const demoVariant = {
+      id: 'AwesomeBlue-8GB-256GB',
+      color: 'Awesome Blue',
+      ram: '8GB',
+      storage: '256GB',
+      quantity: 5,
+      buyingPrice: 28000,
+      sellingPrice: 32999,
+      sku: 'SKU-AWSBLU-8GB-256GB',
+      image: 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?q=80&w=200&auto=format'
+    };
+
+    setFormData({
+      name: 'Galaxy A35',
+      brand: 'Samsung',
+      description: 'The premium Samsung Galaxy A35 features a stunning 120Hz display, a durable premium glass back, and top-tier triple cameras with advanced nightography. Perfect for daily high performance.',
+      variants: [demoVariant],
+      lowStockThreshold: 2,
+    });
+    
+    setTagsList(['Electronics', 'Samsung', 'Demo']);
+    toast.success('Demo product fields prefilled successfully! Click "Create Product" at the top to save.');
   };
 
   const suggestions = PHONE_MODELS.filter(m => 
@@ -249,6 +283,31 @@ export default function NewProductScreen({
 
       {/* Main Container */}
       <div className="flex-1 pt-24 px-6 md:px-12 max-w-[1440px] mx-auto w-full pb-20">
+        
+        {/* Onboarding Prefill Banner */}
+        {!initialProduct && (
+          <div className="bg-white border border-[#efeded] p-6 rounded-sm mb-8 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-2xs">
+            <div className="flex items-center gap-4.5">
+              <div className="w-12 h-12 rounded-full bg-[#fbf9f9] border border-[#efeded] flex items-center justify-center text-[#020302] select-none flex-shrink-0">
+                <Sparkles size={20} className="fill-[#020302]/10" />
+              </div>
+              <div className="space-y-0.5 text-left">
+                <p className="text-[10px] font-bold text-[#5e5e5d] uppercase tracking-widest">New smartphone setup</p>
+                <h3 className="text-base font-bold text-[#020302] tracking-tight">New? Let&apos;s start with a demo product!</h3>
+                <p className="text-xs text-[#5e5e5d] font-medium leading-relaxed">
+                  Prefill the form with a demo Samsung Galaxy A35 to see how variants, prices, and stock are configured.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={handlePrefillDemoProduct}
+              className="w-full sm:w-auto px-6 h-[38px] bg-[#020302] hover:bg-neutral-800 text-white text-[10px] font-bold uppercase tracking-widest rounded-xs flex items-center justify-center gap-1.5 transition-all active:scale-98 cursor-pointer select-none"
+            >
+              <Sparkles size={12} />
+              Prefill Demo Product
+            </button>
+          </div>
+        )}
         
         {/* Breadcrumb & Main Actions */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-4 border-b border-[#c7c7bf]/20 pb-8">

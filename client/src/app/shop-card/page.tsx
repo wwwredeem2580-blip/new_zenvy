@@ -28,6 +28,7 @@ export default function PublicShopCard() {
   const [storeName, setStoreName] = useState('Zenvy Store');
   const [storeDesc, setStoreDesc] = useState('Premium Smartphone Distribution Outlet');
   const [phoneNumber, setPhoneNumber] = useState('+8801712345678');
+  const [whatsAppNumber, setWhatsAppNumber] = useState('');
   const [products, setProducts] = useState<Product[]>([]);
   const [search, setSearch] = useState('');
   const [selectedBrand, setSelectedBrand] = useState('All');
@@ -40,11 +41,13 @@ export default function PublicShopCard() {
       const savedName = localStorage.getItem('zenvy_storeName');
       const savedDesc = localStorage.getItem('zenvy_storeDesc');
       const savedPhone = localStorage.getItem('zenvy_phone');
+      const savedWhatsApp = localStorage.getItem('zenvy_whatsAppNumber');
       const savedProducts = localStorage.getItem('zenvy_productList');
 
       if (savedName) setStoreName(savedName);
       if (savedDesc) setStoreDesc(savedDesc);
       if (savedPhone) setPhoneNumber(savedPhone);
+      if (savedWhatsApp) setWhatsAppNumber(savedWhatsApp);
       
       if (savedProducts) {
         try {
@@ -106,7 +109,8 @@ export default function PublicShopCard() {
   };
 
   const getWhatsAppLink = (product: Product, selectedVariant: any) => {
-    const cleanPhone = phoneNumber.replace(/[^0-9+]/g, '');
+    const activeNumber = whatsAppNumber || phoneNumber;
+    const cleanPhone = activeNumber.replace(/[^0-9+]/g, '');
     const targetPhone = cleanPhone.startsWith('+') ? cleanPhone : `+880${cleanPhone.replace(/^0/, '')}`;
     const text = `Hello ${storeName}! I saw your public inventory catalog and am interested in: \n\n*${product.brand} ${product.name}*\nVariant: ${selectedVariant.color} (${selectedVariant.ram}/${selectedVariant.storage})\nPrice: Tk ${selectedVariant.sellingPrice.toLocaleString()}\n\nIs this variant still available for purchase? Thank you!`;
     return `https://api.whatsapp.com/send?phone=${encodeURIComponent(targetPhone)}&text=${encodeURIComponent(text)}`;
@@ -393,7 +397,7 @@ export default function PublicShopCard() {
       <div className="fixed bottom-5 right-0 z-40 px-5">
         <div className="max-w-[180px] mx-auto">
           <a 
-            href={`https://api.whatsapp.com/send?phone=${encodeURIComponent(phoneNumber.replace(/[^0-9+]/g, ''))}&text=${encodeURIComponent(`Hello ${storeName}! I am browsing your public inventory catalog and wanted to inquire about smartphones.`)}`}
+            href={`https://api.whatsapp.com/send?phone=${encodeURIComponent((whatsAppNumber || phoneNumber).replace(/[^0-9+]/g, ''))}&text=${encodeURIComponent(`Hello ${storeName}! I am browsing your public inventory catalog and wanted to inquire about smartphones.`)}`}
             target="_blank"
             rel="noopener noreferrer"
             className="w-full bg-[#111112] hover:bg-[#1a1a1b] text-white py-1.5 px-3 rounded-2xl flex items-center justify-between shadow-2xl transition-all border border-white/10 group"

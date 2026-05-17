@@ -49,7 +49,7 @@ import InvoiceSuccessModal from '@/components/InvoiceSuccessModal';
 import confetti from 'canvas-confetti';
 
 function DashboardContent() {
-  const { storeName, setStoreName, storeLocation, setStoreLocation } = useZenvy();
+  const { storeName, setStoreName, storeLocation, setStoreLocation, whatsAppNumber, setWhatsAppNumber } = useZenvy();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState('Home');
@@ -128,6 +128,7 @@ function DashboardContent() {
   const [settingsShopName, setSettingsShopName] = useState(storeName || 'The Curator Shop');
   const [settingsLocation, setSettingsLocation] = useState(storeLocation || 'London, United Kingdom');
   const [settingsPhone, setSettingsPhone] = useState('+44 20 7946 0958');
+  const [settingsWhatsApp, setSettingsWhatsApp] = useState(whatsAppNumber || '');
   const [settingsLowStockThreshold, setSettingsLowStockThreshold] = useState(10);
   const [settingsSmsAlerts, setSettingsSmsAlerts] = useState(true);
   const [settingsInAppAlerts, setSettingsInAppAlerts] = useState(false);
@@ -144,6 +145,12 @@ function DashboardContent() {
       setSettingsLocation(storeLocation);
     }
   }, [storeLocation]);
+
+  useEffect(() => {
+    if (whatsAppNumber) {
+      setSettingsWhatsApp(whatsAppNumber);
+    }
+  }, [whatsAppNumber]);
 
   // Mark as Sold & Invoice Generator State Variables
   const [activeMarkSoldProduct, setActiveMarkSoldProduct] = useState<Product | null>(null);
@@ -270,14 +277,90 @@ function DashboardContent() {
     }
   ]);
 
-  const steps = [
-    { label: "Add your first product", completed: productList.length > 5, onClick: () => router.push('/dashboard/products/new') },
-    { label: "Add a custom domain", completed: false },
-    { label: "Customize your online store", completed: false },
-    { label: "Set your shipping rates", completed: false },
-    { label: "Name your store", completed: true },
-    { label: "Set up Shopify Payments", completed: false },
-  ];
+  // Onboarding Checklist States
+  const [onboardingDismissed, setOnboardingDismissed] = useState<boolean>(true);
+  const [onboardingCollapsed, setOnboardingCollapsed] = useState<boolean>(false);
+  const [hasCelebrated, setHasCelebrated] = useState<boolean>(false);
+  const [checklist, setChecklist] = useState({
+    addFirstProduct: false,
+    setUpShopProfile: false,
+    seeShopCard: false,
+    recordFirstSale: false,
+    setLowStockAlert: false,
+  });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const dismissed = localStorage.getItem('zenvy_onboardingDismissed') === 'true';
+      setOnboardingDismissed(dismissed);
+
+      // Collapsible logic: default open on first visit, collapsed on subsequent visits
+      const hasSeen = localStorage.getItem('zenvy_onboardingSeen') === 'true';
+      const collapsedStored = localStorage.getItem('zenvy_onboardingCollapsed') === 'true';
+      if (!hasSeen) {
+        localStorage.setItem('zenvy_onboardingSeen', 'true');
+        setOnboardingCollapsed(false);
+      } else {
+        setOnboardingCollapsed(collapsedStored);
+      }
+
+      const celebrated = localStorage.getItem('zenvy_onboardingCelebrated') === 'true';
+      setHasCelebrated(celebrated);
+    }
+  }, []);
+
+  const recalculateOnboarding = () => {
+    if (typeof window !== 'undefined') {
+      const addFirstProduct = localStorage.getItem('zenvy_checklist_addFirstProduct') === 'true' || productList.length > 5;
+      
+      const defaultLogo = 'https://lh3.googleusercontent.com/aida-public/AB6AXuBa57kiXc7qcfwueIRVjI60qXnR6i4vEl2uIBNUoni4KLDMS_0WJDFeHRWXQ98aNylSe5CrZMilF7dAHlkpjSEo2IGayEmUsKK-p4MoAEXvEHVQGHzEnO48N74InWKqKUcTl_zbfESZaPZr_u2MvDGoOEJZ5DUb6OofjRNFid5aXnPSXJcdMy3DKBX41lDORELk8Jp9U0oLAnCPuUYpp5gWSdh-m5f2M7K_Jyl6h-FHOtw43YkxQS5jQAyP18VCEeeuKpsXsasaJ4UG';
+      const setUpShopProfile = localStorage.getItem('zenvy_checklist_setUpShopProfile') === 'true' || settingsLogo !== defaultLogo || settingsWhatsApp.trim() !== '';
+      
+      const seeShopCard = localStorage.getItem('zenvy_checklist_seeShopCard') === 'true';
+      
+      const hasSale = recentActivities.some(a => a.type === 'sold') || localStorage.getItem('zenvy_checklist_recordFirstSale') === 'true';
+      const recordFirstSale = addFirstProduct && hasSale;
+      
+      const setLowStockAlert = localStorage.getItem('zenvy_checklist_setLowStockAlert') === 'true' || settingsLowStockThreshold !== 10;
+
+      setChecklist({
+        addFirstProduct,
+        setUpShopProfile,
+        seeShopCard,
+        recordFirstSale,
+        setLowStockAlert,
+      });
+    }
+  };
+
+  useEffect(() => {
+    recalculateOnboarding();
+  }, [productList, recentActivities, settingsLogo, settingsWhatsApp, settingsLowStockThreshold]);
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      recalculateOnboarding();
+    };
+    window.addEventListener('zenvy_onboarding_update', handleUpdate);
+    return () => window.removeEventListener('zenvy_onboarding_update', handleUpdate);
+  }, [productList, recentActivities, settingsLogo, settingsWhatsApp, settingsLowStockThreshold]);
+
+  const completedCount = Object.values(checklist).filter(Boolean).length;
+  const totalItems = 5;
+
+  useEffect(() => {
+    if (completedCount === 5 && !hasCelebrated) {
+      confetti({
+        particleCount: 150,
+        spread: 80,
+        origin: { y: 0.6 }
+      });
+      setHasCelebrated(true);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('zenvy_onboardingCelebrated', 'true');
+      }
+    }
+  }, [completedCount, hasCelebrated]);
 
   // Load from localStorage on client-side mount
   useEffect(() => {
@@ -673,6 +756,305 @@ function DashboardContent() {
                         Here is a live performance snapshot for your storefront today.
                       </p>
                     </div>
+
+                    {/* Onboarding Checklist Guide / Celebration Card */}
+                    {!onboardingDismissed && (
+                      <div className="bg-white border border-[#efeded] rounded-sm p-6 space-y-5 shadow-xs relative overflow-hidden text-left">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-radial-gradient(circle_at_top_right,rgba(0,0,0,0.02),transparent) pointer-events-none"></div>
+                        {completedCount === 5 ? (
+                          /* Celebration Mode Card */
+                          <div className="flex flex-col items-center text-center py-6 px-4 space-y-4">
+                            {/* Animated Big Checkmark Ring */}
+                            <motion.div 
+                              initial={{ scale: 0.8, rotate: -10 }}
+                              animate={{ scale: 1, rotate: 0 }}
+                              transition={{ type: 'spring', stiffness: 200 }}
+                              className="w-16 h-16 rounded-full bg-emerald-50 border-4 border-emerald-500 flex items-center justify-center text-emerald-500 shadow-md"
+                            >
+                              <Check size={32} className="stroke-[3.5]" />
+                            </motion.div>
+                            
+                            <div className="space-y-1">
+                              <h3 className="text-lg font-bold text-[#020302] tracking-tight">Your shop is now ready on Zenvy! 🎉</h3>
+                              <p className="text-xs text-[#5e5e5d] leading-relaxed max-w-md font-medium">
+                                Congratulations! You have completed all onboarding setup steps. From now on, manage everything from stock, sales, to analytics all in one sleek place.
+                              </p>
+                            </div>
+                            
+                            <button
+                              onClick={() => {
+                                setOnboardingDismissed(true);
+                                localStorage.setItem('zenvy_onboardingDismissed', 'true');
+                                toast.success("Let's grow your business!");
+                              }}
+                              className="px-6 py-2.5 bg-[#020302] hover:bg-neutral-800 text-white text-[10px] font-bold uppercase tracking-widest transition-all rounded-xs active:scale-98 cursor-pointer"
+                            >
+                              Start Managing
+                            </button>
+                          </div>
+                        ) : (
+                          /* Standard Checklist Card */
+                          <div className="space-y-4">
+                            {/* Card Header */}
+                            <div className="flex items-center justify-between">
+                              <div className="space-y-1">
+                                <p className="text-[10px] font-bold text-[#5e5e5d] uppercase tracking-widest flex items-center gap-1.5 select-none">
+                                  <Sparkles size={11} className="text-[#020302] fill-[#020302]/10" />
+                                  Onboarding Guide
+                                </p>
+                                <h3 className="text-base font-bold text-[#020302] tracking-tight">Set up your premium storefront</h3>
+                              </div>
+                              
+                              <div className="flex items-center gap-4">
+                                <button 
+                                  onClick={() => {
+                                    const nextVal = !onboardingCollapsed;
+                                    setOnboardingCollapsed(nextVal);
+                                    localStorage.setItem('zenvy_onboardingCollapsed', String(nextVal));
+                                  }}
+                                  className="text-[10px] font-bold text-[#5e5e5d] hover:text-[#020302] uppercase tracking-wider flex items-center gap-1 transition-colors cursor-pointer"
+                                >
+                                  {onboardingCollapsed ? 'Expand Checklist' : 'Collapse'}
+                                </button>
+                                
+                                <button 
+                                  onClick={() => {
+                                    if (confirm('Are you sure you want to dismiss the onboarding guide permanently?')) {
+                                      setOnboardingDismissed(true);
+                                      localStorage.setItem('zenvy_onboardingDismissed', 'true');
+                                      toast.info('Onboarding guide dismissed.');
+                                    }
+                                  }}
+                                  className="text-[10px] font-bold text-[#ba1a1a]/80 hover:text-[#ba1a1a] uppercase tracking-wider transition-colors cursor-pointer"
+                                >
+                                  Dismiss
+                                </button>
+                              </div>
+                            </div>
+                            
+                            {/* Progress bar info */}
+                            <div className="space-y-2">
+                              <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider text-[#5e5e5d]">
+                                <span>{completedCount} of {totalItems} completed</span>
+                                <span>Total Time: Almost 5 Minutes</span>
+                              </div>
+                              <div className="w-full h-1.5 bg-[#f5f3f3] rounded-full overflow-hidden border border-[#efeded]">
+                                <motion.div 
+                                  className="h-full bg-[#020302] rounded-full"
+                                  initial={{ width: 0 }}
+                                  animate={{ width: `${(completedCount / totalItems) * 100}%` }}
+                                  transition={{ duration: 0.4, ease: 'easeOut' }}
+                                />
+                              </div>
+                            </div>
+
+                            {/* Checklist items list */}
+                            <AnimatePresence initial={false}>
+                              {!onboardingCollapsed && (
+                                <motion.div 
+                                  initial={{ height: 0, opacity: 0 }}
+                                  animate={{ height: 'auto', opacity: 1 }}
+                                  exit={{ height: 0, opacity: 0 }}
+                                  transition={{ duration: 0.25 }}
+                                  className="space-y-3 pt-2 overflow-hidden"
+                                >
+                                  
+                                  {/* Item 1: Add first product */}
+                                  <div className={`p-4 border rounded-sm flex items-start gap-4 transition-all ${
+                                    checklist.addFirstProduct ? 'bg-[#fbf9f9] border-[#efeded]/70 opacity-70' : 'bg-white border-[#efeded] hover:border-[#dbdad9]'
+                                  }`}>
+                                    <div className="pt-0.5">
+                                      <div className={`w-5 h-5 rounded-full flex items-center justify-center border transition-all ${
+                                        checklist.addFirstProduct ? 'bg-[#020302] border-[#020302] text-white' : 'border-[#c7c7bf] bg-white text-transparent'
+                                      }`}>
+                                        <Check size={12} className="stroke-[3]" />
+                                      </div>
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-center gap-2">
+                                        <h4 className={`text-xs font-bold uppercase tracking-wider ${checklist.addFirstProduct ? 'line-through text-[#5e5e5d]/60' : 'text-[#020302]'}`}>
+                                          Add your first product
+                                        </h4>
+                                        <span className="text-[10px] text-[#5e5e5d]/60 font-semibold">(2 Minutes)</span>
+                                      </div>
+                                      <p className="text-[11px] text-[#5e5e5d] font-medium leading-relaxed mt-0.5">
+                                        Add your first smartphone with variants and prices. Try prefilling a Samsung Galaxy demo to skip the blank page paralysis.
+                                      </p>
+                                      {!checklist.addFirstProduct && (
+                                        <button 
+                                          onClick={() => router.push('/dashboard/products/new')}
+                                          className="mt-2.5 px-3 h-[26px] bg-[#020302] hover:bg-neutral-800 text-white text-[9px] font-bold uppercase tracking-widest rounded-xs flex items-center justify-center transition-all cursor-pointer"
+                                        >
+                                          Start Adding
+                                        </button>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  {/* Item 2: Set up shop profile */}
+                                  <div className={`p-4 border rounded-sm flex items-start gap-4 transition-all ${
+                                    checklist.setUpShopProfile ? 'bg-[#fbf9f9] border-[#efeded]/70 opacity-70' : 'bg-white border-[#efeded] hover:border-[#dbdad9]'
+                                  }`}>
+                                    <div className="pt-0.5">
+                                      <div className={`w-5 h-5 rounded-full flex items-center justify-center border transition-all ${
+                                        checklist.setUpShopProfile ? 'bg-[#020302] border-[#020302] text-white' : 'border-[#c7c7bf] bg-white text-transparent'
+                                      }`}>
+                                        <Check size={12} className="stroke-[3]" />
+                                      </div>
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-center gap-2">
+                                        <h4 className={`text-xs font-bold uppercase tracking-wider ${checklist.setUpShopProfile ? 'line-through text-[#5e5e5d]/60' : 'text-[#020302]'}`}>
+                                          Set up your shop profile
+                                        </h4>
+                                        <span className="text-[10px] text-[#5e5e5d]/60 font-semibold">(1 Minute)</span>
+                                      </div>
+                                      <p className="text-[11px] text-[#5e5e5d] font-medium leading-relaxed mt-0.5">
+                                        Your logo and WhatsApp hotline will make your generated invoices and public storefront catalog feel extremely professional.
+                                      </p>
+                                      {!checklist.setUpShopProfile && (
+                                        <button 
+                                          onClick={() => handleTabChange('Settings')}
+                                          className="mt-2.5 px-3 h-[26px] bg-[#020302] hover:bg-neutral-800 text-white text-[9px] font-bold uppercase tracking-widest rounded-xs flex items-center justify-center transition-all cursor-pointer"
+                                        >
+                                          Configure Settings
+                                        </button>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  {/* Item 3: See your shop card */}
+                                  <div className={`p-4 border rounded-sm flex items-start gap-4 transition-all ${
+                                    checklist.seeShopCard ? 'bg-[#fbf9f9] border-[#efeded]/70 opacity-70' : 'bg-white border-[#efeded] hover:border-[#dbdad9]'
+                                  }`}>
+                                    <div className="pt-0.5">
+                                      <div className={`w-5 h-5 rounded-full flex items-center justify-center border transition-all ${
+                                        checklist.seeShopCard ? 'bg-[#020302] border-[#020302] text-white' : 'border-[#c7c7bf] bg-white text-transparent'
+                                      }`}>
+                                        <Check size={12} className="stroke-[3]" />
+                                      </div>
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-center gap-2">
+                                        <h4 className={`text-xs font-bold uppercase tracking-wider ${checklist.seeShopCard ? 'line-through text-[#5e5e5d]/60' : 'text-[#020302]'}`}>
+                                          See your shop card
+                                        </h4>
+                                        <span className="text-[10px] text-[#5e5e5d]/60 font-semibold">(30 Seconds)</span>
+                                      </div>
+                                      <p className="text-[11px] text-[#5e5e5d] font-medium leading-relaxed mt-0.5">
+                                        Share this custom link with your customers — they can browse your active stock levels in real-time and query you directly.
+                                      </p>
+                                      <div className="flex gap-2 mt-2.5">
+                                        <button 
+                                          onClick={() => {
+                                            const url = window.location.origin + '/shop-card';
+                                            navigator.clipboard.writeText(url);
+                                            toast.success('Shop link copied to clipboard!');
+                                            localStorage.setItem('zenvy_checklist_seeShopCard', 'true');
+                                            recalculateOnboarding();
+                                            window.dispatchEvent(new Event('zenvy_onboarding_update'));
+                                          }}
+                                          className="px-3 h-[26px] bg-[#020302] hover:bg-neutral-800 text-white text-[9px] font-bold uppercase tracking-widest rounded-xs flex items-center justify-center transition-all cursor-pointer gap-1"
+                                        >
+                                          Copy Link
+                                        </button>
+                                        <button 
+                                          onClick={() => {
+                                            const url = window.location.origin + '/shop-card';
+                                            window.open(url, '_blank');
+                                            localStorage.setItem('zenvy_checklist_seeShopCard', 'true');
+                                            recalculateOnboarding();
+                                            window.dispatchEvent(new Event('zenvy_onboarding_update'));
+                                          }}
+                                          className="px-3 h-[26px] bg-white border border-[#efeded] hover:bg-neutral-50 text-[#020302] text-[9px] font-bold uppercase tracking-widest rounded-xs flex items-center justify-center transition-all cursor-pointer gap-1"
+                                        >
+                                          <ExternalLink size={10} />
+                                          Preview
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* Item 4: Record your first sale */}
+                                  <div className={`p-4 border rounded-sm flex items-start gap-4 transition-all ${
+                                    checklist.recordFirstSale ? 'bg-[#fbf9f9] border-[#efeded]/70 opacity-70' : 
+                                    !checklist.addFirstProduct ? 'bg-neutral-50/50 border-[#efeded] opacity-50' : 'bg-white border-[#efeded] hover:border-[#dbdad9]'
+                                  }`}>
+                                    <div className="pt-0.5">
+                                      <div className={`w-5 h-5 rounded-full flex items-center justify-center border transition-all ${
+                                        checklist.recordFirstSale ? 'bg-[#020302] border-[#020302] text-white' : 'border-[#c7c7bf] bg-white text-transparent'
+                                      }`}>
+                                        <Check size={12} className="stroke-[3]" />
+                                      </div>
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-center gap-2">
+                                        <h4 className={`text-xs font-bold uppercase tracking-wider ${checklist.recordFirstSale ? 'line-through text-[#5e5e5d]/60' : 'text-[#020302]'}`}>
+                                          Record your first sale
+                                        </h4>
+                                        <span className="text-[10px] text-[#5e5e5d]/60 font-semibold">(1 Minute)</span>
+                                      </div>
+                                      <p className="text-[11px] text-[#5e5e5d] font-medium leading-relaxed mt-0.5">
+                                        Create a fast invoice for a customer. Send it to them via WhatsApp to experience the complete billing & transaction loop.
+                                      </p>
+                                      {!checklist.recordFirstSale && (
+                                        <div className="mt-2.5 flex items-center gap-2">
+                                          {checklist.addFirstProduct ? (
+                                            <button 
+                                              onClick={() => setPosCheckoutOpen(true)}
+                                              className="px-3 h-[26px] bg-[#020302] hover:bg-neutral-800 text-white text-[9px] font-bold uppercase tracking-widest rounded-xs flex items-center justify-center transition-all cursor-pointer"
+                                            >
+                                              Open POS Terminal
+                                            </button>
+                                          ) : (
+                                            <span className="text-[9px] font-bold text-neutral-400 bg-neutral-100 py-1 px-2.5 rounded-sm uppercase tracking-widest select-none">
+                                              🔒 Add a product first
+                                            </span>
+                                          )}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  {/* Item 5: Set a low stock alert */}
+                                  <div className={`p-4 border rounded-sm flex items-start gap-4 transition-all ${
+                                    checklist.setLowStockAlert ? 'bg-[#fbf9f9] border-[#efeded]/70 opacity-70' : 'bg-white border-[#efeded] hover:border-[#dbdad9]'
+                                  }`}>
+                                    <div className="pt-0.5">
+                                      <div className={`w-5 h-5 rounded-full flex items-center justify-center border transition-all ${
+                                        checklist.setLowStockAlert ? 'bg-[#020302] border-[#020302] text-white' : 'border-[#c7c7bf] bg-white text-transparent'
+                                      }`}>
+                                        <Check size={12} className="stroke-[3]" />
+                                      </div>
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-center gap-2">
+                                        <h4 className={`text-xs font-bold uppercase tracking-wider ${checklist.setLowStockAlert ? 'line-through text-[#5e5e5d]/60' : 'text-[#020302]'}`}>
+                                          Set a low stock alert
+                                        </h4>
+                                        <span className="text-[10px] text-[#5e5e5d]/60 font-semibold">(30 Seconds)</span>
+                                      </div>
+                                      <p className="text-[11px] text-[#5e5e5d] font-medium leading-relaxed mt-0.5">
+                                        Define warning thresholds for your products so Zenvy can alert you to restock items before they sell out.
+                                      </p>
+                                      {!checklist.setLowStockAlert && (
+                                        <button 
+                                          onClick={() => handleTabChange('Settings')}
+                                          className="mt-2.5 px-3 h-[26px] bg-[#020302] hover:bg-neutral-800 text-white text-[9px] font-bold uppercase tracking-widest rounded-xs flex items-center justify-center transition-all cursor-pointer"
+                                        >
+                                          Set Threshold
+                                        </button>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     {/* Share Shop Card Hero Banner - Elegant Marketing card */}
                     <motion.div 
@@ -1343,6 +1725,18 @@ function DashboardContent() {
                               Verified Phone Number
                             </p>
                           </div>
+
+                          <div className="space-y-1">
+                            <label className="text-[9px] font-bold text-[#5e5e5d] uppercase tracking-widest block">WhatsApp Number</label>
+                            <input 
+                              type="text" 
+                              className="w-full bg-[#fbf9f9] border border-[#efeded] p-3 text-xs font-semibold text-[#020302] focus:outline-none focus:ring-1 focus:ring-[#020302] rounded-sm"
+                              placeholder="e.g. +8801700000000"
+                              value={settingsWhatsApp}
+                              onChange={(e) => setSettingsWhatsApp(e.target.value)}
+                            />
+                            <p className="text-[9px] text-[#5e5e5d]/60 font-medium">Used as the contact/inquiry trigger on your public shop card catalog.</p>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -1459,6 +1853,7 @@ function DashboardContent() {
                           setSettingsShopName(storeName || 'The Curator Shop');
                           setSettingsLocation(storeLocation || 'London, United Kingdom');
                           setSettingsPhone('+44 20 7946 0958');
+                          setSettingsWhatsApp(whatsAppNumber || '');
                           setSettingsLowStockThreshold(10);
                           setSettingsSmsAlerts(true);
                           setSettingsInAppAlerts(false);
@@ -1477,6 +1872,19 @@ function DashboardContent() {
                           }
                           setStoreName(settingsShopName);
                           setStoreLocation(settingsLocation);
+                          setWhatsAppNumber(settingsWhatsApp);
+                          
+                          // Mark onboarding item 2 "setUpShopProfile" as completed if either logo changed or WhatsApp added
+                          const defaultLogo = 'https://lh3.googleusercontent.com/aida-public/AB6AXuBa57kiXc7qcfwueIRVjI60qXnR6i4vEl2uIBNUoni4KLDMS_0WJDFeHRWXQ98aNylSe5CrZMilF7dAHlkpjSEo2IGayEmUsKK-p4MoAEXvEHVQGHzEnO48N74InWKqKUcTl_zbfESZaPZr_u2MvDGoOEJZ5DUb6OofjRNFid5aXnPSXJcdMy3DKBX41lDORELk8Jp9U0oLAnCPuUYpp5gWSdh-m5f2M7K_Jyl6h-FHOtw43YkxQS5jQAyP18VCEeeuKpsXsasaJ4UG';
+                          if (settingsLogo !== defaultLogo || settingsWhatsApp.trim() !== '') {
+                            localStorage.setItem('zenvy_checklist_setUpShopProfile', 'true');
+                            window.dispatchEvent(new Event('zenvy_onboarding_update'));
+                          }
+                          
+                          // Mark onboarding item 5 "setLowStockAlert" as completed if lowStockThreshold was saved or modified
+                          localStorage.setItem('zenvy_checklist_setLowStockAlert', 'true');
+                          window.dispatchEvent(new Event('zenvy_onboarding_update'));
+
                           toast.success('Merchant settings updated successfully!');
                         }}
                         className="bg-[#020302] text-white hover:bg-neutral-900 px-8 py-3 text-[10px] font-bold uppercase tracking-widest transition-colors rounded-xs cursor-pointer shadow-xs"

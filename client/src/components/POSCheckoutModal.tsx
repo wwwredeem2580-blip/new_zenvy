@@ -206,6 +206,10 @@ export default function POSCheckoutModal({
     }
 
     // 6. Transition
+    localStorage.setItem('zenvy_checklist_recordFirstSale', 'true');
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('zenvy_onboarding_update'));
+    }
     setPosStep(3);
   };
 

@@ -108,6 +108,12 @@ export default function MarkSoldModal({
       origin: { y: 0.6 }
     });
 
+    // Mark onboarding item 4 "recordFirstSale" as completed
+    localStorage.setItem('zenvy_checklist_recordFirstSale', 'true');
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('zenvy_onboarding_update'));
+    }
+
     // 5. Fire parent callbacks
     onSaleRecorded(finalInvoice);
     onClose();
