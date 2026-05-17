@@ -895,8 +895,20 @@ function DashboardContent() {
                       </button>
                     </div>
 
+                    {/* Mobile Search Bar */}
+                    <div className="md:hidden relative w-full mb-2">
+                      <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#5e5e5d] opacity-60" />
+                      <input 
+                        type="text" 
+                        placeholder="Search products..." 
+                        className="w-full bg-[#f5f3f3] border-none rounded-sm py-2.5 pl-10 pr-4 text-xs font-semibold text-[#020302] placeholder-[#5e5e5d]/60 focus:outline-none focus:ring-1 focus:ring-[#efeded]"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                      />
+                    </div>
+
                     {/* Filters & Tabs */}
-                    <div className="flex flex-col md:flex-row justify-between items-center border-b border-[#efeded] mb-8 gap-4">
+                    <div className="flex flex-col md:flex-row justify-between items-center border-b border-[#efeded] mb-8 gap-4 w-full">
                       <div className="flex gap-8">
                         {[
                           { id: 'All', label: 'All', count: productList.length },
