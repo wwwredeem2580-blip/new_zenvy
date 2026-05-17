@@ -7,8 +7,7 @@ import { useZenvy } from '@/context/ZenvyContext';
 
 export default function StoreDetailsScreen() {
   const router = useRouter();
-  const { storeName, setStoreName, storeDescription, setStoreDescription } = useZenvy();
-  const charLimit = 250;
+  const { storeName, setStoreName, storeLocation, setStoreLocation } = useZenvy();
 
   const handleNext = () => {
     if (storeName) {
@@ -41,18 +40,15 @@ export default function StoreDetailsScreen() {
           />
         </div>
 
-        <div className="text-left relative">
-          <label className="block text-xs uppercase tracking-wider text-gray-400 mb-2 font-medium tracking-[0.1em] font-sans">Description (Optional)</label>
-          <textarea 
-            value={storeDescription}
-            onChange={(e) => setStoreDescription(e.target.value.slice(0, charLimit))}
-            placeholder="Tell us about your brand..."
-            rows={5}
-            className="w-full border-b border-gray-100 py-3 focus:border-[#333333] outline-none text-lg text-[#333333] transition-all resize-none font-sans"
+        <div className="text-left">
+          <label className="block text-xs uppercase tracking-wider text-gray-400 mb-2 font-medium tracking-[0.1em] font-sans">Store Location</label>
+          <input 
+            type="text"
+            value={storeLocation}
+            onChange={(e) => setStoreLocation(e.target.value)}
+            placeholder="e.g., London, United Kingdom"
+            className="w-full border-b border-gray-200 focus:border-[#333333] outline-none text-xl text-[#333333] py-2 transition-colors font-sans"
           />
-          <div className="text-right text-[10px] uppercase tracking-[0.2em] text-gray-300 mt-2 font-sans font-bold">
-            {storeDescription.length} / {charLimit} characters max
-          </div>
         </div>
       </div>
 

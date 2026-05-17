@@ -49,7 +49,7 @@ import InvoiceSuccessModal from '@/components/InvoiceSuccessModal';
 import confetti from 'canvas-confetti';
 
 function DashboardContent() {
-  const { storeName, setStoreName } = useZenvy();
+  const { storeName, setStoreName, storeLocation, setStoreLocation } = useZenvy();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState('Home');
@@ -126,7 +126,7 @@ function DashboardContent() {
 
   // Settings page state variables
   const [settingsShopName, setSettingsShopName] = useState(storeName || 'The Curator Shop');
-  const [settingsLocation, setSettingsLocation] = useState('London, United Kingdom');
+  const [settingsLocation, setSettingsLocation] = useState(storeLocation || 'London, United Kingdom');
   const [settingsPhone, setSettingsPhone] = useState('+44 20 7946 0958');
   const [settingsLowStockThreshold, setSettingsLowStockThreshold] = useState(10);
   const [settingsSmsAlerts, setSettingsSmsAlerts] = useState(true);
@@ -138,6 +138,12 @@ function DashboardContent() {
       setSettingsShopName(storeName);
     }
   }, [storeName]);
+
+  useEffect(() => {
+    if (storeLocation) {
+      setSettingsLocation(storeLocation);
+    }
+  }, [storeLocation]);
 
   // Mark as Sold & Invoice Generator State Variables
   const [activeMarkSoldProduct, setActiveMarkSoldProduct] = useState<Product | null>(null);
@@ -1451,7 +1457,7 @@ function DashboardContent() {
                       <button 
                         onClick={() => {
                           setSettingsShopName(storeName || 'The Curator Shop');
-                          setSettingsLocation('London, United Kingdom');
+                          setSettingsLocation(storeLocation || 'London, United Kingdom');
                           setSettingsPhone('+44 20 7946 0958');
                           setSettingsLowStockThreshold(10);
                           setSettingsSmsAlerts(true);
@@ -1470,6 +1476,7 @@ function DashboardContent() {
                             return;
                           }
                           setStoreName(settingsShopName);
+                          setStoreLocation(settingsLocation);
                           toast.success('Merchant settings updated successfully!');
                         }}
                         className="bg-[#020302] text-white hover:bg-neutral-900 px-8 py-3 text-[10px] font-bold uppercase tracking-widest transition-colors rounded-xs cursor-pointer shadow-xs"

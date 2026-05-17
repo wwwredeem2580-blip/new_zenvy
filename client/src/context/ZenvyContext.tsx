@@ -7,8 +7,8 @@ interface ZenvyContextType {
   setPhoneNumber: (phone: string) => void;
   storeName: string;
   setStoreName: (name: string) => void;
-  storeDescription: string;
-  setStoreDescription: (desc: string) => void;
+  storeLocation: string;
+  setStoreLocation: (loc: string) => void;
 }
 
 const ZenvyContext = createContext<ZenvyContextType | undefined>(undefined);
@@ -16,17 +16,17 @@ const ZenvyContext = createContext<ZenvyContextType | undefined>(undefined);
 export function ZenvyProvider({ children }: { children: ReactNode }) {
   const [phoneNumber, setPhoneNumberState] = useState('');
   const [storeName, setStoreNameState] = useState('');
-  const [storeDescription, setStoreDescriptionState] = useState('');
+  const [storeLocation, setStoreLocationState] = useState('');
 
   // Hydrate from localStorage on client-side mount
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const savedPhone = localStorage.getItem('zenvy_phone');
       const savedName = localStorage.getItem('zenvy_storeName');
-      const savedDesc = localStorage.getItem('zenvy_storeDesc');
+      const savedLoc = localStorage.getItem('zenvy_storeLocation');
       if (savedPhone) setPhoneNumberState(savedPhone);
       if (savedName) setStoreNameState(savedName);
-      if (savedDesc) setStoreDescriptionState(savedDesc);
+      if (savedLoc) setStoreLocationState(savedLoc);
     }
   }, []);
 
@@ -44,10 +44,10 @@ export function ZenvyProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const setStoreDescription = (desc: string) => {
-    setStoreDescriptionState(desc);
+  const setStoreLocation = (loc: string) => {
+    setStoreLocationState(loc);
     if (typeof window !== 'undefined') {
-      localStorage.setItem('zenvy_storeDesc', desc);
+      localStorage.setItem('zenvy_storeLocation', loc);
     }
   };
 
@@ -57,8 +57,8 @@ export function ZenvyProvider({ children }: { children: ReactNode }) {
       setPhoneNumber,
       storeName,
       setStoreName,
-      storeDescription,
-      setStoreDescription
+      storeLocation,
+      setStoreLocation
     }}>
       {children}
     </ZenvyContext.Provider>
