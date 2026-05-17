@@ -50,7 +50,7 @@ export default function NewProductScreen({ onBack, onSuccess }: { onBack: () => 
 
   // Variant Creator Modal & Inputs
   const [isVariantModalOpen, setIsVariantModalOpen] = useState(false);
-  const [modalColors, setModalColors] = useState<string[]>([]);
+  const [selectedModalColor, setSelectedModalColor] = useState<string | null>(null);
   const [selectedCombos, setSelectedCombos] = useState<{ ram: string; storage: string }[]>([]);
   const [selectedRams, setSelectedRams] = useState<string[]>([]);
   const [selectedStorages, setSelectedStorages] = useState<string[]>([]);
@@ -88,26 +88,43 @@ export default function NewProductScreen({ onBack, onSuccess }: { onBack: () => 
       if (!COLORS.includes(formatted) && !customColorsList.includes(formatted)) {
         setCustomColorsList([...customColorsList, formatted]);
       }
-      if (!modalColors.includes(formatted)) {
-        setModalColors([...modalColors, formatted]);
-      }
+      setSelectedModalColor(formatted);
       setCustomColorName('');
       setShowCustomColorInput(false);
     }
   };
 
   const generateVariants = () => {
+    if (!selectedModalColor) return;
     const generated: ProductVariant[] = [];
-    modalColors.forEach(color => {
-      if (variantSelectionMethod === 'combo') {
-        selectedCombos.forEach(combo => {
-          const id = `${color}-${combo.ram}-${combo.storage}`;
+    const color = selectedModalColor;
+    
+    if (variantSelectionMethod === 'combo') {
+      selectedCombos.forEach(combo => {
+        const id = `${color}-${combo.ram}-${combo.storage}`;
+        const existing = formData.variants.find(v => v.id === id);
+        generated.push(existing || {
+          id,
+          color,
+          ram: combo.ram,
+          storage: combo.storage,
+          quantity: 10,
+          buyingPrice: 0,
+          sellingPrice: 0,
+          sku: '',
+          image: ''
+        });
+      });
+    } else {
+      selectedRams.forEach(ram => {
+        selectedStorages.forEach(storage => {
+          const id = `${color}-${ram}-${storage}`;
           const existing = formData.variants.find(v => v.id === id);
           generated.push(existing || {
             id,
             color,
-            ram: combo.ram,
-            storage: combo.storage,
+            ram,
+            storage,
             quantity: 10,
             buyingPrice: 0,
             sellingPrice: 0,
@@ -115,26 +132,8 @@ export default function NewProductScreen({ onBack, onSuccess }: { onBack: () => 
             image: ''
           });
         });
-      } else {
-        selectedRams.forEach(ram => {
-          selectedStorages.forEach(storage => {
-            const id = `${color}-${ram}-${storage}`;
-            const existing = formData.variants.find(v => v.id === id);
-            generated.push(existing || {
-              id,
-              color,
-              ram,
-              storage,
-              quantity: 10,
-              buyingPrice: 0,
-              sellingPrice: 0,
-              sku: '',
-              image: ''
-            });
-          });
-        });
-      }
-    });
+      });
+    }
 
     if (generated.length > 0) {
       setFormData(prev => ({
@@ -145,7 +144,7 @@ export default function NewProductScreen({ onBack, onSuccess }: { onBack: () => 
       }));
     }
 
-    setModalColors([]);
+    setSelectedModalColor(null);
     setSelectedCombos([]);
     setSelectedRams([]);
     setSelectedStorages([]);
@@ -224,7 +223,7 @@ export default function NewProductScreen({ onBack, onSuccess }: { onBack: () => 
         </div>
       </header>
 
-      <div className="flex-1 flex justify-center p-8">
+      <div className="flex-1 flex justify-center">
         <div className="w-full max-w-5xl flex gap-12">
           <div className="flex-1 space-y-6 pb-20">
             <section id="basic-information" className="bg-white overflow-hidden">
@@ -369,180 +368,190 @@ export default function NewProductScreen({ onBack, onSuccess }: { onBack: () => 
                       </button>
                     </div>
                   ) : (
-                    <div className="overflow-x-auto border border-gray-100 rounded-xl">
-                      <table className="w-full text-left">
-                        <thead className="bg-[#fcfcfc] border-b border-gray-100">
-                          <tr>
-                            <th className="p-4 text-[10px] font-black text-gray-400 uppercase tracking-widest w-20">Photo</th>
-                            <th className="p-4 text-[10px] font-black text-gray-400 uppercase tracking-widest w-16">Swatch</th>
-                            <th className="p-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Variant Name</th>
-                            <th className="p-4 text-[10px] font-black text-gray-400 uppercase tracking-widest w-36">SKU</th>
-                            <th className="p-4 text-[10px] font-black text-gray-400 uppercase tracking-widest w-40">Wholesale (Buying)</th>
-                            <th className="p-4 text-[10px] font-black text-gray-400 uppercase tracking-widest w-40">Retail (Selling)</th>
-                            <th className="p-4 text-[10px] font-black text-gray-400 uppercase tracking-widest w-28">Stock</th>
-                            <th className="p-4 text-[10px] font-black text-gray-400 uppercase tracking-widest w-16 text-center">Delete</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-50">
-                          {formData.variants.map((v) => (
-                            <tr key={v.id} className="hover:bg-gray-50/40 transition-colors">
-                              {/* Photo Upload Column */}
-                              <td className="p-4 relative">
-                                <div 
-                                  onClick={() => setActiveImagePickerId(activeImagePickerId === v.id ? null : v.id)}
-                                  className="w-12 h-12 bg-gray-50 border border-gray-200 rounded flex flex-col items-center justify-center cursor-pointer group hover:bg-gray-100 hover:border-gray-300 transition-all overflow-hidden relative shadow-sm"
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {formData.variants.map((v) => (
+                        <div 
+                          key={v.id} 
+                          className="bg-white border border-gray-300 p-4 md:p-5 flex gap-4 items-start relative hover:shadow-[0_6px_24px_rgba(0,0,0,0.02)] transition-all group"
+                        >
+                          {/* Variant Photo Picker */}
+                          <div className="relative flex-shrink-0">
+                            <div 
+                              onClick={() => setActiveImagePickerId(activeImagePickerId === v.id ? null : v.id)}
+                              className="w-16 h-16 bg-gray-50 border border-gray-400 flex flex-col items-center justify-center cursor-pointer group/img hover:bg-gray-100 hover:border-gray-300 transition-all overflow-hidden relative"
+                            >
+                              {v.image ? (
+                                <img src={v.image} alt={v.color} className="w-full h-full object-cover" />
+                              ) : (
+                                <>
+                                  <Camera size={18} className="text-gray-400 group-hover/img:text-gray-650 transition-colors" />
+                                  <span className="text-[8px] font-black text-gray-400 mt-1 uppercase tracking-wider text-center">Add Photo</span>
+                                </>
+                              )}
+                            </div>
+
+                            {/* Tactile Popover Image Picker */}
+                            <AnimatePresence>
+                              {activeImagePickerId === v.id && (
+                                <motion.div 
+                                  initial={{ opacity: 0, y: 5 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  exit={{ opacity: 0, y: 5 }}
+                                  className="absolute left-0 mt-2 p-3 bg-white border border-gray-300 shadow-xl z-[90] w-64 text-left"
                                 >
-                                  {v.image ? (
-                                    <img src={v.image} alt={v.color} className="w-full h-full object-cover" />
-                                  ) : (
-                                    <>
-                                      <Camera size={14} className="text-gray-400 group-hover:text-gray-600 transition-colors" />
-                                      <span className="text-[8px] font-bold text-gray-400 mt-1 uppercase">Add</span>
-                                    </>
-                                  )}
-                                </div>
+                                  <div className="flex items-center justify-between mb-2 pb-1 border-b border-gray-100">
+                                    <span className="text-[11px] font-bold text-neutral-600">Select Variant Photo</span>
+                                    <button onClick={() => setActiveImagePickerId(null)} className="text-gray-400 hover:text-neutral-900">
+                                      <X size={12} />
+                                    </button>
+                                  </div>
 
-                                {/* Tactile Popover Image Picker */}
-                                <AnimatePresence>
-                                  {activeImagePickerId === v.id && (
-                                    <motion.div 
-                                      initial={{ opacity: 0, y: 5 }}
-                                      animate={{ opacity: 1, y: 0 }}
-                                      exit={{ opacity: 0, y: 5 }}
-                                      className="absolute left-4 mt-2 p-3 bg-white border border-gray-200 shadow-xl rounded-xl z-[90] w-64 text-left"
-                                    >
-                                      <div className="flex items-center justify-between mb-2 pb-1 border-b border-gray-100">
-                                        <span className="text-[11px] font-bold text-neutral-600">Select Variant Photo</span>
-                                        <button onClick={() => setActiveImagePickerId(null)} className="text-gray-400 hover:text-neutral-900">
-                                          <X size={12} />
+                                  <div className="mb-3">
+                                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Preset Mocks</p>
+                                    <div className="flex gap-2">
+                                      {PRESET_MOCK_IMAGES.map((preset, idx) => (
+                                        <button
+                                          key={idx}
+                                          onClick={() => {
+                                            updateVariant(v.id, 'image', preset.url);
+                                            setActiveImagePickerId(null);
+                                          }}
+                                          className="w-10 h-10 rounded border border-gray-100 overflow-hidden hover:border-neutral-900 transition-all bg-[#fcfcfc]"
+                                          title={preset.label}
+                                        >
+                                          <img src={preset.url} alt={preset.label} className="w-full h-full object-cover" />
                                         </button>
-                                      </div>
+                                      ))}
+                                    </div>
+                                  </div>
 
-                                      <div className="mb-3">
-                                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Preset Mocks</p>
-                                        <div className="flex gap-2">
-                                          {PRESET_MOCK_IMAGES.map((preset, idx) => (
-                                            <button
-                                              key={idx}
-                                              onClick={() => {
-                                                updateVariant(v.id, 'image', preset.url);
-                                                setActiveImagePickerId(null);
-                                              }}
-                                              className="w-10 h-10 rounded border border-gray-100 overflow-hidden hover:border-neutral-900 transition-all bg-[#fcfcfc]"
-                                              title={preset.label}
-                                            >
-                                              <img src={preset.url} alt={preset.label} className="w-full h-full object-cover" />
-                                            </button>
-                                          ))}
-                                        </div>
-                                      </div>
+                                  <div>
+                                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Custom Image URL</p>
+                                    <div className="flex gap-1.5">
+                                      <input 
+                                        type="text" 
+                                        placeholder="Paste https://..." 
+                                        value={customImageUrl}
+                                        onChange={(e) => setCustomImageUrl(e.target.value)}
+                                        className="flex-1 px-2.5 py-1.5 bg-gray-50 border border-gray-200 rounded text-[11px] outline-none"
+                                      />
+                                      <button
+                                        onClick={() => {
+                                          if (customImageUrl.trim()) {
+                                            updateVariant(v.id, 'image', customImageUrl.trim());
+                                            setCustomImageUrl('');
+                                          }
+                                          setActiveImagePickerId(null);
+                                        }}
+                                        className="px-2.5 py-1.5 bg-neutral-950 hover:bg-black text-white text-[10px] font-bold rounded"
+                                      >
+                                        Set
+                                      </button>
+                                    </div>
+                                  </div>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
 
-                                      <div>
-                                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Custom Image URL</p>
-                                        <div className="flex gap-1.5">
-                                          <input 
-                                            type="text" 
-                                            placeholder="Paste https://..." 
-                                            value={customImageUrl}
-                                            onChange={(e) => setCustomImageUrl(e.target.value)}
-                                            className="flex-1 px-2.5 py-1.5 bg-gray-50 border border-gray-200 rounded text-[11px] outline-none"
-                                          />
-                                          <button
-                                            onClick={() => {
-                                              if (customImageUrl.trim()) {
-                                                updateVariant(v.id, 'image', customImageUrl.trim());
-                                                setCustomImageUrl('');
-                                              }
-                                              setActiveImagePickerId(null);
-                                            }}
-                                            className="px-2.5 py-1.5 bg-neutral-950 hover:bg-black text-white text-[10px] font-bold rounded"
-                                          >
-                                            Set
-                                          </button>
-                                        </div>
-                                      </div>
-                                    </motion.div>
-                                  )}
-                                </AnimatePresence>
-                              </td>
-
-                              {/* Swatch Column */}
-                              <td className="p-4">
-                                <div 
-                                  className="w-6 h-6 rounded-full border border-neutral-350 shadow-sm"
+                          {/* Details Column */}
+                          <div className="flex-1 min-w-0">
+                            {/* 1st Line: Variant Swatch + Name & Delete Action */}
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <span 
+                                  className="w-4 h-4 rounded-full flex-shrink-0"
                                   style={{ backgroundColor: getColorHex(v.color) }}
                                   title={v.color}
                                 />
-                              </td>
+                                <div className="truncate">
+                                  <h4 className="text-[13px] font-normal text-gray-900 leading-snug truncate">{v.color}</h4>
+                                  <p className="text-[11px] text-gray-500 font-medium tracking-wider mt-0.5">{v.ram} RAM / {v.storage} ROM</p>
+                                </div>
+                              </div>
+                              <button 
+                                onClick={() => removeVariant(v.id)}
+                                className="text-gray-400 hover:text-red-650 p-1.5 rounded hover:bg-red-50 transition-all flex-shrink-0"
+                                title="Delete Variant"
+                              >
+                                <Trash2 size={15} />
+                              </button>
+                            </div>
 
-                              {/* Variant Name Column */}
-                              <td className="p-4">
-                                <p className="text-[13px] font-bold text-[#1a1c1d] leading-tight">{v.color}</p>
-                                <p className="text-[11px] text-gray-500 mt-0.5">{v.ram} RAM / {v.storage} Storage</p>
-                              </td>
+                            {/* 2nd Line: Buying Price */}
+                            <div className="mt-3">
+                              <label className="block text-[13px] font-medium text-gray-500  mb-1">Buying Price</label>
+                              <input 
+                                type="text" 
+                                placeholder="e.g. 15000"
+                                value={v.buyingPrice || ''}
+                                onChange={(e) => updateVariant(v.id, 'buyingPrice', e.target.value)}
+                                className="w-full px-2.5 py-1.5 bg-[#f6f6f7] border border-gray-100 rounded-md text-xs font-semibold outline-none focus:ring-1 focus:ring-gray-200"
+                              />
+                            </div>
+                            <div className="mt-3">
+                              <label className="block text-[13px] font-medium text-gray-500  mb-1">Selling Price</label>
+                              <input 
+                                type="text" 
+                                placeholder="e.g. 20000"
+                                value={v.sellingPrice || ''}
+                                onChange={(e) => updateVariant(v.id, 'sellingPrice', e.target.value)}
+                                className="w-full px-2.5 py-1.5 bg-[#f6f6f7] border border-gray-100 rounded-md text-xs font-semibold outline-none focus:ring-1 focus:ring-gray-200"
+                              />
+                            </div>
+                            <div className="mt-3">
+                              <label className="block text-[13px] font-medium text-gray-500  mb-1">Stock</label>
+                              <input 
+                                type="text" 
+                                placeholder="e.g. 10"
+                                value={v.quantity || ''}
+                                onChange={(e) => updateVariant(v.id, 'quantity', e.target.value)}
+                                className="w-full px-2.5 py-1.5 bg-[#f6f6f7] border border-gray-100 rounded-md text-xs font-semibold outline-none focus:ring-1 focus:ring-gray-200"
+                              />
+                            </div>
 
-                              {/* SKU Column */}
-                              <td className="p-4">
-                                <input 
-                                  type="text" 
-                                  placeholder="e.g. S24U-BLK"
-                                  value={v.sku || ''}
-                                  onChange={(e) => updateVariant(v.id, 'sku', e.target.value)}
-                                  className="w-full px-2.5 py-1.5 bg-[#f6f6f7] border border-gray-100 rounded text-[13px] font-medium outline-none focus:ring-1 focus:ring-gray-200"
-                                />
-                              </td>
-
-                              {/* Wholesale Price Column */}
-                              <td className="p-4">
-                                <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-[#f6f6f7] rounded-lg">
-                                  <span className="text-[11px] font-bold text-gray-400">৳</span>
+                            {/* 3rd Line: Pricing & Stock Grid */}
+                            {/* <div className="grid grid-cols-3 gap-2 mt-3">
+                              <div>
+                                <label className="block text-[9px] font-black text-gray-450 uppercase tracking-widest mb-1 truncate">Wholesale</label>
+                                <div className="flex items-center gap-1 px-2.5 py-1.5 bg-[#f6f6f7] rounded-lg">
+                                  <span className="text-[10px] font-bold text-gray-400">৳</span>
                                   <input 
                                     type="number" 
-                                    className="w-full bg-transparent text-[13px] font-bold outline-none" 
+                                    placeholder="0"
                                     value={v.buyingPrice || ''}
-                                    placeholder="0"
                                     onChange={(e) => updateVariant(v.id, 'buyingPrice', parseInt(e.target.value) || 0)}
+                                    className="w-full bg-transparent text-xs font-bold outline-none"
                                   />
                                 </div>
-                              </td>
-
-                              {/* Retail Price Column */}
-                              <td className="p-4">
-                                <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-[#f6f6f7] rounded-lg">
-                                  <span className="text-[11px] font-bold text-gray-400">৳</span>
+                              </div>
+                              <div>
+                                <label className="block text-[9px] font-black text-gray-455 uppercase tracking-widest mb-1 truncate">Retail</label>
+                                <div className="flex items-center gap-1 px-2.5 py-1.5 bg-[#f6f6f7] rounded-lg">
+                                  <span className="text-[10px] font-bold text-gray-400">৳</span>
                                   <input 
                                     type="number" 
-                                    className="w-full bg-transparent text-[13px] font-bold outline-none" 
-                                    value={v.sellingPrice || ''}
                                     placeholder="0"
+                                    value={v.sellingPrice || ''}
                                     onChange={(e) => updateVariant(v.id, 'sellingPrice', parseInt(e.target.value) || 0)}
+                                    className="w-full bg-transparent text-xs font-bold outline-none"
                                   />
                                 </div>
-                              </td>
-
-                              {/* Stock Quantity Column */}
-                              <td className="p-4">
+                              </div>
+                              <div>
+                                <label className="block text-[9px] font-black text-gray-455 uppercase tracking-widest mb-1 truncate text-center">Stock</label>
                                 <input 
                                   type="number" 
-                                  className="w-full px-2.5 py-1.5 bg-[#f6f6f7] rounded-lg text-[13px] font-bold outline-none" 
+                                  placeholder="0"
                                   value={v.quantity}
                                   onChange={(e) => updateVariant(v.id, 'quantity', parseInt(e.target.value) || 0)}
+                                  className="w-full px-2 py-1.5 bg-[#f6f6f7] rounded-lg text-xs font-bold outline-none text-center"
                                 />
-                              </td>
-
-                              {/* Deletion Column */}
-                              <td className="p-4 text-center">
-                                <button 
-                                  onClick={() => removeVariant(v.id)}
-                                  className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-all"
-                                >
-                                  <Trash2 size={16} />
-                                </button>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                              </div>
+                            </div> */}
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   )}
                </div>
@@ -560,13 +569,13 @@ export default function NewProductScreen({ onBack, onSuccess }: { onBack: () => 
                        initial={{ scale: 0.95, y: 15 }}
                        animate={{ scale: 1, y: 0 }}
                        exit={{ scale: 0.95, y: 15 }}
-                       className="bg-white w-full max-w-lg rounded-2xl shadow-2xl flex flex-col max-h-[85vh] overflow-hidden"
+                       className="bg-white w-full max-w-lg shadow-2xl flex flex-col max-h-[85vh] overflow-hidden"
                      >
                        {/* Modal Header */}
-                       <div className="px-6 py-4 border-b border-gray-150 flex items-center justify-between bg-gray-50/50">
+                       <div className="px-6 py-4 border-b-2 border-gray-300 flex items-center justify-between bg-gray-50/50">
                          <div>
-                           <h3 className="text-sm font-bold text-neutral-900 uppercase tracking-wider">Add Product Variants</h3>
-                           <p className="text-[11px] text-gray-400 mt-0.5 font-medium">Select colors and memory sizes to cross-generate</p>
+                           <h3 className="text-sm font-medium text-neutral-900 uppercase tracking-wider">Add Product Variants</h3>
+                           <p className="text-[11px] text-gray-800 mt-0.5 font-light">Select colors and memory sizes to cross-generate</p>
                          </div>
                          <button 
                            onClick={() => setIsVariantModalOpen(false)}
@@ -580,16 +589,16 @@ export default function NewProductScreen({ onBack, onSuccess }: { onBack: () => 
                        <div className="p-6 space-y-6 overflow-y-auto flex-1">
                          {/* Step 1: Color Visual Swatches */}
                          <div className="space-y-3">
-                           <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-widest">Step 1: Select Colors (Swatches)</label>
+                           <label className="block text-[10px] font-medium text-gray-600 uppercase tracking-widest">Step 1: Select Color (Swatch - 1 at max)</label>
                            <div className="flex flex-wrap gap-2">
                              {/* Static Presets */}
                              {COLORS.map(color => {
-                               const isSelected = modalColors.includes(color);
+                               const isSelected = selectedModalColor === color;
                                return (
                                  <button
                                    key={color}
-                                   onClick={() => toggleSelection(color, modalColors, setModalColors)}
-                                   className={`flex items-center gap-2 px-3 py-1.5 border rounded-full transition-all text-xs font-semibold
+                                   onClick={() => setSelectedModalColor(isSelected ? null : color)}
+                                   className={`flex items-center gap-2 px-3 py-1.5 border border-gray-300 transition-all text-xs font-semibold
                                      ${isSelected 
                                        ? 'bg-neutral-900 text-white border-neutral-900' 
                                        : 'bg-gray-50 text-gray-500 border-gray-150 hover:bg-gray-100'}`}
@@ -605,12 +614,12 @@ export default function NewProductScreen({ onBack, onSuccess }: { onBack: () => 
 
                              {/* Custom Added Colors */}
                              {customColorsList.map(color => {
-                               const isSelected = modalColors.includes(color);
+                               const isSelected = selectedModalColor === color;
                                return (
                                  <button
                                    key={color}
-                                   onClick={() => toggleSelection(color, modalColors, setModalColors)}
-                                   className={`flex items-center gap-2 px-3 py-1.5 border rounded-full transition-all text-xs font-semibold
+                                   onClick={() => setSelectedModalColor(isSelected ? null : color)}
+                                   className={`flex items-center gap-2 px-3 py-1.5 border border-gray-300 transition-all text-xs font-semibold
                                      ${isSelected 
                                        ? 'bg-neutral-900 text-white border-neutral-900' 
                                        : 'bg-gray-50 text-gray-500 border-gray-150 hover:bg-gray-100'}`}
@@ -626,7 +635,7 @@ export default function NewProductScreen({ onBack, onSuccess }: { onBack: () => 
 
                              {/* Custom Color Creator Input */}
                              {showCustomColorInput ? (
-                               <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-full px-2.5 py-1">
+                               <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-300 px-2.5 py-1">
                                  <input 
                                    type="text" 
                                    placeholder="e.g. Titanium Gold"
@@ -663,23 +672,23 @@ export default function NewProductScreen({ onBack, onSuccess }: { onBack: () => 
 
                          {/* Step 2: Tabbed RAM/Storage Presets */}
                          <div className="space-y-4">
-                           <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-widest">Step 2: Select Memory Sizes</label>
+                           <label className="block text-[10px] font-medium text-gray-600 uppercase tracking-widest">Step 2: Select Memory Sizes</label>
                            
                            {/* Choice Tabs */}
-                           <div className="flex border-b border-gray-150">
+                           <div className="flex border-b border-gray-300">
                              <button
                                onClick={() => setVariantSelectionMethod('combo')}
-                               className={`flex-1 py-3 text-center text-xs font-bold tracking-wider uppercase border-b-2 transition-all
+                               className={`flex-1 py-3 text-center text-xs font-medium tracking-wider uppercase border-b-2 transition-all
                                  ${variantSelectionMethod === 'combo' ? 'border-[#1a1c1d] text-neutral-900' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
                              >
-                               Combo Presets (RAM + ROM)
+                               Combo Selection (RAM + ROM)
                              </button>
                              <button
                                onClick={() => setVariantSelectionMethod('individual')}
                                className={`flex-1 py-3 text-center text-xs font-bold tracking-wider uppercase border-b-2 transition-all
                                  ${variantSelectionMethod === 'individual' ? 'border-[#1a1c1d] text-neutral-900' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
                              >
-                               Individual Presets
+                               Individual
                              </button>
                            </div>
 
@@ -692,21 +701,21 @@ export default function NewProductScreen({ onBack, onSuccess }: { onBack: () => 
                                  { ram: '8GB', storage: '256GB' },
                                  { ram: '12GB', storage: '256GB' },
                                  { ram: '12GB', storage: '512GB' },
-                                 { ram: '16GB', storage: '512GB' }
+                                 { ram: '16GB', storage: '512GB' },
                                ].map((combo, idx) => {
                                  const isSelected = selectedCombos.some(c => c.ram === combo.ram && c.storage === combo.storage);
                                  return (
                                    <button
                                      key={idx}
                                      onClick={() => toggleComboSelection(combo)}
-                                     className={`p-3 border rounded-xl flex items-center justify-between transition-all text-left
+                                     className={`p-3 border border-gray-300 flex items-center justify-between transition-all text-left
                                        ${isSelected 
                                          ? 'bg-neutral-900 border-neutral-900 text-white shadow-md' 
-                                         : 'bg-gray-50 border-gray-100 hover:bg-gray-100 text-neutral-700'}`}
+                                         : 'bg-gray-50 border-gray-300 hover:bg-gray-100 text-neutral-700'}`}
                                    >
                                      <span className="text-xs font-bold">{combo.ram} + {combo.storage}</span>
-                                     <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded ${
-                                       isSelected ? 'bg-white/20 text-white' : 'bg-gray-200 text-gray-500'
+                                     <span className={`text-[9px] font-normal uppercase px-1.5 py-0.5 rounded ${
+                                       isSelected ? 'bg-white/20 text-white' : 'bg-gray-200 text-gray-900'
                                      }`}>
                                        Preset
                                      </span>
@@ -726,10 +735,10 @@ export default function NewProductScreen({ onBack, onSuccess }: { onBack: () => 
                                        <button
                                          key={ram}
                                          onClick={() => toggleSelection(ram, selectedRams, setSelectedRams)}
-                                         className={`px-3 py-1.5 border rounded-lg text-xs font-bold transition-all
+                                         className={`px-3 py-1.5 border border-gray-300 text-xs font-bold transition-all
                                            ${isSelected 
                                              ? 'bg-neutral-900 border-neutral-900 text-white' 
-                                             : 'bg-gray-50 border-gray-100 hover:bg-gray-100 text-gray-500'}`}
+                                             : 'bg-gray-50 border-gray-300 hover:bg-gray-100 text-gray-500'}`}
                                        >
                                          {ram}
                                        </button>
@@ -747,10 +756,10 @@ export default function NewProductScreen({ onBack, onSuccess }: { onBack: () => 
                                        <button
                                          key={storage}
                                          onClick={() => toggleSelection(storage, selectedStorages, setSelectedStorages)}
-                                         className={`px-3 py-1.5 border rounded-lg text-xs font-bold transition-all
+                                         className={`px-3 py-1.5 border border-gray-300 text-xs font-bold transition-all
                                            ${isSelected 
                                              ? 'bg-neutral-900 border-neutral-900 text-white' 
-                                             : 'bg-gray-50 border-gray-100 hover:bg-gray-100 text-gray-500'}`}
+                                             : 'bg-gray-50 border-gray-300 hover:bg-gray-300 text-gray-500'}`}
                                        >
                                          {storage}
                                        </button>
@@ -764,16 +773,16 @@ export default function NewProductScreen({ onBack, onSuccess }: { onBack: () => 
                        </div>
 
                        {/* Modal Footer */}
-                       <div className="px-6 py-4 border-t border-gray-150 flex items-center justify-between bg-gray-50/50">
+                       <div className="px-6 py-4 border-t-2 border-gray-300 flex items-center justify-between bg-gray-50/50">
                          {(() => {
-                           const totalCount = modalColors.length * (
+                           const totalCount = selectedModalColor ? (
                              variantSelectionMethod === 'combo' 
                                ? selectedCombos.length 
                                : (selectedRams.length * selectedStorages.length)
-                           );
+                           ) : 0;
                            return (
-                             <span className="text-xs font-semibold text-gray-500">
-                               Selected: <strong className="text-neutral-900">{totalCount} variants</strong> to create
+                             <span className="text-xs font-medium text-gray-500">
+                               Selected: <strong className="text-brand-500">{totalCount} variants</strong> to create
                              </span>
                            );
                          })()}
@@ -788,15 +797,15 @@ export default function NewProductScreen({ onBack, onSuccess }: { onBack: () => 
                            <button
                              onClick={generateVariants}
                              disabled={
-                               modalColors.length === 0 || (
+                               !selectedModalColor || (
                                  variantSelectionMethod === 'combo' 
                                    ? selectedCombos.length === 0 
                                    : (selectedRams.length === 0 || selectedStorages.length === 0)
                                )
                              }
-                             className="px-4 py-2 bg-neutral-900 hover:bg-black text-white rounded font-bold text-xs transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                             className="px-4 py-2 bg-brand-500 hover:bg-brand-700 text-white rounded font-bold text-xs transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                            >
-                             Generate Variants
+                             Create Variants
                            </button>
                          </div>
                        </div>
