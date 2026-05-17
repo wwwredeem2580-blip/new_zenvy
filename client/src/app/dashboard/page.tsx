@@ -27,7 +27,8 @@ import {
   X,
   ShoppingBag,
   MessageCircle,
-  Check
+  Check,
+  Trash2
 } from 'lucide-react';
 import { useZenvy } from '@/context/ZenvyContext';
 import { SidebarSection, SidebarItem, SidebarSubItem, NavItem } from '@/components/SidebarComponents';
@@ -1424,7 +1425,229 @@ export default function DashboardPage() {
             </AnimatePresence>
 
             <AnimatePresence>
-              {posCheckoutOpen && posStep !== 1 && (
+              {posCheckoutOpen && posStep === 2 && (
+                <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-[#020302]/20 backdrop-blur-sm">
+                  {/* Backdrop Close Click */}
+                  <div className="absolute inset-0" onClick={() => setPosCheckoutOpen(false)} />
+
+                  <motion.div 
+                    initial={{ opacity: 0, y: 100 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 100 }}
+                    transition={{ type: "spring", stiffness: 350, damping: 35 }}
+                    className="w-full max-w-2xl z-[210] flex flex-col font-sans text-on-surface"
+                  >
+                    {/* Step 2: Configure Negotiation & Overrides */}
+                    <div className="bg-[#fbf9f9] w-full max-h-[85vh] sm:max-h-[90vh] md:max-h-[850px] flex flex-col rounded-t-2xl sm:rounded-xl border-t sm:border border-[#c7c7bf] shadow-2xl overflow-hidden">
+                      {/* Modal Header */}
+                      <div className="px-4 pt-5 pb-3 sm:px-8 sm:py-6 border-b border-[#c7c7bf]/30 flex justify-between items-center shrink-0">
+                        <div>
+                          <p className="text-[10px] sm:text-xs font-medium uppercase tracking-widest text-[#5e5e5d] mb-1">Step 2 of 3</p>
+                          <h1 className="text-lg sm:text-[24px] font-medium tracking-tight text-[#020302]">Configure Negotiation &amp; Overrides</h1>
+                        </div>
+                        <button 
+                          type="button"
+                          onClick={() => setPosCheckoutOpen(false)} 
+                          className="p-1.5 sm:p-2 text-[#5e5e5d] hover:text-[#020302] rounded-full transition-all cursor-pointer shrink-0"
+                        >
+                          <X size={20} className="sm:hidden" />
+                          <X size={24} className="hidden sm:block" />
+                        </button>
+                      </div>
+
+                      {/* Content Area */}
+                      <div className="flex-1 overflow-y-auto px-4 py-4 sm:p-8 space-y-6 sm:space-y-8 bg-[#ffffff]">
+                        {/* Cart Items List */}
+                        <div className="space-y-4">
+                          {posCart.map((item, idx) => (
+                            <div key={`${item.variant.id}-${idx}`} className="bg-[#fbf9f9] p-4 sm:p-6 border border-[#c7c7bf] rounded-lg">
+                              <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
+                                <div className="w-16 h-16 sm:w-24 sm:h-24 bg-white border border-[#c7c7bf] rounded-lg overflow-hidden flex-shrink-0">
+                                  <img className="w-full h-full object-cover" src={item.product.image} alt={item.product.name} />
+                                </div>
+                                <div className="flex-grow min-w-0">
+                                  <div className="flex justify-between items-start gap-2">
+                                    <div className="min-w-0">
+                                      <h3 className="text-lg sm:text-[24px] font-medium text-[#020302] truncate leading-tight">{item.product.name}</h3>
+                                      <p className="text-xs sm:text-[14px] text-[#5e5e5d] mt-1 truncate">
+                                        {item.product.brand} • {item.variant.color} {item.variant.ram}/{item.variant.storage}
+                                      </p>
+                                    </div>
+                                    <button 
+                                      type="button"
+                                      onClick={() => handleRemoveFromCart(item.variant.id)}
+                                      className="text-[#ba1a1a] text-xs sm:text-[14px] font-medium flex items-center gap-1 hover:opacity-80 transition-opacity shrink-0 cursor-pointer"
+                                    >
+                                      <Trash2 size={16} />
+                                      <span>Remove</span>
+                                    </button>
+                                  </div>
+                                  
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 sm:mt-6">
+                                    <div>
+                                      <label className="block text-xs sm:text-[14px] font-medium text-[#020302] uppercase mb-1.5">Unit Price</label>
+                                      <div className="relative flex items-center">
+                                        <span className="absolute left-4 text-[#5e5e5d] font-normal text-sm sm:text-base">Tk</span>
+                                        <input 
+                                          type="number"
+                                          value={item.overridePrice}
+                                          onChange={(e) => handleUpdateCartItemPrice(item.variant.id, Number(e.target.value))}
+                                          className="w-full bg-white border border-[#c7c7bf] pl-10 pr-4 py-2 sm:py-3 rounded focus:ring-1 focus:ring-[#020302] focus:border-[#020302] outline-none text-sm sm:text-base font-normal text-[#1b1c1c]"
+                                        />
+                                      </div>
+                                      <p className="text-[11px] sm:text-xs text-[#5e5e5d] mt-1.5">MSRP: Tk {item.variant.sellingPrice.toLocaleString()}</p>
+                                    </div>
+                                    <div>
+                                      <label className="block text-xs sm:text-[14px] font-medium text-[#020302] uppercase mb-1.5">Quantity</label>
+                                      <div className="flex items-center border border-[#c7c7bf] rounded bg-white w-28 sm:w-32 overflow-hidden">
+                                        <button 
+                                          type="button"
+                                          onClick={() => handleDecrementFromCart(item.variant.id)}
+                                          className="p-2 sm:p-3 text-[#5e5e5d] hover:text-[#020302] hover:bg-[#f5f3f3] transition-colors cursor-pointer shrink-0"
+                                        >
+                                          <Minus size={14} />
+                                        </button>
+                                        <input 
+                                          type="text" 
+                                          readOnly
+                                          value={item.quantity}
+                                          className="w-full text-center border-none focus:ring-0 font-normal text-sm sm:text-base text-[#1b1c1c] p-0"
+                                        />
+                                        <button 
+                                          type="button"
+                                          onClick={() => handleAddToCart(item.product, item.variant)}
+                                          className="p-2 sm:p-3 text-[#5e5e5d] hover:text-[#020302] hover:bg-[#f5f3f3] transition-colors cursor-pointer shrink-0"
+                                        >
+                                          <Plus size={14} />
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Negotiation Form (Customer & Discount) */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                          <div className="space-y-1.5">
+                            <label className="block text-xs sm:text-[14px] font-medium text-[#020302] uppercase">Customer Name</label>
+                            <input 
+                              type="text"
+                              value={posBuyerName}
+                              onChange={(e) => setPosBuyerName(e.target.value)}
+                              className="w-full bg-white border border-[#c7c7bf] px-4 py-2.5 sm:py-3 rounded focus:ring-1 focus:ring-[#020302] focus:border-[#020302] outline-none text-sm sm:text-base font-light text-[#1b1c1c]" 
+                              placeholder="Search or add customer..." 
+                            />
+                          </div>
+                          <div className="space-y-1.5">
+                            <div className="flex justify-between items-center">
+                              <label className="block text-xs sm:text-[14px] font-medium text-[#020302] uppercase">Discount</label>
+                              <div className="flex bg-[#fbf9f9] border border-[#c7c7bf] rounded p-0.5 shrink-0">
+                                <button 
+                                  type="button"
+                                  onClick={() => {
+                                    setPosDiscountType('flat');
+                                    setPosDiscountValue(0);
+                                  }}
+                                  className={`px-3 py-0.5 text-[10px] sm:text-xs font-medium rounded-sm transition-all cursor-pointer
+                                    ${posDiscountType === 'flat' ? 'bg-[#020302] text-white' : 'text-[#5e5e5d] hover:text-[#020302]'}`}
+                                >
+                                  Tk
+                                </button>
+                                <button 
+                                  type="button"
+                                  onClick={() => {
+                                    setPosDiscountType('percent');
+                                    setPosDiscountValue(0);
+                                  }}
+                                  className={`px-3 py-0.5 text-[10px] sm:text-xs font-medium rounded-sm transition-all cursor-pointer
+                                    ${posDiscountType === 'percent' ? 'bg-[#020302] text-white' : 'text-[#5e5e5d] hover:text-[#020302]'}`}
+                                >
+                                  %
+                                </button>
+                              </div>
+                            </div>
+                            <div className="relative flex items-center">
+                              <input 
+                                type="number"
+                                value={posDiscountValue || ''}
+                                onChange={(e) => setPosDiscountValue(Number(e.target.value))}
+                                className="w-full bg-white border border-[#c7c7bf] pl-4 pr-10 py-2.5 sm:py-3 rounded focus:ring-1 focus:ring-[#020302] focus:border-[#020302] outline-none text-sm sm:text-base font-light text-[#1b1c1c] text-right" 
+                                placeholder="0" 
+                              />
+                              <span className="absolute right-4 text-[#5e5e5d] font-normal text-sm shrink-0">
+                                {posDiscountType === 'flat' ? 'Tk' : '%'}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Calculations Summary Section */}
+                        {(() => {
+                          const subtotal = posCart.reduce((sum, item) => sum + (item.overridePrice * item.quantity), 0);
+                          let discount = 0;
+                          if (posDiscountType === 'flat') {
+                            discount = Math.min(subtotal, posDiscountValue);
+                          } else {
+                            discount = Math.min(subtotal, Math.round(subtotal * (posDiscountValue / 100)));
+                          }
+                          const grandTotal = subtotal - discount;
+
+                          return (
+                            <div className="pt-4 sm:pt-6 border-t border-[#c7c7bf]/30 space-y-3 sm:space-y-4">
+                              <div className="flex justify-between items-center text-[#5e5e5d]">
+                                <span className="text-sm sm:text-base font-light">Subtotal</span>
+                                <span className="text-sm sm:text-base font-normal text-[#1b1c1c]">Tk {subtotal.toLocaleString()}</span>
+                              </div>
+                              <div className="flex justify-between items-center text-[#5e5e5d]">
+                                <span className="text-sm sm:text-base font-light">Adjustments</span>
+                                <span className="text-sm sm:text-base font-normal text-[#ba1a1a]">-Tk {discount.toLocaleString()}</span>
+                              </div>
+                              <div className="flex justify-between items-center pt-3 sm:pt-4 border-t border-dashed border-[#c7c7bf]/30">
+                                <span className="text-xs sm:text-[14px] font-bold text-[#020302] uppercase tracking-wider">Grand Total</span>
+                                <span className="text-xl sm:text-[32px] font-medium text-[#020302] tracking-tight">Tk {grandTotal.toLocaleString()}</span>
+                              </div>
+                            </div>
+                          );
+                        })()}
+                      </div>
+
+                      {/* Modal Actions */}
+                      <div className="px-4 py-4 sm:px-8 sm:py-6 bg-[#efeded] flex flex-col sm:flex-row justify-between gap-3 sm:gap-4 shrink-0 border-t border-[#c7c7bf]/30">
+                        <button 
+                          type="button"
+                          onClick={() => setPosCheckoutOpen(false)}
+                          className="px-6 py-2.5 sm:py-3 bg-white border border-[#020302] text-[#020302] text-xs sm:text-sm font-medium rounded-lg hover:bg-[#f5f3f3] transition-colors uppercase tracking-widest cursor-pointer text-center"
+                        >
+                          Save as Draft
+                        </button>
+                        <div className="flex gap-2 sm:gap-4">
+                          <button 
+                            type="button"
+                            onClick={() => setPosStep(1)}
+                            className="flex-1 sm:flex-initial px-6 py-2.5 sm:py-3 bg-white border border-[#c7c7bf] text-[#5e5e5d] text-xs sm:text-sm font-medium rounded-lg hover:border-[#020302] hover:text-[#020302] transition-all uppercase tracking-widest cursor-pointer text-center"
+                          >
+                            Back
+                          </button>
+                          <button 
+                            type="button"
+                            onClick={handleConfirmPOSSale}
+                            className="flex-1 sm:flex-initial px-8 py-2.5 sm:py-3 bg-[#020302] text-white text-xs sm:text-sm font-medium rounded-lg hover:opacity-90 transition-opacity uppercase tracking-widest cursor-pointer text-center"
+                          >
+                            Continue to Payment
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                </div>
+              )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+              {posCheckoutOpen && posStep === 3 && (
                 <div className="fixed inset-0 bg-[#0c0d0f]/60 z-[200] flex justify-end backdrop-blur-sm">
                   {/* Backdrop Close Click */}
                   <div className="absolute inset-0" onClick={() => setPosCheckoutOpen(false)} />
@@ -1455,191 +1678,7 @@ export default function DashboardPage() {
                       </div>
                     </div>
 
-                    {/* Step 2: Sale Summary and Details */}
-                    {posStep === 2 && (
-                      <div className="flex-1 flex flex-col min-h-0 bg-[#fbfbfb]">
-                        {/* Cart List */}
-                        <div className="flex-1 overflow-y-auto p-4 space-y-3.5">
-                          <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest block mb-1">Configure Negotiation & Overrides</span>
-                          
-                          {posCart.map((item, idx) => (
-                            <div 
-                              key={`${item.variant.id}-${idx}`}
-                              className="bg-white border border-neutral-200/80 hover:border-neutral-250 p-4 flex items-center justify-between rounded-xl shadow-xs"
-                            >
-                              <div className="min-w-0 pr-4 flex-1">
-                                <h4 className="text-xs font-bold text-neutral-900 truncate leading-snug">{item.product.name}</h4>
-                                <p className="text-[9px] text-neutral-400 font-bold uppercase tracking-wider mt-0.5">
-                                  {item.product.brand} • {item.variant.color} ({item.variant.ram}/{item.variant.storage})
-                                </p>
-                                
-                                {/* Inline Editable Price Toggle */}
-                                <div className="mt-3 flex items-center gap-1.5">
-                                  <span className="text-[9px] text-neutral-400 font-bold uppercase tracking-wider">Unit Price:</span>
-                                  <div className="relative flex items-center bg-[#f6f6f7] border border-neutral-150 focus-within:border-neutral-800 rounded-lg px-2 py-1">
-                                    <span className="text-[10px] font-bold text-neutral-900 mr-0.5">Tk</span>
-                                    <input
-                                      type="number"
-                                      value={item.overridePrice}
-                                      onChange={(e) => handleUpdateCartItemPrice(item.variant.id, Number(e.target.value))}
-                                      className="w-20 text-[11px] font-bold text-neutral-955 focus:outline-none bg-transparent py-0 px-1 border-none"
-                                      title="Negotiated custom price overrides"
-                                    />
-                                  </div>
-                                  <span className="text-[9px] text-neutral-400 font-medium italic block">
-                                    MSRP Tk {item.variant.sellingPrice.toLocaleString()}
-                                  </span>
-                                </div>
-                              </div>
-
-                              {/* Stepper Quantity control */}
-                              <div className="flex flex-col items-end gap-2 flex-shrink-0">
-                                <div className="flex items-center border border-neutral-200 h-[32px] rounded-xl overflow-hidden bg-white p-0.5">
-                                  <button
-                                    type="button"
-                                    onClick={() => handleDecrementFromCart(item.variant.id)}
-                                    className="w-7 h-7 flex items-center justify-center hover:bg-neutral-50 text-neutral-800 transition-colors cursor-pointer rounded-lg"
-                                  >
-                                    <Minus size={11} strokeWidth={2.5} />
-                                  </button>
-                                  <span className="w-7 text-center font-bold text-xs text-neutral-950">{item.quantity}</span>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleAddToCart(item.product, item.variant)}
-                                    className="w-7 h-7 flex items-center justify-center hover:bg-neutral-50 text-neutral-800 transition-colors cursor-pointer rounded-lg"
-                                  >
-                                    <Plus size={11} strokeWidth={2.5} />
-                                  </button>
-                                </div>
-
-                                <button
-                                  type="button"
-                                  onClick={() => handleRemoveFromCart(item.variant.id)}
-                                  className="text-[9px] text-red-500 hover:text-red-650 font-bold uppercase tracking-wider cursor-pointer"
-                                >
-                                  Remove Item
-                                </button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-
-                        {/* Sale Details Inputs */}
-                        <div className="bg-white border-t border-neutral-100 p-5 space-y-4 flex-shrink-0">
-                          {/* Buyer Name & Discount */}
-                          <div className="grid grid-cols-2 gap-4">
-                            {/* Buyer Name */}
-                            <div className="space-y-1.5">
-                              <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest block">Customer Name</label>
-                              <input
-                                type="text"
-                                value={posBuyerName}
-                                onChange={(e) => setPosBuyerName(e.target.value)}
-                                placeholder="Walk-in Customer"
-                                className="w-full border border-neutral-200 px-3.5 h-[42px] text-xs font-semibold focus:outline-none focus:border-black focus:ring-1 focus:ring-black/5 rounded-xl transition-all"
-                              />
-                            </div>
-
-                            {/* Discount Picker */}
-                            <div className="space-y-1.5">
-                              <div className="flex items-center justify-between">
-                                <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest block">Discount</label>
-                                {/* Toggle buttons flat vs % */}
-                                <div className="flex bg-[#f6f6f7] rounded-lg p-0.5 border border-neutral-150">
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setPosDiscountType('flat');
-                                      setPosDiscountValue(0);
-                                    }}
-                                    className={`px-3 py-0.5 text-[10px] font-bold rounded-md uppercase tracking-wider cursor-pointer transition-all
-                                      ${posDiscountType === 'flat' ? 'bg-white text-neutral-900 shadow-sm border border-neutral-200' : 'text-neutral-400 hover:text-neutral-950'}`}
-                                  >
-                                    Tk
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setPosDiscountType('percent');
-                                      setPosDiscountValue(0);
-                                    }}
-                                    className={`px-3 py-0.5 text-[10px] font-bold rounded-md uppercase tracking-wider cursor-pointer transition-all
-                                      ${posDiscountType === 'percent' ? 'bg-white text-neutral-900 shadow-sm border border-neutral-200' : 'text-neutral-400 hover:text-neutral-950'}`}
-                                  >
-                                    %
-                                  </button>
-                                </div>
-                              </div>
-
-                              <div className="relative">
-                                <input
-                                  type="number"
-                                  value={posDiscountValue || ''}
-                                  onChange={(e) => setPosDiscountValue(Number(e.target.value))}
-                                  placeholder={posDiscountType === 'flat' ? 'Flat BDT amount' : 'Percent %'}
-                                  className="w-full border border-neutral-200 pl-3.5 pr-8 h-[42px] text-xs font-semibold focus:outline-none focus:border-black focus:ring-1 focus:ring-black/5 rounded-xl transition-all"
-                                />
-                                <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-400 font-bold text-xs">
-                                  {posDiscountType === 'flat' ? 'Tk' : '%'}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Calculations breakdown block */}
-                          <div className="bg-[#f8f8f9] border border-neutral-150 p-4.5 rounded-xl space-y-2">
-                            {(() => {
-                              const subtotal = posCart.reduce((sum, item) => sum + (item.overridePrice * item.quantity), 0);
-                              let discount = 0;
-                              if (posDiscountType === 'flat') {
-                                discount = Math.min(subtotal, posDiscountValue);
-                              } else {
-                                discount = Math.min(subtotal, Math.round(subtotal * (posDiscountValue / 100)));
-                              }
-                              const grandTotal = subtotal - discount;
-
-                              return (
-                                <>
-                                  <div className="flex justify-between text-xs font-medium text-[#767676]">
-                                    <span>Subtotal:</span>
-                                    <span className="font-bold text-neutral-900">Tk {subtotal.toLocaleString()}</span>
-                                  </div>
-                                  {discount > 0 && (
-                                    <div className="flex justify-between text-xs font-medium text-red-500">
-                                      <span>Applied Discount:</span>
-                                      <span className="font-bold">-Tk {discount.toLocaleString()}</span>
-                                    </div>
-                                  )}
-                                  <div className="border-t border-neutral-200 pt-2.5 flex justify-between items-baseline">
-                                    <span className="text-xs font-bold text-neutral-900 uppercase tracking-widest">GRAND TOTAL:</span>
-                                    <span className="text-xl font-bold text-neutral-955 tracking-tight">Tk {grandTotal.toLocaleString()}</span>
-                                  </div>
-                                </>
-                              );
-                            })()}
-                          </div>
-
-                          {/* Actions */}
-                          <div className="flex gap-3 pt-1">
-                            <button
-                              type="button"
-                              onClick={() => setPosStep(1)}
-                              className="flex-1 py-3.5 text-xs bg-gray-50 hover:bg-gray-100 text-neutral-700 font-bold uppercase tracking-wider rounded-xl transition-all cursor-pointer text-center"
-                            >
-                              Go Back
-                            </button>
-                            <button
-                              type="button"
-                              onClick={handleConfirmPOSSale}
-                              className="flex-1 py-3.5 text-xs text-white bg-neutral-950 hover:bg-neutral-900 font-bold uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-md shadow-neutral-950/10 text-center"
-                            >
-                              Record Sale & Print
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
+                    {/* Step 3: Success Confirmation and Invoice exports */}
                     {/* Step 3: Success Confirmation and Invoice exports */}
                     {posStep === 3 && posSuccessData && (
                       <div className="flex-1 flex flex-col justify-between p-6 bg-white overflow-y-auto">
