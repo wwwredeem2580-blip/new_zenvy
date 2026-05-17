@@ -670,7 +670,7 @@ export default function DashboardPage() {
                     initial={{ scale: 0.95, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     exit={{ scale: 0.95, opacity: 0 }}
-                    className="bg-white max-w-sm w-full border border-gray-300 shadow-2xl p-6 relative text-left rounded-sm"
+                    className="bg-white max-w-sm w-full border border-gray-300 shadow-2xl p-6 relative text-left"
                   >
                     {/* Visual Green Badge */}
                     <div className="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-3 text-green-600">
@@ -1216,7 +1216,7 @@ export default function DashboardPage() {
                                   <button 
                                     onClick={() => handleMarkAsSoldClick(product)}
                                     disabled={product.stock === 0}
-                                    className={`flex items-center gap-1 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider transition-colors rounded-sm shadow-xs
+                                    className={`flex items-center gap-1 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider transition-colors rounded-xs
                                       ${product.stock === 0 
                                         ? 'bg-neutral-100 text-neutral-400 border border-neutral-200 cursor-not-allowed line-through' 
                                         : 'bg-[#5438ff] text-white hover:bg-[#4324ff]'}`}
@@ -1225,14 +1225,6 @@ export default function DashboardPage() {
                                     <span>Mark Sold</span>
                                   </button>
                                 </div>
-
-                                <span className={`px-2 py-0.5 rounded text-[9px] font-bold tracking-wider uppercase ${
-                                  product.status === 'Published' 
-                                    ? 'bg-primary-50 text-primary-600 border border-primary-100' 
-                                    : 'bg-warning-50 text-warning-800 border border-warning-100'
-                                }`}>
-                                  {product.status}
-                                </span>
                               </div>
                             </div>
                           </motion.div>
