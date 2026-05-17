@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Search, 
@@ -24,7 +24,8 @@ import {
   Share2,
   Minus,
   X,
-  ShoppingBag
+  ShoppingBag,
+  MessageCircle
 } from 'lucide-react';
 import { useZenvy } from '@/context/ZenvyContext';
 import { SidebarSection, SidebarItem, SidebarSubItem, NavItem } from '@/components/SidebarComponents';
@@ -43,6 +44,8 @@ export default function DashboardPage() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [previewingProduct, setPreviewingProduct] = useState<Product | null>(null);
   const [showSuccessOverlay, setShowSuccessOverlay] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
 
   // Mark as Sold & Invoice Generator State Variables
   const [activeMarkSoldProduct, setActiveMarkSoldProduct] = useState<Product | null>(null);
@@ -177,6 +180,27 @@ export default function DashboardPage() {
     { label: "Name your store", completed: true },
     { label: "Set up Shopify Payments", completed: false },
   ];
+
+  // Load from localStorage on client-side mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('zenvy_productList');
+      if (saved) {
+        try {
+          setProductList(JSON.parse(saved));
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    }
+  }, []);
+
+  // Save to localStorage when productList changes
+  useEffect(() => {
+    if (typeof window !== 'undefined' && productList.length > 0) {
+      localStorage.setItem('zenvy_productList', JSON.stringify(productList));
+    }
+  }, [productList]);
 
   const handleProductAdded = (newProduct: Product) => {
     setProductList([newProduct, ...productList]);
@@ -639,6 +663,15 @@ export default function DashboardPage() {
 
     // 6. Transition
     setPosStep(3);
+  };
+
+  const handleShareShopCard = () => {
+    setShowShareModal(true);
+    confetti({
+      particleCount: 80,
+      spread: 60,
+      origin: { y: 0.6 }
+    });
   };
 
   return (
@@ -1644,6 +1677,40 @@ export default function DashboardPage() {
                       </div>
                     </motion.div>
 
+                    {/* Share Shop Card Hero Banner */}
+                    <motion.div 
+                      whileHover={{ y: -2 }}
+                      onClick={handleShareShopCard}
+                      className="bg-gradient-to-r from-gray-900 via-gray-800 to-black p-6 rounded-3xl flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer shadow-lg shadow-black/5 border border-white/5 relative overflow-hidden"
+                    >
+                      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-white/10 via-transparent to-transparent pointer-events-none"></div>
+                      <div className="flex items-start gap-4 relative z-10">
+                        <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center border border-white/15 shadow-inner">
+                          <Share2 size={20} className="text-white" />
+                        </div>
+                        <div className="text-left">
+                          <p className="text-[15px] font-bold text-white tracking-tight flex items-center gap-1.5">
+                            Shareable Shop Card 
+                            <span className="bg-shopify-green text-white text-[9px] font-bold uppercase tracking-wider py-0.5 px-2 rounded-full">New</span>
+                          </p>
+                          <p className="text-xs text-gray-400 font-medium mt-1 leading-relaxed max-w-md">
+                            Generate a mobile-optimized public page showing your live inventory & WhatsApp contact details to share with customers. No downloads required!
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleShareShopCard();
+                        }}
+                        className="bg-white text-black hover:bg-gray-100 transition-colors py-3 px-5 text-xs font-bold uppercase tracking-wider rounded-xl flex items-center gap-2 self-start md:self-auto shadow-md font-sans"
+                      >
+                        <Share2 size={13} strokeWidth={2.5} />
+                        Get Share Link
+                      </button>
+                    </motion.div>
+
                     {/* Summary Stats Grid */}
                     <div className="bg-white border border-gray-100 overflow-hidden">
                       <div className="p-4 px-6 flex items-center justify-between border-b border-gray-100">
@@ -2092,6 +2159,101 @@ export default function DashboardPage() {
           </>
         )}
       </div>
+
+      {/* 8. Share Shop Card Modal */}
+      <AnimatePresence>
+        {showShareModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowShareModal(false)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+            
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              className="bg-white w-full max-w-md rounded-3xl overflow-hidden shadow-2xl relative z-10 border border-gray-100 flex flex-col p-6 text-center space-y-6"
+            >
+              {/* Top Graphic Indicator */}
+              <div className="w-16 h-16 bg-shopify-green/10 rounded-3xl flex items-center justify-center text-shopify-green mx-auto shadow-inner shadow-shopify-green/5">
+                <Sparkles size={26} className="fill-shopify-green animate-pulse" />
+              </div>
+
+              <div>
+                <h3 className="text-xl font-serif font-bold text-[#1a1c1d] tracking-tight">Your Shop Card is Live!</h3>
+                <p className="text-xs text-gray-500 font-medium mt-1.5 leading-relaxed px-4">
+                  Anyone visiting this link can view your live in-stock inventory & inquire instantly via WhatsApp.
+                </p>
+              </div>
+
+              {/* URL Display Card */}
+              <div className="bg-[#f6f6f7] p-3 rounded-2xl flex items-center justify-between gap-3 border border-gray-100">
+                <div className="flex-1 overflow-hidden pl-2">
+                  <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider text-left">Public URL</p>
+                  <p className="text-xs font-semibold text-gray-700 truncate text-left mt-0.5 select-all">
+                    {typeof window !== 'undefined' ? `${window.location.origin}/shop-card` : 'https://zenvy.com/shop-card'}
+                  </p>
+                </div>
+                <button 
+                  onClick={() => {
+                    const link = typeof window !== 'undefined' ? `${window.location.origin}/shop-card` : '';
+                    if (link) {
+                      navigator.clipboard.writeText(link);
+                      setCopiedLink(true);
+                      setTimeout(() => setCopiedLink(false), 2000);
+                      if (typeof navigator !== 'undefined' && navigator.vibrate) {
+                        navigator.vibrate(80);
+                      }
+                    }
+                  }}
+                  className={`py-2 px-4 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 flex items-center gap-1.5 shrink-0 ${
+                    copiedLink 
+                      ? 'bg-shopify-green text-white shadow-md' 
+                      : 'bg-black text-white hover:bg-gray-800'
+                  }`}
+                >
+                  {copiedLink ? <CheckCircle2 size={13} /> : <Share2 size={13} />}
+                  <span>{copiedLink ? 'Copied' : 'Copy'}</span>
+                </button>
+              </div>
+
+              {/* WhatsApp Sharing Card */}
+              <div className="grid grid-cols-2 gap-3 pt-2">
+                <a 
+                  href={`https://api.whatsapp.com/send?text=${encodeURIComponent(`Hey! Check out my live smartphone shop catalog on Zenvy Store here: ${typeof window !== 'undefined' ? `${window.location.origin}/shop-card` : ''}. Tap to see active inventory in real-time!`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-[#25D366] hover:bg-[#20bd5a] text-white py-3 px-4 rounded-2xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-colors shadow-md shadow-[#25D366]/10"
+                >
+                  <MessageCircle size={15} className="fill-white stroke-none" />
+                  <span>Share WhatsApp</span>
+                </a>
+                
+                <a 
+                  href="/shop-card"
+                  target="_blank"
+                  className="bg-white hover:bg-gray-50 text-gray-700 py-3 px-4 rounded-2xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-colors border border-gray-200"
+                >
+                  <ExternalLink size={14} />
+                  <span>Open Page</span>
+                </a>
+              </div>
+
+              {/* Close Button */}
+              <button 
+                onClick={() => setShowShareModal(false)}
+                className="text-xs font-bold text-gray-400 hover:text-gray-600 uppercase tracking-widest pt-2 hover:underline"
+              >
+                Close Window
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
