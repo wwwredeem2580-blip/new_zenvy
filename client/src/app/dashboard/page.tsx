@@ -1109,7 +1109,7 @@ export default function DashboardPage() {
             {/* Modal 3: Complete Sale POS Checkout Bottom Sheet */}
             <AnimatePresence>
               {posCheckoutOpen && (
-                <div className="fixed inset-0 bg-black/60 z-[200] flex items-end md:items-center justify-center p-0 md:p-4 backdrop-blur-xs">
+                <div className="fixed inset-0 bg-black/60 z-[200] flex items-end md:items-center justify-center p-0 md:p-4 backdrop-blur-sm">
                   {/* Backdrop Close Click */}
                   <div className="absolute inset-0" onClick={() => setPosCheckoutOpen(false)} />
 
@@ -1118,17 +1118,17 @@ export default function DashboardPage() {
                     animate={{ y: 0, opacity: 1 }}
                     exit={{ y: "100%", opacity: 0.5 }}
                     transition={{ type: "spring", damping: 25, stiffness: 220 }}
-                    className="bg-white w-full h-[92vh] md:h-[85vh] md:max-w-2xl border-t md:border border-gray-300 shadow-2xl relative text-left md:rounded-lg overflow-hidden flex flex-col z-[210]"
+                    className="bg-white w-full h-[92vh] md:h-[85vh] md:max-w-2xl border-t md:border border-gray-100 shadow-2xl relative text-left md:rounded-2xl overflow-hidden flex flex-col z-[210]"
                   >
                     {/* Header */}
-                    <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4 flex-shrink-0 bg-white">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center text-emerald-600">
-                          <ShoppingBag size={16} />
+                    <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4 flex-shrink-0 bg-white">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 bg-neutral-100 rounded-xl flex items-center justify-center text-neutral-900 shadow-xs">
+                          <ShoppingBag size={15} />
                         </div>
                         <div>
-                          <h3 className="text-[14px] font-sans font-bold text-neutral-900 uppercase tracking-widest">Zenvy POS Terminal</h3>
-                          <p className="text-[12px] text-gray-500 font-normal mt-0.5">Step {posStep} of 3: {posStep === 1 ? 'Build Customer Cart' : posStep === 2 ? 'Sale Details & Negotiations' : 'Receipt Invoice Generation'}</p>
+                          <h3 className="text-sm font-sans font-semibold text-[#1a1c1d] tracking-tight">Zenvy POS Terminal</h3>
+                          <p className="text-[11px] text-gray-400 font-light mt-0.5">Step {posStep} of 3: {posStep === 1 ? 'Build Customer Cart' : posStep === 2 ? 'Sale Details & Negotiations' : 'Receipt Invoice Generation'}</p>
                         </div>
                       </div>
                       <button 
@@ -1141,9 +1141,9 @@ export default function DashboardPage() {
 
                     {/* Step 1: Product Selection */}
                     {posStep === 1 && (
-                      <div className="flex-1 flex flex-col min-h-0 bg-neutral-50">
+                      <div className="flex-1 flex flex-col min-h-0 bg-[#fbfbfb]">
                         {/* Search Block */}
-                        <div className="bg-white border-b border-gray-200 p-4 flex-shrink-0">
+                        <div className="bg-white border-b border-gray-100 p-4 flex-shrink-0">
                           <div className="relative">
                             <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">
                               <Search size={16} />
@@ -1154,7 +1154,7 @@ export default function DashboardPage() {
                               value={posSearch}
                               onChange={(e) => setPosSearch(e.target.value)}
                               placeholder="Search brand, model name, color swatch..."
-                              className="w-full bg-[#f6f6f7] py-3 pl-10 pr-4 rounded-xl text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:bg-white transition-all border border-transparent focus:border-emerald-500"
+                              className="w-full bg-[#f6f6f7] py-3 pl-10 pr-10 rounded-xl text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-black focus:bg-white transition-all border border-transparent focus:border-black"
                             />
                             {posSearch && (
                               <button 
@@ -1168,7 +1168,7 @@ export default function DashboardPage() {
                         </div>
 
                         {/* In-stock Products List */}
-                        <div className="flex-1 overflow-y-auto p-4 space-y-3.5">
+                        <div className="flex-1 overflow-y-auto p-4 space-y-4">
                           {(() => {
                             const query = posSearch.toLowerCase().trim();
                             // Filter products: must be in stock and match search query
@@ -1190,8 +1190,8 @@ export default function DashboardPage() {
                             if (filtered.length === 0) {
                               return (
                                 <div className="text-center py-12 text-gray-400">
-                                  <AlertTriangle size={32} className="mx-auto mb-2 opacity-55" />
-                                  <p className="text-xs font-bold uppercase tracking-wider">No matching smartphone in stock</p>
+                                  <AlertTriangle size={32} className="mx-auto mb-2 opacity-55 text-neutral-800" />
+                                  <p className="text-[11px] font-bold uppercase tracking-wider">No matching smartphone in stock</p>
                                 </div>
                               );
                             }
@@ -1206,8 +1206,8 @@ export default function DashboardPage() {
                               return (
                                 <div 
                                   key={product.id}
-                                  className={`bg-white border border-gray-300 overflow-hidden transition-all duration-200 
-                                    ${isExpanded ? 'border-neutral-300 ring-1 ring-neutral-300/5' : 'border-gray-300 hover:border-gray-300'}`}
+                                  className={`bg-white border transition-all duration-200 rounded-2xl overflow-hidden shadow-xs
+                                    ${isExpanded ? 'border-neutral-800 ring-1 ring-neutral-800/5' : 'border-gray-200 hover:border-gray-300'}`}
                                 >
                                   {/* Product Card Top bar */}
                                   <div 
@@ -1216,15 +1216,15 @@ export default function DashboardPage() {
                                   >
                                     <div className="flex items-center gap-3">
                                       {/* Thumbnail */}
-                                      <div className="w-10 h-10 bg-neutral-50 border border-gray-150 overflow-hidden flex-shrink-0 flex items-center justify-center">
+                                      <div className="w-10 h-10 bg-white border border-gray-150 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center">
                                         <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
                                       </div>
                                       <div>
                                         <h4 className="text-sm font-semibold text-neutral-900 leading-snug">{product.name}</h4>
                                         <div className="flex items-center gap-2 mt-0.5">
-                                          <span className="text-[10px] text-gray-500 font-normal uppercase tracking-wider">{product.brand}</span>
-                                          <span className="w-1 h-1 rounded-full bg-gray-300"></span>
-                                          <span className="text-[12px] text-emerald-600 font-medium uppercase tracking-wider">{product.stock} <span className='text-[10px]'>in stock</span></span>
+                                          <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{product.brand}</span>
+                                          <span className="w-1 h-1 rounded-full bg-gray-200"></span>
+                                          <span className="text-[11px] text-emerald-600 font-semibold uppercase tracking-wider">{product.stock} in stock</span>
                                         </div>
                                       </div>
                                     </div>
@@ -1232,21 +1232,21 @@ export default function DashboardPage() {
                                     {/* Action items indicators */}
                                     <div className="flex items-center gap-3">
                                       {cartItemCount > 0 && (
-                                        <span className="bg-emerald-600 text-white text-[9px] font-light px-2 py-0.5 rounded-xs uppercase tracking-wider shadow-sm">
+                                        <span className="bg-black text-white text-[9px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider shadow-xs">
                                           {cartItemCount} selected
                                         </span>
                                       )}
                                       <ChevronRight 
                                         size={16} 
-                                        className={`text-gray-400 transition-transform duration-200 ${isExpanded ? 'rotate-90 text-neutral-800' : ''}`} 
+                                        className={`text-gray-400 transition-transform duration-200 ${isExpanded ? 'rotate-90 text-neutral-850' : ''}`} 
                                       />
                                     </div>
                                   </div>
 
                                   {/* Product Card Inline Expandable Swatches */}
                                   {isExpanded && (
-                                    <div className="border-t border-gray-150 bg-neutral-50 px-4 py-3.5 space-y-3">
-                                      <span className="text-[9px] font-normal text-gray-700 uppercase tracking-widest block">Choose Color/Storage Variant</span>
+                                    <div className="border-t border-gray-100 bg-[#fbfbfb] px-4 py-3.5 space-y-3">
+                                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Choose Color/Storage Variant</span>
                                       <div className="grid grid-cols-2 gap-2">
                                         {product.variants?.map(v => {
                                           const cartItem = posCart.find(item => item.variant.id === v.id);
@@ -1262,21 +1262,21 @@ export default function DashboardPage() {
                                                 type="button"
                                                 disabled={isOutOfStock}
                                                 onClick={() => handleAddToCart(product, v)}
-                                                className={`w-full p-2.5 text-left border rounded-md transition-all flex flex-col justify-between cursor-pointer relative h-[68px]
+                                                className={`w-full p-2.5 text-left border rounded-xl transition-all flex flex-col justify-between cursor-pointer relative h-[68px]
                                                   ${isOutOfStock 
-                                                    ? 'opacity-40 bg-neutral-100 border-neutral-200 cursor-not-allowed' 
+                                                    ? 'opacity-30 bg-[#f6f6f7] border-gray-100 cursor-not-allowed line-through' 
                                                     : itemQtyInCart > 0 
-                                                      ? 'border-emerald-600 bg-emerald-50/50 hover:bg-emerald-50' 
-                                                      : 'border-gray-200 bg-white hover:border-gray-300'}`}
+                                                      ? 'border-black bg-black text-white shadow-sm' 
+                                                      : 'border-gray-200 bg-white hover:border-gray-400 hover:shadow-xs'}`}
                                               >
-                                                <span className="text-sm font-medium text-neutral-900 truncate block pr-8">{v.color}</span>
-                                                <span className="text-[11px] text-gray-700 font-normal block mt-1">
+                                                <span className="text-xs font-bold truncate block pr-8">{v.color}</span>
+                                                <span className={`text-[10px] font-semibold mt-0.5 block ${itemQtyInCart > 0 ? 'text-gray-300' : 'text-gray-500'}`}>
                                                   {v.ram}/{v.storage} • {isOutOfStock ? '0 Stock' : `${v.quantity} Stock`}
                                                 </span>
 
                                                 {/* Qty count indicators on active swatches */}
                                                 {itemQtyInCart > 0 && (
-                                                  <span className="absolute top-1.5 right-1.5 w-6 h-6 bg-emerald-600 text-white rounded-full flex items-center justify-center text-[10px] font-black shadow-sm">
+                                                  <span className="absolute top-1.5 right-1.5 w-5 h-5 bg-white text-black border border-neutral-800 rounded-full flex items-center justify-center text-[9px] font-bold shadow-sm">
                                                     x{itemQtyInCart}
                                                   </span>
                                                 )}
@@ -1290,7 +1290,7 @@ export default function DashboardPage() {
                                                     e.stopPropagation();
                                                     handleRemoveFromCart(v.id);
                                                   }}
-                                                  className="absolute -top-1.5 -left-1.5 w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-650 transition-colors shadow-sm cursor-pointer border border-white"
+                                                  className="absolute -top-1 -left-1 w-4.5 h-4.5 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-650 transition-colors shadow-sm cursor-pointer border border-white"
                                                   title="Click to remove"
                                                 >
                                                   <X size={10} strokeWidth={3} />
@@ -1300,7 +1300,7 @@ export default function DashboardPage() {
                                           );
                                         })}
                                       </div>
-                                      <p className="text-[8px] text-gray-400 italic">Tip: Tap swatches again to increase sold counts. Press red (x) button to remove variant.</p>
+                                      <p className="text-[9px] text-gray-400 italic">Tip: Tap swatches again to increase sold counts. Press red (x) button to remove variant.</p>
                                     </div>
                                   )}
                                 </div>
@@ -1310,10 +1310,10 @@ export default function DashboardPage() {
                         </div>
 
                         {/* Cart running summary bar */}
-                        <div className="bg-white border-t border-gray-200 p-4 flex-shrink-0 space-y-3">
+                        <div className="bg-white border-t border-gray-100 p-5 flex-shrink-0 space-y-3">
                           {posCart.length > 0 && (
-                            <div className="text-[10px] text-gray-600 bg-neutral-50 px-3 py-2 border border-gray-150 rounded-md font-semibold leading-relaxed">
-                              <span className="font-bold text-neutral-900 uppercase tracking-widest block text-[9px] mb-1">Selected Cart Items:</span>
+                            <div className="text-[10px] text-gray-500 bg-[#f6f6f7] px-4 py-3 border border-gray-100 rounded-xl font-medium leading-relaxed">
+                              <span className="font-bold text-neutral-900 uppercase tracking-wider block text-[9px] mb-1.5">Selected Cart Items:</span>
                               <div className="truncate max-w-[500px]">
                                 {posCart.map(item => `${item.product.name} (${item.variant.color} x${item.quantity})`).join(', ')}
                               </div>
@@ -1324,10 +1324,10 @@ export default function DashboardPage() {
                             type="button"
                             disabled={posCart.length === 0}
                             onClick={() => setPosStep(2)}
-                            className={`w-full py-3.5 rounded-lg text-xs font-bold uppercase tracking-widest text-center transition-all cursor-pointer shadow-md
+                            className={`w-full py-3.5 rounded-xl text-xs font-bold uppercase tracking-wider text-center transition-all cursor-pointer shadow-sm
                               ${posCart.length === 0
-                                ? 'bg-neutral-200 text-neutral-400 cursor-not-allowed shadow-none'
-                                : 'bg-[#5438ff] hover:bg-[#4324ff] text-white'}`}
+                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none'
+                                : 'bg-black hover:bg-neutral-900 text-white'}`}
                           >
                             Done — {posCart.reduce((sum, item) => sum + item.quantity, 0)} Items Selected
                           </button>
@@ -1337,40 +1337,40 @@ export default function DashboardPage() {
 
                     {/* Step 2: Sale Summary and Details */}
                     {posStep === 2 && (
-                      <div className="flex-1 flex flex-col min-h-0 bg-neutral-50">
+                      <div className="flex-1 flex flex-col min-h-0 bg-[#fbfbfb]">
                         {/* Cart List */}
-                        <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                          <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest block">Configure Negotiation & Overrides</span>
+                        <div className="flex-1 overflow-y-auto p-4 space-y-3.5">
+                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Configure Negotiation & Overrides</span>
                           
                           {posCart.map((item, idx) => (
                             <div 
                               key={`${item.variant.id}-${idx}`}
-                              className="bg-white border border-gray-300 p-3.5 flex items-center justify-between"
+                              className="bg-white border border-gray-200 hover:border-gray-250 p-3.5 flex items-center justify-between rounded-xl shadow-xs"
                             >
                               <div className="min-w-0 pr-4 flex-1">
-                                <h4 className="text-sm font-medium text-neutral-900 truncate leading-snug">{item.product.name}</h4>
-                                <p className="text-[10px] text-gray-600 uppercase font-medium tracking-wider mt-0.5">{item.product.brand} • {item.variant.color} ({item.variant.ram}/{item.variant.storage})</p>
+                                <h4 className="text-sm font-semibold text-neutral-900 truncate leading-snug">{item.product.name}</h4>
+                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-0.5">{item.product.brand} • {item.variant.color} ({item.variant.ram}/{item.variant.storage})</p>
                                 
                                 {/* Inline Editable Price Toggle */}
                                 <div className="mt-2.5 flex items-center gap-1.5">
-                                  <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Unit Price:</span>
+                                  <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Unit Price:</span>
                                   <div className="relative flex items-center">
                                     <span className="text-xs font-bold text-neutral-900 mr-1">Tk</span>
                                     <input
                                       type="number"
                                       value={item.overridePrice}
                                       onChange={(e) => handleUpdateCartItemPrice(item.variant.id, Number(e.target.value))}
-                                      className="border-b border-gray-300 focus:border-neutral-900 w-24 text-xs font-bold text-neutral-950 focus:outline-none bg-transparent py-0.5 px-1"
+                                      className="border-b border-gray-200 focus:border-black w-24 text-xs font-bold text-neutral-950 focus:outline-none bg-transparent py-0.5 px-1"
                                       title="Negotiated custom price overrides"
                                     />
                                   </div>
                                 </div>
-                                <span className="text-[10px] bg-neutral-100 text-neutral-500 px-1 py-0.5 rounded ml-1 font-semibold uppercase tracking-wide">MSRP Tk {item.variant.sellingPrice.toLocaleString()}</span>
+                                <span className="text-[9px] bg-[#f6f6f7] text-gray-400 px-2 py-0.5 rounded-md font-semibold uppercase tracking-wider ml-1 border border-gray-100 inline-block mt-1">MSRP Tk {item.variant.sellingPrice.toLocaleString()}</span>
                               </div>
 
                               {/* Stepper Quantity control */}
                               <div className="flex flex-col items-end gap-2 flex-shrink-0">
-                                <div className="flex items-center border border-gray-350 h-[34px] rounded-md overflow-hidden bg-white">
+                                <div className="flex items-center border border-gray-200 h-[34px] rounded-xl overflow-hidden bg-white">
                                   <button
                                     type="button"
                                     onClick={() => handleDecrementFromCart(item.variant.id)}
@@ -1401,35 +1401,35 @@ export default function DashboardPage() {
                         </div>
 
                         {/* Sale Details Inputs */}
-                        <div className="bg-white border-t border-gray-200 p-4 space-y-4 flex-shrink-0">
+                        <div className="bg-white border-t border-gray-100 p-5 space-y-4 flex-shrink-0">
                           {/* Buyer Name & Discount */}
                           <div className="grid grid-cols-2 gap-4">
                             {/* Buyer Name */}
                             <div className="space-y-1.5">
-                              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block">Customer Name</label>
+                              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Customer Name</label>
                               <input
                                 type="text"
                                 value={posBuyerName}
                                 onChange={(e) => setPosBuyerName(e.target.value)}
                                 placeholder="Customer name (optional)"
-                                className="w-full border border-gray-300 px-3 h-[42px] text-xs font-semibold focus:outline-none focus:border-neutral-900 rounded-lg"
+                                className="w-full border border-gray-200 px-3.5 h-[42px] text-xs font-semibold focus:outline-none focus:border-black focus:ring-1 focus:ring-black/5 rounded-xl transition-all"
                               />
                             </div>
 
                             {/* Discount Picker */}
                             <div className="space-y-1.5">
                               <div className="flex items-center justify-between">
-                                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block">Discount</label>
+                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Discount</label>
                                 {/* Toggle buttons flat vs % */}
-                                <div className="flex bg-neutral-100 rounded-md p-0.5">
+                                <div className="flex bg-[#f6f6f7] rounded-lg p-0.5 border border-gray-100">
                                   <button
                                     type="button"
                                     onClick={() => {
                                       setPosDiscountType('flat');
                                       setPosDiscountValue(0);
                                     }}
-                                    className={`px-2 py-0.5 text-[12px] font-bold rounded uppercase tracking-wider cursor-pointer transition-all
-                                      ${posDiscountType === 'flat' ? 'bg-white text-neutral-900 shadow-xs' : 'text-neutral-500 hover:text-neutral-900'}`}
+                                    className={`px-3 py-0.5 text-[11px] font-bold rounded-md uppercase tracking-wider cursor-pointer transition-all
+                                      ${posDiscountType === 'flat' ? 'bg-white text-neutral-900 shadow-sm border border-gray-150' : 'text-gray-400 hover:text-neutral-900'}`}
                                   >
                                     Tk
                                   </button>
@@ -1439,8 +1439,8 @@ export default function DashboardPage() {
                                       setPosDiscountType('percent');
                                       setPosDiscountValue(0);
                                     }}
-                                    className={`px-3 py-0.5 text-[12px] font-bold rounded uppercase tracking-wider cursor-pointer transition-all
-                                      ${posDiscountType === 'percent' ? 'bg-white text-neutral-900 shadow-xs' : 'text-neutral-500 hover:text-neutral-900'}`}
+                                    className={`px-3 py-0.5 text-[11px] font-bold rounded-md uppercase tracking-wider cursor-pointer transition-all
+                                      ${posDiscountType === 'percent' ? 'bg-white text-neutral-900 shadow-sm border border-gray-150' : 'text-gray-400 hover:text-neutral-900'}`}
                                   >
                                     %
                                   </button>
@@ -1453,7 +1453,7 @@ export default function DashboardPage() {
                                   value={posDiscountValue || ''}
                                   onChange={(e) => setPosDiscountValue(Number(e.target.value))}
                                   placeholder={posDiscountType === 'flat' ? 'BDT flat discount' : 'Percentage %'}
-                                  className="w-full border border-gray-300 pl-3 pr-8 h-[42px] text-xs font-semibold focus:outline-none focus:border-neutral-900 rounded-lg"
+                                  className="w-full border border-gray-200 pl-3.5 pr-8 h-[42px] text-xs font-semibold focus:outline-none focus:border-black focus:ring-1 focus:ring-black/5 rounded-xl transition-all"
                                 />
                                 <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-xs">
                                   {posDiscountType === 'flat' ? 'Tk' : '%'}
@@ -1463,7 +1463,7 @@ export default function DashboardPage() {
                           </div>
 
                           {/* Calculations breakdown block */}
-                          <div className="bg-neutral-50 border border-gray-200 p-4.5 rounded-lg space-y-2">
+                          <div className="bg-[#f8f8f9] border border-gray-150 p-4 rounded-xl space-y-2">
                             {(() => {
                               const subtotal = posCart.reduce((sum, item) => sum + (item.overridePrice * item.quantity), 0);
                               let discount = 0;
@@ -1487,8 +1487,8 @@ export default function DashboardPage() {
                                     </div>
                                   )}
                                   <div className="border-t border-gray-200 pt-2 flex justify-between items-baseline">
-                                    <span className="text-xs font-bold text-neutral-900 uppercase tracking-widest">GRAND TOTAL:</span>
-                                    <span className="text-xl font-black text-[#5438ff]">Tk {grandTotal.toLocaleString()}</span>
+                                    <span className="text-xs font-bold text-neutral-900 uppercase tracking-wider">GRAND TOTAL:</span>
+                                    <span className="text-lg font-bold text-black tracking-tight">Tk {grandTotal.toLocaleString()}</span>
                                   </div>
                                 </>
                               );
@@ -1500,14 +1500,14 @@ export default function DashboardPage() {
                             <button
                               type="button"
                               onClick={() => setPosStep(1)}
-                              className="flex-1 py-2 text-xs border border-gray-300 hover:bg-gray-50 text-neutral-750 font-bold uppercase tracking-wider rounded-sm transition-all cursor-pointer text-center"
+                              className="flex-1 py-3 text-xs bg-gray-50 hover:bg-gray-100 text-gray-700 font-bold uppercase tracking-wider rounded-xl transition-all cursor-pointer text-center"
                             >
                               Go Back
                             </button>
                             <button
                               type="button"
                               onClick={handleConfirmPOSSale}
-                              className="flex-1 py-2 text-xs text-white bg-emerald-600 hover:bg-emerald-700 font-bold uppercase tracking-wider rounded-sm transition-all cursor-pointer shadow-md shadow-emerald-600/10 text-center"
+                              className="flex-1 py-3 text-xs text-white bg-black hover:bg-neutral-900 font-bold uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-sm text-center"
                             >
                               Confirm Sale
                             </button>
@@ -1520,26 +1520,26 @@ export default function DashboardPage() {
                     {posStep === 3 && posSuccessData && (
                       <div className="flex-1 flex flex-col justify-center items-center p-6 bg-white overflow-y-auto">
                         {/* Success Animated Checkmark */}
-                        <div className="w-16 h-16 mt-20 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-600 mb-4 animate-bounce">
+                        <div className="w-16 h-16 mt-20 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-600 mb-4 shadow-inner">
                           <CheckCircle2 size={38} className="stroke-[2.5]" />
                         </div>
 
-                        <h3 className="text-lg font-sans font-bold text-neutral-900 text-center uppercase tracking-wider">Sale Recorded Successfully!</h3>
-                        <p className="text-xs text-neutral-500 text-center mt-1.5 font-medium max-w-sm">
+                        <h3 className="text-lg font-sans font-semibold text-neutral-900 text-center tracking-tight">Sale Recorded Successfully!</h3>
+                        <p className="text-xs text-gray-500 text-center mt-1.5 font-light max-w-sm">
                           Smartphone stock quantities have been adjusted. A branded premium invoice slip is ready.
                         </p>
 
                         {/* Invoice Summary Box */}
-                        <div className="my-6 p-5 border border-dashed border-gray-300 bg-neutral-50 font-mono text-xs text-neutral-800 space-y-4 max-w-sm w-full shadow-inner rounded-md">
-                          <div className="text-center border-b border-dashed border-gray-300 pb-2.5">
-                            <p className="font-bold text-sm uppercase tracking-widest text-neutral-950">{posSuccessData.shopName}</p>
-                            <p className="text-[9px] text-gray-500 mt-0.5 uppercase tracking-widest">STOCKNET TERMINAL SALE</p>
+                        <div className="my-6 p-5 bg-[#f8f8f9] rounded-2xl border border-gray-150 font-mono text-[10px] text-neutral-800 space-y-4 max-w-sm w-full relative overflow-hidden shadow-xs">
+                          <div className="text-center border-b border-dashed border-gray-200 pb-2.5">
+                            <p className="font-bold text-xs uppercase tracking-widest text-neutral-900">{posSuccessData.shopName}</p>
+                            <p className="text-[8px] text-gray-400 font-sans mt-0.5 uppercase tracking-wider">STOCKNET TERMINAL SALE</p>
                           </div>
 
                           <div className="space-y-1 text-neutral-600">
                             <p className="flex justify-between">
                               <span>Invoice No:</span>
-                              <strong className="text-neutral-950 font-bold">{posSuccessData.invoiceNumber}</strong>
+                              <strong className="text-neutral-900 font-bold">{posSuccessData.invoiceNumber}</strong>
                             </p>
                             <p className="flex justify-between">
                               <span>Date/Time:</span>
@@ -1551,8 +1551,8 @@ export default function DashboardPage() {
                             </p>
                           </div>
 
-                          <div className="border-t border-b border-dashed border-gray-300 py-3 space-y-2">
-                            <div className="flex justify-between font-bold text-neutral-950 text-[10px] uppercase tracking-wider">
+                          <div className="border-t border-b border-dashed border-gray-250 py-3 space-y-2">
+                            <div className="flex justify-between font-bold text-neutral-950 text-[9px] uppercase tracking-wider">
                               <span>Item description</span>
                               <span>Qty / Total</span>
                             </div>
@@ -1560,8 +1560,8 @@ export default function DashboardPage() {
                             {posSuccessData.items.map((item: any, i: number) => (
                               <div key={i} className="flex justify-between leading-snug">
                                 <div className="truncate pr-3 max-w-[190px]">
-                                  <p className="font-bold text-neutral-900 text-[11px] truncate">{item.brand} {item.name}</p>
-                                  <p className="text-[9px] text-gray-400 italic">{item.color} • {item.specs}</p>
+                                  <p className="font-bold text-neutral-900 text-[10px] truncate">{item.brand} {item.name}</p>
+                                  <p className="text-[8px] text-gray-400 italic">{item.color} • {item.specs}</p>
                                 </div>
                                 <div className="text-right flex-shrink-0 text-neutral-950 font-bold">
                                   <p>{item.quantity} x Tk {item.price.toLocaleString()}</p>
@@ -1581,19 +1581,19 @@ export default function DashboardPage() {
                                 <span>-Tk {posSuccessData.discount.toLocaleString()}</span>
                               </div>
                             )}
-                            <div className="flex justify-between items-baseline font-bold text-sm text-neutral-950 pt-1.5 border-t border-dashed border-gray-250">
+                            <div className="flex justify-between items-baseline font-bold text-xs text-neutral-950 pt-1.5 border-t border-dashed border-gray-250">
                               <span>GRAND TOTAL:</span>
-                              <span className="text-base text-neutral-950 font-black">Tk {posSuccessData.total.toLocaleString()}</span>
+                              <span className="text-sm text-neutral-900 font-bold">Tk {posSuccessData.total.toLocaleString()}</span>
                             </div>
                           </div>
                         </div>
 
                         {/* Actions block */}
-                        <div className="space-y-2.5 max-w-sm w-full">
+                        <div className="space-y-2 max-w-sm w-full">
                           <div className="grid grid-cols-2 gap-3">
                             <button
                               onClick={() => generateBrandedInvoicePDF(posSuccessData)}
-                              className="py-2 bg-neutral-950 hover:bg-black text-white font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5 rounded-sm transition-all cursor-pointer shadow-md"
+                              className="py-3 bg-black hover:bg-neutral-900 text-white font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5 rounded-xl transition-all cursor-pointer shadow-sm"
                             >
                               <Receipt size={13} />
                               <span>Generate Invoice</span>
@@ -1608,7 +1608,7 @@ export default function DashboardPage() {
                                 const encodedText = encodeURIComponent(textMessage);
                                 window.open(`https://api.whatsapp.com/send?text=${encodedText}`, '_blank');
                               }}
-                              className="py-2 bg-green-600 hover:bg-green-700 text-white font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5 rounded-sm transition-all cursor-pointer shadow-md shadow-green-600/10"
+                              className="py-3 bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5 rounded-xl transition-all cursor-pointer shadow-sm shadow-[#25D366]/10"
                             >
                               <Share2 size={13} />
                               <span>Share on WhatsApp</span>
@@ -1617,7 +1617,7 @@ export default function DashboardPage() {
 
                           <button
                             onClick={() => setPosCheckoutOpen(false)}
-                            className="w-full py-3 bg-gray-50 text-gray-500 border border-gray-300 hover:bg-gray-100 text-[10px] font-bold uppercase tracking-wider transition-all rounded-lg cursor-pointer text-center"
+                            className="w-full py-2.5 bg-gray-50 hover:bg-gray-100 text-gray-500 hover:text-gray-700 text-[10px] font-bold uppercase tracking-wider transition-all rounded-xl cursor-pointer text-center"
                           >
                             Done, go back to dashboard
                           </button>
