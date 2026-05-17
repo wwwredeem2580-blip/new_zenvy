@@ -351,7 +351,8 @@ export default function DashboardPage() {
       doc.setFont("Helvetica", "bold");
       doc.setFontSize(9.5);
       doc.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
-      doc.text(item.description, 18, currentY + 6);
+      const desc = item.description || `${item.brand || ''} ${item.name || ''} - ${item.color || ''} (${item.specs || ''})`.trim();
+      doc.text(desc, 18, currentY + 6);
 
       doc.setFont("Helvetica", "normal");
       doc.setFontSize(9);
