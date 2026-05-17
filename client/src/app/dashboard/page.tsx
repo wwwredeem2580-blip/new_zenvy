@@ -24,6 +24,7 @@ import {
 import { useZenvy } from '@/context/ZenvyContext';
 import { SidebarSection, SidebarItem, SidebarSubItem, NavItem } from '@/components/SidebarComponents';
 import NewProductScreen from '@/components/NewProductScreen';
+import ProductDetailsScreen from '@/components/ProductDetailsScreen';
 import { Product } from '@/types/zenvy';
 
 export default function DashboardPage() {
@@ -32,7 +33,21 @@ export default function DashboardPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeProductFilter, setActiveProductFilter] = useState('All');
   const [isCreatingProduct, setIsCreatingProduct] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [previewingProduct, setPreviewingProduct] = useState<Product | null>(null);
   const [showSuccessOverlay, setShowSuccessOverlay] = useState(false);
+  const [recentActivities, setRecentActivities] = useState([
+    { type: 'added',  text: 'Added 5 units',   product: 'Samsung A35 Blue 8/256',        time: '2 min ago'  },
+    { type: 'sold',   text: 'Marked sold',     product: 'iPhone 15 Black 128GB',          time: '18 min ago' },
+    { type: 'added',  text: 'Added 12 units',  product: 'Redmi Note 13 White 6/128',      time: '1 hr ago'   },
+    { type: 'sold',   text: 'Marked sold',     product: 'Samsung S24 Violet 8/256',       time: '2 hr ago'   },
+    { type: 'edited', text: 'Price updated',   product: 'Oppo Reno 11 Sky Blue',          time: '3 hr ago'   },
+    { type: 'sold',   text: 'Marked sold',     product: 'iPhone 14 Midnight 256GB',       time: '5 hr ago'   },
+    { type: 'added',  text: 'Added 8 units',   product: 'Xiaomi 14T Pro Black 12/512',    time: 'Yesterday'  },
+    { type: 'edited', text: 'Stock adjusted',  product: 'Nothing Phone 2a White',         time: 'Yesterday'  },
+    { type: 'sold',   text: 'Marked sold',     product: 'OnePlus 12 Silky Black',         time: 'Yesterday'  },
+    { type: 'added',  text: 'Added 20 units',  product: 'Realme GT 6T Racing Yellow',     time: '2 days ago' },
+  ]);
   const [productList, setProductList] = useState<Product[]>([
     { 
       id: 1, 
@@ -42,6 +57,12 @@ export default function DashboardPage() {
       status: 'Published', 
       image: 'https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?q=80&w=200&auto=format',
       lowStockThreshold: 5,
+      description: "Samsung Galaxy A35 5G features a premium glass back, standard 120Hz Super AMOLED display, and a powerful triple camera setup. Ideal for smooth multitasking and premium mobile photography.",
+      history: [
+        { text: "Added 15 units — Black 8/128 — May 15", type: 'add' },
+        { text: "Added 4 units — Blue 8/256 — May 15", type: 'add' },
+        { text: "Sold 1 unit — Blue 8/256 — May 16", type: 'sell' }
+      ],
       variants: [
         { id: 'v1_1', color: 'Blue', ram: '8GB', storage: '256GB', quantity: 4, buyingPrice: 32000, sellingPrice: 38500 },
         { id: 'v1_2', color: 'Black', ram: '8GB', storage: '128GB', quantity: 15, buyingPrice: 28000, sellingPrice: 34000 },
@@ -56,6 +77,11 @@ export default function DashboardPage() {
       status: 'Published', 
       image: 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?q=80&w=200&auto=format',
       lowStockThreshold: 4,
+      description: "Redmi Note 13 Pro boasts an ultra-clear 200MP camera with OIS, 120Hz AMOLED display, and a large 5000mAh battery with 67W turbo charging. Beautiful Forest Green back.",
+      history: [
+        { text: "Added 12 units — Forest Green 8/256 — May 14", type: 'add' },
+        { text: "Added 2 units — Ocean Blue 12/512 — May 15", type: 'add' }
+      ],
       variants: [
         { id: 'v2_1', color: 'Forest Green', ram: '8GB', storage: '256GB', quantity: 12, buyingPrice: 24000, sellingPrice: 29500 },
         { id: 'v2_2', color: 'Ocean Blue', ram: '12GB', storage: '512GB', quantity: 2, buyingPrice: 29000, sellingPrice: 35000 },
@@ -70,6 +96,11 @@ export default function DashboardPage() {
       status: 'Published', 
       image: 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?q=80&w=200&auto=format',
       lowStockThreshold: 3,
+      description: "The peak of iPhone design. Built with aerospace-grade titanium, featuring the revolutionary A17 Pro chip, custom Action button, and the most powerful iPhone camera system ever.",
+      history: [
+        { text: "Added 8 units — Natural Titanium 8/256 — May 14", type: 'add' },
+        { text: "Added 1 unit — Blue Titanium 8/512 — May 15", type: 'add' }
+      ],
       variants: [
         { id: 'v3_1', color: 'Natural Titanium', ram: '8GB', storage: '256GB', quantity: 8, buyingPrice: 125000, sellingPrice: 145000 },
         { id: 'v3_2', color: 'Blue Titanium', ram: '8GB', storage: '512GB', quantity: 1, buyingPrice: 140000, sellingPrice: 165000 },
@@ -84,6 +115,11 @@ export default function DashboardPage() {
       status: 'Published', 
       image: 'https://images.unsplash.com/photo-1610945415295-d9bcf067e59c?q=80&w=200&auto=format',
       lowStockThreshold: 5,
+      description: "OnePlus 12 redefines flagship performance with the Snapdragon 8 Gen 3, a gorgeous 2K orient-peaking display, and custom fourth-generation Hasselblad Camera for mobile.",
+      history: [
+        { text: "Added 10 units — Flowy Emerald 16/512 — May 14", type: 'add' },
+        { text: "Added 5 units — Silky Black 12/256 — May 15", type: 'add' }
+      ],
       variants: [
         { id: 'v4_1', color: 'Flowy Emerald', ram: '16GB', storage: '512GB', quantity: 10, buyingPrice: 68000, sellingPrice: 79000 },
         { id: 'v4_2', color: 'Silky Black', ram: '12GB', storage: '256GB', quantity: 5, buyingPrice: 60000, sellingPrice: 69000 }
@@ -97,6 +133,10 @@ export default function DashboardPage() {
       status: 'Draft', 
       image: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=200&auto=format',
       lowStockThreshold: 3,
+      description: "Uniquely designed Nothing Phone (2a) features the signature Glyph Interface, highly-optimized custom Dimensity 7200 Pro processor, and a gorgeous, clean Nothing OS UI.",
+      history: [
+        { text: "Added 2 units — Dark Grey 12/256 — May 15", type: 'add' }
+      ],
       variants: [
         { id: 'v5_1', color: 'Milk White', ram: '8GB', storage: '128GB', quantity: 0, buyingPrice: 31000, sellingPrice: 36000 },
         { id: 'v5_2', color: 'Dark Grey', ram: '12GB', storage: '256GB', quantity: 2, buyingPrice: 36000, sellingPrice: 42000 }
@@ -185,10 +225,77 @@ export default function DashboardPage() {
       </aside>
 
       <div className="flex-1 flex flex-col min-w-0 relative h-full">
-        {isCreatingProduct ? (
+        {isCreatingProduct || editingProduct ? (
           <NewProductScreen 
-            onBack={() => setIsCreatingProduct(false)} 
-            onSuccess={handleProductAdded}
+            onBack={() => {
+              setIsCreatingProduct(false);
+              setEditingProduct(null);
+            }} 
+            onSuccess={(updatedProduct) => {
+              if (editingProduct) {
+                setProductList(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p));
+                setEditingProduct(null);
+                if (previewingProduct && previewingProduct.id === updatedProduct.id) {
+                  setPreviewingProduct(updatedProduct);
+                }
+              } else {
+                handleProductAdded(updatedProduct);
+              }
+            }}
+            initialProduct={editingProduct || undefined}
+          />
+        ) : previewingProduct ? (
+          <ProductDetailsScreen 
+            product={previewingProduct}
+            onBack={() => setPreviewingProduct(null)}
+            onEdit={(prod) => {
+              setEditingProduct(prod);
+            }}
+            onUpdateStock={(productId, variantId, newQty, historyLogText, logType) => {
+              // 1. Update quantities in product list state
+              setProductList(prevList => prevList.map(p => {
+                if (p.id === productId) {
+                  const updatedVariants = p.variants?.map(v => 
+                    v.id === variantId ? { ...v, quantity: newQty } : v
+                  ) || [];
+                  const newTotalStock = updatedVariants.reduce((sum, v) => sum + v.quantity, 0);
+                  const updatedProduct = {
+                    ...p,
+                    variants: updatedVariants,
+                    stock: newTotalStock,
+                    history: [
+                      { text: historyLogText, type: logType },
+                      ...(p.history || [])
+                    ]
+                  };
+                  // Keep active preview state updated live too!
+                  setPreviewingProduct(updatedProduct);
+                  return updatedProduct;
+                }
+                return p;
+              }));
+
+              // 2. Add dynamic entry to dashboard bottom activity feed
+              const targetProduct = productList.find(p => p.id === productId);
+              const targetVariant = targetProduct?.variants?.find(v => v.id === variantId);
+              if (targetProduct && targetVariant) {
+                const activityText = logType === 'add' ? `Added stock` : `Marked sold`;
+                const productDetail = `${targetProduct.brand} ${targetProduct.name} ${targetVariant.color} ${targetVariant.ram}/${targetVariant.storage} (Qty: ${newQty})`;
+                setRecentActivities(prev => [
+                  { 
+                    type: logType === 'add' ? 'added' : 'sold', 
+                    text: activityText, 
+                    product: productDetail, 
+                    time: 'Just now' 
+                  },
+                  ...prev
+                ].slice(0, 10));
+              }
+            }}
+            onDeleteProduct={(productId) => {
+              setProductList(prev => prev.filter(p => p.id !== productId));
+              setPreviewingProduct(null);
+            }}
           />
         ) : (
           <>
@@ -468,18 +575,7 @@ export default function DashboardPage() {
 
                       {/* Chronological Scannable Activity List */}
                       <div className="divide-y divide-brand-divider">
-                        {[
-                          { type: 'added',  text: 'Added 5 units',   product: 'Samsung A35 Blue 8/256',        time: '2 min ago'  },
-                          { type: 'sold',   text: 'Marked sold',     product: 'iPhone 15 Black 128GB',          time: '18 min ago' },
-                          { type: 'added',  text: 'Added 12 units',  product: 'Redmi Note 13 White 6/128',      time: '1 hr ago'   },
-                          { type: 'sold',   text: 'Marked sold',     product: 'Samsung S24 Violet 8/256',       time: '2 hr ago'   },
-                          { type: 'edited', text: 'Price updated',   product: 'Oppo Reno 11 Sky Blue',          time: '3 hr ago'   },
-                          { type: 'sold',   text: 'Marked sold',     product: 'iPhone 14 Midnight 256GB',       time: '5 hr ago'   },
-                          { type: 'added',  text: 'Added 8 units',   product: 'Xiaomi 14T Pro Black 12/512',    time: 'Yesterday'  },
-                          { type: 'edited', text: 'Stock adjusted',  product: 'Nothing Phone 2a White',         time: 'Yesterday'  },
-                          { type: 'sold',   text: 'Marked sold',     product: 'OnePlus 12 Silky Black',         time: 'Yesterday'  },
-                          { type: 'added',  text: 'Added 20 units',  product: 'Realme GT 6T Racing Yellow',     time: '2 days ago' },
-                        ].map((item, i) => (
+                        {recentActivities.map((item, i) => (
                           <div key={i} className="flex items-center justify-between px-6 py-4 hover:bg-neutral-50 transition-colors cursor-default">
                             {/* Left Side: Indicator Dot & Log Entry */}
                             <div className="flex items-center gap-3 min-w-0">
@@ -684,7 +780,10 @@ export default function DashboardPage() {
 
                               {/* 3rd Line: Preview Action & Status Indicator */}
                               <div className="flex items-center justify-between mt-4 pt-1">
-                                <button className="flex items-center gap-1.5 text-[10px] text-primary-500 hover:text-primary-600 font-bold uppercase tracking-widest transition-colors">
+                                <button 
+                                  onClick={() => setPreviewingProduct(product)}
+                                  className="flex items-center gap-1.5 text-[10px] text-primary-500 hover:text-primary-600 font-bold uppercase tracking-widest transition-colors"
+                                >
                                   <ExternalLink size={12} className="stroke-[2.5]" />
                                   <span>Preview</span>
                                 </button>

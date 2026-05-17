@@ -35,16 +35,24 @@ const getColorHex = (colorName: string): string => {
   return '#737373';
 };
 
-export default function NewProductScreen({ onBack, onSuccess }: { onBack: () => void, onSuccess: (product: any) => void }) {
+export default function NewProductScreen({ 
+  onBack, 
+  onSuccess,
+  initialProduct
+}: { 
+  onBack: () => void, 
+  onSuccess: (product: any) => void,
+  initialProduct?: any
+}) {
   const [formData, setFormData] = useState<ProductFormData>({
-    name: '',
-    brand: '',
-    description: '',
-    variants: [],
-    lowStockThreshold: 2,
+    name: initialProduct?.name || '',
+    brand: initialProduct?.brand || '',
+    description: initialProduct?.description || '',
+    variants: initialProduct?.variants || [],
+    lowStockThreshold: initialProduct?.lowStockThreshold || 2,
   });
 
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(initialProduct?.name || '');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [activeSection, setActiveSection] = useState('Basic information');
 
@@ -167,14 +175,18 @@ export default function NewProductScreen({ onBack, onSuccess }: { onBack: () => 
 
   const handleSubmit = () => {
     onSuccess({
-      id: Date.now(),
+      id: initialProduct?.id || Date.now(),
       name: formData.name || searchQuery,
       brand: formData.brand || 'Generic',
       stock: formData.variants.reduce((sum, v) => sum + v.quantity, 0),
-      status: 'Published',
-      image: formData.variants[0]?.image || 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=200&auto=format',
+      status: initialProduct?.status || 'Published',
+      image: formData.variants[0]?.image || initialProduct?.image || 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=200&auto=format',
       lowStockThreshold: formData.lowStockThreshold,
-      variants: formData.variants
+      variants: formData.variants,
+      description: formData.description,
+      history: initialProduct?.history || [
+        { text: `Product created — ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`, type: 'add' }
+      ]
     });
   };
 

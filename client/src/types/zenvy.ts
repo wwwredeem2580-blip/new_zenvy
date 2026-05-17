@@ -30,5 +30,7 @@ export interface Product {
   brand?: string;
   variants?: ProductVariant[];
   lowStockThreshold?: number;
+  description?: string;
+  history?: { text: string; type: 'add' | 'sell' }[];
 }
 
