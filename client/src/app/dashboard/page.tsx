@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Search, 
@@ -48,7 +49,7 @@ import InvoiceSuccessModal from '@/components/InvoiceSuccessModal';
 import confetti from 'canvas-confetti';
 
 function DashboardContent() {
-  const { storeName } = useZenvy();
+  const { storeName, setStoreName } = useZenvy();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState('Home');
@@ -104,7 +105,7 @@ function DashboardContent() {
     const tabParam = searchParams.get('tab');
     if (tabParam) {
       const formatted = tabParam.charAt(0).toUpperCase() + tabParam.slice(1).toLowerCase();
-      if (['Home', 'Products', 'Orders', 'Notifications'].includes(formatted)) {
+      if (['Home', 'Products', 'Orders', 'Notifications', 'Settings'].includes(formatted)) {
         setActiveTab(formatted);
       }
     }
@@ -122,6 +123,21 @@ function DashboardContent() {
   const [showSuccessOverlay, setShowSuccessOverlay] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+
+  // Settings page state variables
+  const [settingsShopName, setSettingsShopName] = useState(storeName || 'The Curator Shop');
+  const [settingsLocation, setSettingsLocation] = useState('London, United Kingdom');
+  const [settingsPhone, setSettingsPhone] = useState('+44 20 7946 0958');
+  const [settingsLowStockThreshold, setSettingsLowStockThreshold] = useState(10);
+  const [settingsSmsAlerts, setSettingsSmsAlerts] = useState(true);
+  const [settingsInAppAlerts, setSettingsInAppAlerts] = useState(false);
+  const [settingsLogo, setSettingsLogo] = useState('https://lh3.googleusercontent.com/aida-public/AB6AXuBa57kiXc7qcfwueIRVjI60qXnR6i4vEl2uIBNUoni4KLDMS_0WJDFeHRWXQ98aNylSe5CrZMilF7dAHlkpjSEo2IGayEmUsKK-p4MoAEXvEHVQGHzEnO48N74InWKqKUcTl_zbfESZaPZr_u2MvDGoOEJZ5DUb6OofjRNFid5aXnPSXJcdMy3DKBX41lDORELk8Jp9U0oLAnCPuUYpp5gWSdh-m5f2M7K_Jyl6h-FHOtw43YkxQS5jQAyP18VCEeeuKpsXsasaJ4UG');
+
+  useEffect(() => {
+    if (storeName) {
+      setSettingsShopName(storeName);
+    }
+  }, [storeName]);
 
   // Mark as Sold & Invoice Generator State Variables
   const [activeMarkSoldProduct, setActiveMarkSoldProduct] = useState<Product | null>(null);
@@ -426,8 +442,12 @@ function DashboardContent() {
                 <span>Analytics</span>
               </button>
               <button 
-                onClick={() => {}}
-                className="w-full flex items-center gap-3 text-[#5e5e5d] hover:bg-[#f5f3f3]/50 py-3 px-6 transition-all text-left text-xs cursor-pointer font-semibold font-medium"
+                onClick={() => handleTabChange('Settings')}
+                className={`w-full flex items-center gap-3 py-3 px-6 transition-all text-left cursor-pointer border-r-2 text-xs font-semibold ${
+                  activeTab === 'Settings' 
+                    ? 'text-[#020302] font-bold bg-[#f5f3f3] border-[#020302]' 
+                    : 'text-[#5e5e5d] hover:bg-[#f5f3f3]/50 border-transparent font-medium'
+                }`}
               >
                 <MoreHorizontal size={16} className="stroke-[2]" />
                 <span>Settings</span>
@@ -1232,6 +1252,233 @@ function DashboardContent() {
                     </div>
                   </div>
                 )}
+
+                {activeTab === 'Settings' && (
+                  <div className="space-y-12 text-left py-2 max-w-4xl mx-auto">
+                    {/* Page Header */}
+                    <div>
+                      <h2 className="text-3xl md:text-5xl font-medium tracking-tight text-[#020302] mb-2 font-sans">Settings</h2>
+                      <p className="text-sm text-[#5e5e5d] font-semibold leading-relaxed">Manage your boutique's presence, inventory logic, and personal preferences.</p>
+                    </div>
+
+                    {/* Section 1: Shop Information */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-4">
+                      <div className="col-span-1 space-y-1">
+                        <h3 className="text-[13px] font-bold text-[#020302] uppercase tracking-wider">Shop Information</h3>
+                        <p className="text-xs text-[#5e5e5d] opacity-75 font-semibold">Your public store identity and contact details.</p>
+                      </div>
+                      
+                      <div className="col-span-2 bg-white border border-[#efeded] p-6 md:p-8 rounded-sm space-y-6">
+                        {/* Logo Upload */}
+                        <div className="flex items-center gap-6">
+                          <div className="w-20 h-20 bg-[#f5f3f3] border border-[#efeded] rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
+                            {settingsLogo ? (
+                              <img src={settingsLogo} alt="Shop Logo" className="w-full h-full object-cover" />
+                            ) : (
+                              <span className="text-xs font-bold text-[#5e5e5d]">Logo</span>
+                            )}
+                          </div>
+                          <div className="flex flex-col gap-1.5 items-start">
+                            <button 
+                              onClick={() => {
+                                const url = prompt('Enter the image URL for your shop logo:', settingsLogo);
+                                if (url) {
+                                  setSettingsLogo(url);
+                                  toast.success('Shop logo updated!');
+                                }
+                              }}
+                              className="bg-[#020302] text-white px-4 py-2 text-[10px] font-bold uppercase tracking-widest hover:opacity-90 transition-opacity cursor-pointer rounded-xs"
+                            >
+                              Change Logo
+                            </button>
+                            <p className="text-[10px] text-[#5e5e5d] opacity-60 font-medium">JPG, PNG or SVG. Max 2MB.</p>
+                          </div>
+                        </div>
+
+                        <div className="space-y-4">
+                          <div className="space-y-1">
+                            <label className="text-[9px] font-bold text-[#5e5e5d] uppercase tracking-widest block">Shop Name</label>
+                            <input 
+                              type="text" 
+                              className="w-full bg-[#fbf9f9] border border-[#efeded] p-3 text-xs font-semibold text-[#020302] focus:outline-none focus:ring-1 focus:ring-[#020302] rounded-sm"
+                              value={settingsShopName}
+                              onChange={(e) => setSettingsShopName(e.target.value)}
+                            />
+                          </div>
+
+                          <div className="space-y-1">
+                            <label className="text-[9px] font-bold text-[#5e5e5d] uppercase tracking-widest block">Location</label>
+                            <input 
+                              type="text" 
+                              className="w-full bg-[#fbf9f9] border border-[#efeded] p-3 text-xs font-semibold text-[#020302] focus:outline-none focus:ring-1 focus:ring-[#020302] rounded-sm"
+                              value={settingsLocation}
+                              onChange={(e) => setSettingsLocation(e.target.value)}
+                            />
+                          </div>
+
+                          <div className="space-y-1">
+                            <label className="text-[9px] font-bold text-[#5e5e5d] uppercase tracking-widest block">Phone Number</label>
+                            <div className="flex gap-2">
+                              <input 
+                                type="text" 
+                                className="w-full bg-[#fbf9f9] border border-[#efeded] p-3 text-xs font-semibold text-[#020302] focus:outline-none focus:ring-1 focus:ring-[#020302] rounded-sm"
+                                value={settingsPhone}
+                                onChange={(e) => setSettingsPhone(e.target.value)}
+                              />
+                              <button 
+                                onClick={() => toast.success('Phone verification code sent to ' + settingsPhone)}
+                                className="bg-[#f5f3f3] border border-[#efeded] hover:bg-[#efeded] px-4 text-[10px] font-bold uppercase tracking-widest transition-colors rounded-sm whitespace-nowrap cursor-pointer"
+                              >
+                                Edit & Verify
+                              </button>
+                            </div>
+                            <p className="text-[10px] text-emerald-600 font-bold flex items-center gap-1.5 mt-1 select-none">
+                              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
+                              Verified Phone Number
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="border-t border-[#efeded]" />
+
+                    {/* Section 2: Inventory Logic */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                      <div className="col-span-1 space-y-1">
+                        <h3 className="text-[13px] font-bold text-[#020302] uppercase tracking-wider">Inventory Logic</h3>
+                        <p className="text-xs text-[#5e5e5d] opacity-75 font-semibold">Control how your stock levels are managed and reported.</p>
+                      </div>
+                      
+                      <div className="col-span-2 bg-white border border-[#efeded] p-6 md:p-8 rounded-sm">
+                        <div className="space-y-1.5">
+                          <label className="text-[9px] font-bold text-[#5e5e5d] uppercase tracking-widest block">Default Low Stock Threshold</label>
+                          <div className="flex items-center gap-3">
+                            <input 
+                              type="number" 
+                              className="w-24 bg-[#fbf9f9] border border-[#efeded] p-3 text-xs font-bold text-[#020302] focus:outline-none focus:ring-1 focus:ring-[#020302] rounded-sm"
+                              value={settingsLowStockThreshold}
+                              onChange={(e) => setSettingsLowStockThreshold(Number(e.target.value))}
+                            />
+                            <span className="text-xs font-semibold text-[#5e5e5d]">units remaining</span>
+                          </div>
+                          <p className="text-[10px] text-[#5e5e5d] opacity-60 font-medium pt-1">
+                            This threshold will be applied to all new and existing product listings unless overridden manually.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="border-t border-[#efeded]" />
+
+                    {/* Section 3: Notifications */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                      <div className="col-span-1 space-y-1">
+                        <h3 className="text-[13px] font-bold text-[#020302] uppercase tracking-wider">Notifications</h3>
+                        <p className="text-xs text-[#5e5e5d] opacity-75 font-semibold">Choose how you wish to be notified about shop events.</p>
+                      </div>
+                      
+                      <div className="col-span-2 bg-white border border-[#efeded] p-6 md:p-8 rounded-sm space-y-5">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="text-xs font-bold text-[#020302] uppercase tracking-wider">SMS Alerts</h4>
+                            <p className="text-[10px] text-[#5e5e5d] opacity-60 font-medium">Get instant low-stock texts for urgent replenishment.</p>
+                          </div>
+                          <button 
+                            onClick={() => setSettingsSmsAlerts(!settingsSmsAlerts)}
+                            className={`w-10 h-5.5 rounded-full relative transition-colors duration-300 cursor-pointer ${
+                              settingsSmsAlerts ? 'bg-[#020302]' : 'bg-neutral-300'
+                            }`}
+                          >
+                            <span className={`absolute top-0.75 left-0.75 w-4 h-4 bg-white rounded-full transition-transform duration-300 ${
+                              settingsSmsAlerts ? 'translate-x-4.5' : 'translate-x-0'
+                            }`}></span>
+                          </button>
+                        </div>
+
+                        <div className="border-t border-[#efeded]" />
+
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="text-xs font-bold text-[#020302] uppercase tracking-wider">In-app Alerts</h4>
+                            <p className="text-[10px] text-[#5e5e5d] opacity-60 font-medium">Summary of stock movements in your dashboard.</p>
+                          </div>
+                          <button 
+                            onClick={() => setSettingsInAppAlerts(!settingsInAppAlerts)}
+                            className={`w-10 h-5.5 rounded-full relative transition-colors duration-300 cursor-pointer ${
+                              settingsInAppAlerts ? 'bg-[#020302]' : 'bg-neutral-300'
+                            }`}
+                          >
+                            <span className={`absolute top-0.75 left-0.75 w-4 h-4 bg-white rounded-full transition-transform duration-300 ${
+                              settingsInAppAlerts ? 'translate-x-4.5' : 'translate-x-0'
+                            }`}></span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="border-t border-[#efeded]" />
+
+                    {/* Section 4: Danger Zone */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                      <div className="col-span-1 space-y-1">
+                        <h3 className="text-[13px] font-bold text-[#ba1a1a] uppercase tracking-wider">Danger Zone</h3>
+                        <p className="text-xs text-[#5e5e5d] opacity-75 font-semibold">Account termination actions. This cannot be undone.</p>
+                      </div>
+                      
+                      <div className="col-span-2 bg-red-50/20 border border-red-100 p-6 md:p-8 rounded-sm space-y-4">
+                        <div>
+                          <h4 className="text-xs font-bold text-[#ba1a1a] uppercase tracking-wider">Delete Shop Account</h4>
+                          <p className="text-[10px] text-red-700/80 font-medium mt-1 leading-relaxed">
+                            Permanently remove your boutique, all inventory data, and transaction history from the Merchant Portal. This action is irreversible.
+                          </p>
+                        </div>
+                        <button 
+                          onClick={() => {
+                            if (confirm('WARNING: Are you absolutely sure you want to delete your boutique? This action cannot be undone.')) {
+                              toast.error('Account deletion is not permitted in demo mode.');
+                            }
+                          }}
+                          className="bg-[#ba1a1a] text-white px-5 py-2.5 text-[10px] font-bold uppercase tracking-widest hover:opacity-90 transition-opacity cursor-pointer rounded-xs"
+                        >
+                          Delete Account
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Footer Actions */}
+                    <div className="flex justify-end gap-3 pt-6 border-t border-[#efeded]">
+                      <button 
+                        onClick={() => {
+                          setSettingsShopName(storeName || 'The Curator Shop');
+                          setSettingsLocation('London, United Kingdom');
+                          setSettingsPhone('+44 20 7946 0958');
+                          setSettingsLowStockThreshold(10);
+                          setSettingsSmsAlerts(true);
+                          setSettingsInAppAlerts(false);
+                          setSettingsLogo('https://lh3.googleusercontent.com/aida-public/AB6AXuBa57kiXc7qcfwueIRVjI60qXnR6i4vEl2uIBNUoni4KLDMS_0WJDFeHRWXQ98aNylSe5CrZMilF7dAHlkpjSEo2IGayEmUsKK-p4MoAEXvEHVQGHzEnO48N74InWKqKUcTl_zbfESZaPZr_u2MvDGoOEJZ5DUb6OofjRNFid5aXnPSXJcdMy3DKBX41lDORELk8Jp9U0oLAnCPuUYpp5gWSdh-m5f2M7K_Jyl6h-FHOtw43YkxQS5jQAyP18VCEeeuKpsXsasaJ4UG');
+                          toast.info('Settings discarded.');
+                        }}
+                        className="bg-white border border-[#efeded] hover:bg-[#f5f3f3] px-6 py-3 text-[10px] font-bold uppercase tracking-widest transition-colors rounded-xs cursor-pointer"
+                      >
+                        Discard Changes
+                      </button>
+                      <button 
+                        onClick={() => {
+                          if (!settingsShopName.trim()) {
+                            toast.error('Shop name cannot be blank.');
+                            return;
+                          }
+                          setStoreName(settingsShopName);
+                          toast.success('Merchant settings updated successfully!');
+                        }}
+                        className="bg-[#020302] text-white hover:bg-neutral-900 px-8 py-3 text-[10px] font-bold uppercase tracking-widest transition-colors rounded-xs cursor-pointer shadow-xs"
+                      >
+                        Save Settings
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </main>
 
@@ -1290,13 +1537,13 @@ function DashboardContent() {
               </button>
 
               <button 
-                onClick={() => setActiveTab('More')}
+                onClick={() => handleTabChange('Settings')}
                 className={`flex flex-col items-center gap-1 transition-all cursor-pointer ${
-                  activeTab === 'More' ? 'text-[#020302] font-bold' : 'text-[#5e5e5d] opacity-60 font-semibold'
+                  activeTab === 'Settings' ? 'text-[#020302] font-bold' : 'text-[#5e5e5d] opacity-60 font-semibold'
                 }`}
               >
                 <MoreHorizontal size={18} className="stroke-[2.2]" />
-                <span className="text-[10px]">More</span>
+                <span className="text-[10px]">Settings</span>
               </button>
             </div>
           </>
