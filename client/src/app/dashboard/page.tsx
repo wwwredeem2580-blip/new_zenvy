@@ -2176,7 +2176,7 @@ export default function DashboardPage() {
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              className="bg-white w-full max-w-md rounded-3xl overflow-hidden shadow-2xl relative z-10 border border-gray-100 flex flex-col p-6 text-center space-y-6"
+              className="bg-white w-full max-w-md overflow-hidden shadow-2xl relative z-10 border border-gray-100 flex flex-col p-6 text-center space-y-6"
             >
               {/* Top Graphic Indicator */}
               <div className="w-16 h-16 bg-shopify-green/10 rounded-3xl flex items-center justify-center text-shopify-green mx-auto shadow-inner shadow-shopify-green/5">
@@ -2184,8 +2184,8 @@ export default function DashboardPage() {
               </div>
 
               <div>
-                <h3 className="text-xl font-serif font-bold text-[#1a1c1d] tracking-tight">Your Shop Card is Live!</h3>
-                <p className="text-xs text-gray-500 font-medium mt-1.5 leading-relaxed px-4">
+                <h3 className="text-xl font-sans font-medium text-[#1a1c1d] tracking-tight">Your Shop Card is Live!</h3>
+                <p className="text-xs text-gray-600 font-light mt-1.5 leading-relaxed px-4">
                   Anyone visiting this link can view your live in-stock inventory & inquire instantly via WhatsApp.
                 </p>
               </div>
