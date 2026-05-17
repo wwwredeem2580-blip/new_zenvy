@@ -64,11 +64,11 @@ export default function DashboardPage() {
       <aside className="hidden lg:flex flex-col w-72 bg-white border-r border-gray-100 h-full p-6 pb-0 shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-20">
         <div className="flex items-center gap-3 mb-10 pl-2">
           <div className="w-9 h-9 bg-shopify-green rounded-xl flex items-center justify-center shadow-lg shadow-shopify-green/20">
-            <span className="font-bold text-[#1a1a1a] text-xs">
+            <span className="font-bold text-white text-xs">
                {storeName ? storeName.substring(0, 2).toUpperCase() : 'ZN'}
             </span>
           </div>
-          <h2 className="text-lg font-serif font-bold text-[#1a1c1d] tracking-tight">Zenvy Pro</h2>
+          <h2 className="text-lg font-sans font-bold text-[#1a1c1d] tracking-tight">{storeName ? storeName : 'My Store'}</h2>
         </div>
 
         {/* Desktop Search Bar */}
@@ -173,7 +173,7 @@ export default function DashboardPage() {
 
             {/* Header */}
             <header className="bg-white px-4 md:px-8 pt-12 md:pt-8 pb-4 flex items-center justify-between sticky top-0 z-10 border-b lg:border-none border-gray-100">
-              <div className="lg:hidden w-8 h-8 bg-shopify-green rounded-lg flex items-center justify-center font-bold text-[#1a1a1a] text-[12px]">
+              <div className="lg:hidden w-8 h-8 bg-shopify-green rounded-lg flex items-center justify-center font-bold text-white text-[12px]">
                 {storeName ? storeName.substring(0, 2).toUpperCase() : 'MS'}
               </div>
               <h1 className="text-lg md:text-xl font-sans font-semibold text-[#1a1c1d] md:font-serif md:text-2xl lg:text-3xl">
@@ -206,7 +206,7 @@ export default function DashboardPage() {
 
                     <motion.div 
                       whileHover={{ y: -2 }}
-                      className="bg-white p-4 md:p-6 rounded-2xl border border-gray-100 flex items-center justify-between shadow-[0_1px_3px_rgba(0,0,0,0.05)] cursor-pointer"
+                      className="bg-white p-4 md:p-6  border border-gray-100 flex items-center justify-between cursor-pointer"
                     >
                       <div className="flex items-center gap-4">
                         <div className="flex -space-x-1">
@@ -229,10 +229,10 @@ export default function DashboardPage() {
                       <div className="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-[0_4px_24px_rgba(0,0,0,0.03)]">
                         <div className="p-8 pb-4">
                           <div className="flex items-baseline justify-between mb-2">
-                            <h3 className="font-serif font-bold text-[#1a1c1d] text-2xl">Get ready to sell</h3>
-                            <button className="text-xs font-bold text-gray-400 hover:text-[#1a1c1d] transition-colors uppercase tracking-widest">Hide guide</button>
+                            <h3 className="font-sans font-bold text-[#1a1c1d] text-xl md:text-2xl">Get ready to sell</h3>
+                            <button className="text-[10px] md:text-xs font-bold text-gray-400 hover:text-[#1a1c1d] transition-colors uppercase tracking-widest">Hide guide</button>
                           </div>
-                          <p className="text-[14px] text-[#616a75] mb-8 font-medium">Follow these steps to launch your dream brand today.</p>
+                          <p className="text-[12px] md:text-sm text-[#616a75] mb-8 font-normal">Follow these steps to launch your dream brand today.</p>
                           
                           <div className="w-full h-1.5 bg-gray-100 rounded-full relative mb-10 overflow-hidden">
                             <div 
@@ -269,7 +269,7 @@ export default function DashboardPage() {
                       </div>
                     </div>
 
-                    <div className="bg-white p-6 md:p-12 rounded-3xl border border-gray-100 text-center shadow-[0_8px_32px_rgba(0,0,0,0.02)] relative overflow-hidden mb-12">
+                    {/* <div className="bg-white p-6 md:p-12 border border-gray-100 text-center relative overflow-hidden mb-12">
                       <div className="absolute top-0 left-0 w-full h-full opacity-[0.02] pointer-events-none">
                          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
                             <Sparkles size={400} />
@@ -281,15 +281,15 @@ export default function DashboardPage() {
                             <Sparkles size={56} className="text-[#f7b614] fill-[#f7b614] relative z-10 animate-bounce transition-all duration-1000" />
                          </div>
                       </div>
-                      <h3 className="text-2xl md:text-4xl font-serif font-black mb-6 text-[#1a1c1d] tracking-tight leading-tight">Build your dream <br className="hidden md:block" />business for <span className="text-shopify-green italic">$1</span> / month</h3>
+                      <h3 className="text-2xl md:text-4xl font-sans font-medium mb-6 text-[#1a1c1d] tracking-tight leading-tight">Build your dream <br className="hidden md:block" />business for <span className="text-shopify-green italic">100 tk</span> / month</h3>
                       <p className="text-[#616a75] text-[16px] md:text-lg mb-12 px-2 md:px-16 leading-relaxed max-w-2xl mx-auto">
-                        Subscribe to get your first month for $1. Join the thousands of successful brands and creators who chose Zenvy to scale their vision.
+                        Subscribe to get your first month for 100 tk. Join the thousands of successful brands and creators who chose Zenvy to scale their vision.
                       </p>
                       <button className="w-full max-w-md mx-auto py-5 bg-[#1a1c1d] text-white rounded-2xl font-bold text-[16px] transition-all hover:bg-black hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-black/10 flex items-center justify-center gap-3">
                         <span>Unlock Full Access</span>
                         <ArrowRight size={20} />
                       </button>
-                    </div>
+                    </div> */}
                   </div>
                 )}
 
