@@ -452,14 +452,10 @@ export default function DashboardPage() {
                 {activeTab === 'Products' && (
                   <div className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                      <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-                        <p className="text-[11px] font-black text-shopify-green uppercase tracking-[0.2em] mb-1">Out of stock</p>
-                        <p className="text-2xl font-serif font-black">{productList.filter(p => p.stock === 0).length}</p>
-                      </div>
                       <div className="md:col-span-3 flex justify-end">
                         <button 
                           onClick={() => setIsCreatingProduct(true)}
-                          className="bg-[#5438ff] text-white px-6 py-2.5 rounded-xl font-bold text-[13px] flex items-center gap-2 hover:opacity-90 transition-all shadow-lg shadow-[#5438ff]/10"
+                          className="bg-[#5438ff] hidden text-white px-6 py-2.5 rounded-xl font-bold text-[13px] flex items-center gap-2 hover:opacity-90 transition-all shadow-lg shadow-[#5438ff]/10"
                         >
                           <Plus size={18} strokeWidth={3} />
                           <span>Add product</span>
@@ -467,14 +463,14 @@ export default function DashboardPage() {
                       </div>
                     </div>
 
-                    <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-                      <div className="flex border-b border-gray-100 px-6">
-                        {['All', 'Published', 'Unpublished', 'Drafts'].map((tab) => (
+                    <div className="bg-white overflow-hidden">
+                      <div className="flex border-b border-gray-100 px-4">
+                        {['All', 'Low Stock', 'Out of Stock'].map((tab) => (
                           <button
                             key={tab}
                             onClick={() => setActiveProductFilter(tab)}
-                            className={`py-4 px-4 text-xs font-bold uppercase tracking-widest transition-all relative
-                              ${activeProductFilter === tab ? 'text-[#1a1c1d]' : 'text-gray-400 hover:text-gray-600'}`}
+                            className={`py-4 px-2 text-[9px] whitespace-nowrap font-bold uppercase tracking-widest transition-all relative
+                              ${activeProductFilter === tab ? 'text-[#1a1c1d]' : 'text-gray-500 hover:text-gray-600'}`}
                           >
                             <div className="flex items-center gap-2">
                               <span>{tab}</span>
@@ -514,18 +510,18 @@ export default function DashboardPage() {
 
                       <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
-                          <thead>
+                          {/* <thead>
                             <tr className="bg-gray-50/50 border-y border-gray-100">
-                              <th className="p-4 pl-6 w-10">
+                              <th className="p-4 w-10">
                                 <input type="checkbox" className="rounded border-gray-300 text-shopify-green focus:ring-shopify-green" />
                               </th>
-                              <th className="p-4 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Image</th>
-                              <th className="p-4 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Product Name</th>
-                              <th className="p-4 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Availability</th>
-                              <th className="p-4 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Status</th>
-                              <th className="p-4 pr-6 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 text-right">Actions</th>
+                              <th className="p-2 text-[9px] font-black uppercase tracking-[0.2em] text-gray-400">Image</th>
+                              <th className="p-2 text-[9px] font-black uppercase tracking-[0.2em] text-gray-400">Product Name</th>
+                              <th className="p-2 text-[9px] font-black uppercase tracking-[0.2em] text-gray-400">Availability</th>
+                              <th className="p-2 text-[9px] font-black uppercase tracking-[0.2em] text-gray-400">Status</th>
+                              <th className="p-2 pr-6 text-[9px] font-black uppercase tracking-[0.2em] text-gray-400 text-right">Actions</th>
                             </tr>
-                          </thead>
+                          </thead> */}
                           <tbody className="divide-y divide-gray-50">
                             {productList.filter(p => {
                               if (activeProductFilter === 'All') return true;
@@ -539,11 +535,8 @@ export default function DashboardPage() {
                                 animate={{ opacity: 1 }}
                                 className="group hover:bg-gray-50/50 transition-colors cursor-pointer"
                               >
-                                <td className="p-4 pl-6">
-                                  <input type="checkbox" className="rounded border-gray-300 text-shopify-green focus:ring-shopify-green" />
-                                </td>
-                                <td className="p-4">
-                                  <div className="w-12 h-12 rounded-lg border border-gray-100 overflow-hidden shadow-sm bg-white">
+                                <td className="pl-4">
+                                  <div className="w-10 h-10 border border-gray-100 overflow-hidden shadow-sm bg-white">
                                     <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
                                   </div>
                                 </td>
