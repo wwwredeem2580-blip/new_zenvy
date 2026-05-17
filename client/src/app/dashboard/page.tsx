@@ -16,7 +16,9 @@ import {
   ExternalLink,
   Layers,
   Filter,
-  ArrowRight
+  ArrowRight,
+  ArrowUpRight,
+  ArrowDownRight
 } from 'lucide-react';
 import { useZenvy } from '@/context/ZenvyContext';
 import { SidebarSection, SidebarItem, SidebarSubItem, NavItem } from '@/components/SidebarComponents';
@@ -224,6 +226,68 @@ export default function DashboardPage() {
                          <ChevronRight size={18} className="text-gray-400" />
                       </div>
                     </motion.div>
+
+                    {/* Summary Stats Grid */}
+                    <div className="bg-white border border-gray-100 overflow-hidden">
+                      <div className="p-4 px-6 flex items-center justify-between border-b border-gray-100">
+                        <span className="text-[14px] font-bold text-[#1a1c1d] tracking-tight">Summary</span>
+                        <ChevronRight size={16} className="text-gray-400" />
+                      </div>
+                      
+                      <div className="grid grid-cols-2 md:grid-cols-4">
+                        {/* Stat 1: Total products in stock */}
+                        <div className="p-6 border-r border-b border-gray-100 md:border-b-0">
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Products in stock</p>
+                          <div className="flex items-baseline justify-between">
+                            <span className="text-xl md:text-2xl font-bold font-sans text-[#1a1c1d]">124</span>
+                            <span className="flex items-center text-[9px] md:text-[11px] font-bold text-green-500 gap-0.5">
+                              <ArrowUpRight size={12} className="stroke-[2.5]" />
+                              <span>+8.2%</span>
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Stat 2: Total stock value in BDT */}
+                        <div className="p-6 border-b border-gray-100 md:border-b-0 md:border-r">
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Stock value</p>
+                          <div className="flex items-baseline justify-between">
+                            <span className="text-xl md:text-2xl font-bold font-sans text-[#1a1c1d]">
+                              <span className="text-gray-600 font-normal mr-1">৳</span>42,800
+                            </span>
+                            <span className="flex items-center text-[9px] md:text-[11px] font-bold text-green-500 gap-0.5">
+                              <ArrowUpRight size={12} className="stroke-[2.5]" />
+                              <span>+12.4%</span>
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Stat 3: Units sold this month */}
+                        <div className="p-6 border-r border-gray-100">
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Units sold this month</p>
+                          <div className="flex items-baseline justify-between">
+                            <span className="text-xl md:text-2xl font-bold font-sans text-[#1a1c1d]">86</span>
+                            <span className="flex items-center text-[9px] md:text-[11px] font-bold text-green-500 gap-0.5">
+                              <ArrowUpRight size={12} className="stroke-[2.5]" />
+                              <span>+15.1%</span>
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Stat 4: Revenue this month */}
+                        <div className="p-6">
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Revenue this month</p>
+                          <div className="flex items-baseline justify-between">
+                            <span className="text-xl md:text-2xl font-bold font-sans text-[#1a1c1d]">
+                              <span className="text-gray-600 font-normal mr-1">৳</span>28,450
+                            </span>
+                            <span className="flex items-center text-[9px] md:text-[11px] font-bold text-green-500 gap-0.5">
+                              <ArrowUpRight size={12} className="stroke-[2.5]" />
+                              <span>+22.3%</span>
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
                       <div className="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-[0_4px_24px_rgba(0,0,0,0.03)]">
