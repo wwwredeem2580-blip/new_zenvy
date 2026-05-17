@@ -126,12 +126,12 @@ export default function PublicShopCard() {
   return (
     <div className="min-h-screen bg-white font-sans antialiased text-[#333333] pb-28">
       {/* 1. Tall Lifestyle Ambient Cover Photo Banner */}
-      <div className="relative h-64 md:h-80 bg-gray-100 overflow-hidden">
-        <img 
+      <div className="relative h-30 md:h-40 bg-gray-100 overflow-hidden">
+        {/* <img 
           src="https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?q=80&w=1200&auto=format" 
           alt="Store Banner"
           className="w-full h-full object-cover"
-        />
+        /> */}
         
         {/* Transparent Action Buttons Floating on Cover Photo */}
         <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-20">
@@ -262,12 +262,12 @@ export default function PublicShopCard() {
                   <motion.div 
                     key={product.id}
                     layout
-                    className={`group flex flex-col bg-white border border-[#c7c7bf] hover:border-[#020302] rounded-xl overflow-hidden shadow-2xs hover:shadow-sm transition-all duration-300 text-left ${
+                    className={`group flex flex-col bg-white hover:border-[#020302] border-b border-gray-600 overflow-hidden shadow-2xs hover:shadow-sm transition-all duration-300 text-left ${
                       isOutOfStock ? 'opacity-70' : ''
                     }`}
                   >
-                    {/* Image Container with aspect-[4/5] */}
-                    <div className="aspect-[4/5] relative overflow-hidden bg-[#f5f3f3]">
+                    {/* Image Container with aspect-[5/5] */}
+                    <div className="aspect-[5/5] relative overflow-hidden bg-[#f5f3f3]">
                       <img 
                         src={product.image || 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=300&auto=format'} 
                         alt={product.name}
@@ -334,7 +334,7 @@ export default function PublicShopCard() {
                         <p className="text-[10px] font-bold text-[#5e5e5d] uppercase tracking-widest leading-none">
                           {product.brand}
                         </p>
-                        <h3 className="text-[15px] font-light text-[#020302] group-hover:text-neutral-700 transition-colors tracking-tight leading-snug line-clamp-1 mt-0.5">
+                        <h3 className="text-[16px] font-light text-[#020302] group-hover:text-neutral-700 transition-colors tracking-tight leading-snug line-clamp-1 mt-0.5">
                           {product.name}
                         </h3>
                       </div>
@@ -353,21 +353,21 @@ export default function PublicShopCard() {
                       {/* Variant Pills Section */}
                       {product.variants && product.variants.length > 0 && (
                         <div className="flex flex-wrap gap-1.5 pt-3 border-t border-[#efeded]">
-                          {product.variants.slice(0, 2).map((variant) => (
+                          {product.variants.map((variant) => (
                             <span 
                               key={variant.id} 
-                              className="text-[9px] text-[#5e5e5d] px-2 py-0.5 bg-[#f5f3f3] rounded-full border border-[#c7c7bf]/50 font-medium"
+                              className="text-[12px] text-[#5e5e5d] px-2 py-0.5 bg-[#f5f3f3] border border-[#c7c7bf]/50 font-medium"
                             >
                               {variant.color} {variant.ram.replace('GB', '')}/{variant.storage.replace('GB', '')}
                             </span>
                           ))}
-                          {product.variants.length > 2 && (
+                          {/* {product.variants.length > 2 && (
                             <span 
                               className="text-[9px] text-[#5e5e5d] px-2 py-0.5 bg-[#f5f3f3] rounded-full border border-[#c7c7bf]/50 font-semibold"
                             >
                               +{product.variants.length - 2} More
                             </span>
-                          )}
+                          )} */}
                         </div>
                       )}
                     </div>
@@ -379,10 +379,10 @@ export default function PublicShopCard() {
         </div>
       </div>
 
-      {/* 6. Faire Curated Footer Tag */}
+      {/* 6. Curated Footer Tag */}
       <div className="mt-20 py-8 border-t border-gray-100 flex flex-col items-center justify-center gap-1.5 text-xs text-gray-400 select-none">
         <div className="flex items-center gap-1">
-          <span className="font-serif font-black tracking-widest uppercase text-gray-500 text-[10px]">FAIRE</span>
+          <span className="font-serif font-black tracking-widest uppercase text-gray-500 text-[10px]">{storeName}</span>
           <span>|</span>
           <span className="font-light">curated by Zenvy</span>
         </div>
@@ -390,33 +390,29 @@ export default function PublicShopCard() {
       </div>
 
       {/* 7. Merchant WhatsApp hotline query bar */}
-      <div className="fixed bottom-20 left-0 right-0 z-40 px-5">
-        <div className="max-w-md mx-auto">
+      <div className="fixed bottom-5 right-0 z-40 px-5">
+        <div className="max-w-[180px] mx-auto">
           <a 
             href={`https://api.whatsapp.com/send?phone=${encodeURIComponent(phoneNumber.replace(/[^0-9+]/g, ''))}&text=${encodeURIComponent(`Hello ${storeName}! I am browsing your public inventory catalog and wanted to inquire about smartphones.`)}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full bg-[#111112] hover:bg-[#1a1a1b] text-white py-3.5 px-5 rounded-2xl flex items-center justify-between shadow-2xl transition-all border border-white/10 group"
+            className="w-full bg-[#111112] hover:bg-[#1a1a1b] text-white py-1.5 px-3 rounded-2xl flex items-center justify-between shadow-2xl transition-all border border-white/10 group"
           >
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-xl bg-shopify-green flex items-center justify-center text-white shadow-lg">
                 <MessageCircle size={18} className="fill-white stroke-none" />
               </div>
               <div className="text-left">
-                <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider leading-none">Direct Hotline</p>
-                <p className="text-[13px] font-medium text-white tracking-tight mt-1">Inquire to Store Owner</p>
+                <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider leading-none">Chat with</p>
+                <p className="text-[13px] font-medium text-white tracking-tight mt-1">Store Owner</p>
               </div>
-            </div>
-            <div className="flex items-center gap-1 text-[11px] text-shopify-green font-medium uppercase tracking-wider group-hover:translate-x-0.5 transition-transform">
-              Ask Queries
-              <ChevronRight size={13} />
             </div>
           </a>
         </div>
       </div>
 
       {/* 8. Sticky Bottom Mobile Navigation Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 py-2.5 px-6 flex items-center justify-between z-50 shadow-[0_-4px_16px_rgba(0,0,0,0.02)]">
+      {/* <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 py-2.5 px-6 flex items-center justify-between z-50 shadow-[0_-4px_16px_rgba(0,0,0,0.02)]">
         <button 
           onClick={() => setActiveBottomNav('Home')}
           className={`flex flex-col items-center gap-1 ${activeBottomNav === 'Home' ? 'text-black' : 'text-gray-400 hover:text-gray-600'}`}
@@ -456,7 +452,7 @@ export default function PublicShopCard() {
           <User size={20} className={activeBottomNav === 'Profile' ? 'stroke-[2.5]' : 'stroke-[1.5]'} />
           <span className="text-[9.5px] font-light leading-none">Profile</span>
         </button>
-      </div>
+      </div> */}
     </div>
   );
 }
