@@ -19,6 +19,7 @@ import {
   ArrowRight,
   ArrowUpRight,
   ArrowDownRight,
+  ArrowUpDown,
   AlertTriangle,
   Receipt,
   Share2,
@@ -1751,13 +1752,14 @@ export default function DashboardPage() {
               </div>
 
               <div className="flex items-center gap-6">
-                {/* Search box in header */}
                 <div className="hidden md:flex items-center relative w-64">
                   <Search size={14} className="absolute left-3 text-[#5e5e5d] opacity-60" />
                   <input 
                     type="text" 
-                    placeholder="Search" 
+                    placeholder="Search inventory..." 
                     className="w-full bg-[#f5f3f3] border-none rounded-sm py-1.5 pl-9 pr-12 text-xs font-semibold text-[#020302] placeholder-[#5e5e5d]/60 focus:outline-none focus:ring-1 focus:ring-[#efeded]"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
                   />
                   <div className="absolute right-2 px-1.5 py-0.5 border border-[#c7c7bf]/30 rounded-sm text-[8px] font-bold text-[#5e5e5d]/60 bg-white shadow-2xs pointer-events-none select-none">
                     ⌘ K
@@ -2040,85 +2042,73 @@ export default function DashboardPage() {
                 )}
 
                 {activeTab === 'Products' && (
-                  <div className="space-y-6 text-left">
+                  <div className="space-y-8 text-left py-2">
                     
-                    {/* Header Action Toolbar */}
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-1">
-                      <div className="space-y-0.5">
-                        <h2 className="text-xl font-medium text-[#1a1c1d] tracking-tight">Active Inventory</h2>
-                        <p className="text-xs text-gray-500 font-light">Manage smartphone models, colors, storage capacities, and sales pipelines.</p>
+                    {/* Header Section */}
+                    <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8">
+                      <div className="space-y-2">
+                        <h1 className="text-3xl md:text-4xl text-[#020302] font-light tracking-tight font-sans">
+                          Products
+                        </h1>
+                        <p className="text-xs md:text-sm text-[#5e5e5d] font-semibold leading-relaxed max-w-xl">
+                          Active Inventory: Manage smartphone models, colors, storage capacities, and sales pipelines.
+                        </p>
                       </div>
-                      
                       <button 
                         onClick={() => setIsCreatingProduct(true)}
-                        className="bg-black hover:bg-neutral-900 text-white px-5 py-2.5 rounded-lg text-xs font-semibold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-sm active:scale-98 self-start md:self-auto cursor-pointer"
+                        className="bg-[#020302] text-white px-8 py-3 rounded-sm text-xs font-bold uppercase tracking-widest hover:opacity-90 transition-all flex items-center gap-2 cursor-pointer shadow-xs active:scale-98"
                       >
-                        <Plus size={14} className="stroke-[3]" />
+                        <Plus size={14} className="stroke-[3]" /> 
                         <span>Add Product</span>
                       </button>
                     </div>
 
-                    <div className="bg-white border border-gray-100 rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.01)] overflow-hidden">
-                      {/* Product Status Tabs */}
-                      <div className="flex border-b border-gray-100 px-4">
-                        {['All', 'Low Stock', 'Out of Stock'].map((tab) => (
+                    {/* Filters & Tabs */}
+                    <div className="flex flex-col md:flex-row justify-between items-center border-b border-[#efeded] mb-8 gap-4">
+                      <div className="flex gap-8">
+                        {[
+                          { id: 'All', label: 'All', count: productList.length },
+                          { id: 'Low Stock', label: 'Low Stock', count: productList.filter(p => {
+                              const threshold = p.lowStockThreshold || 4;
+                              const hasLowStockVariant = p.variants?.some(v => v.quantity > 0 && v.quantity <= threshold);
+                              return hasLowStockVariant || (p.stock > 0 && p.stock <= threshold);
+                            }).length 
+                          },
+                          { id: 'Out of Stock', label: 'Out of Stock', count: productList.filter(p => {
+                              const allVariantsOut = p.variants && p.variants.length > 0 ? p.variants.every(v => v.quantity === 0) : false;
+                              return p.stock === 0 || allVariantsOut;
+                            }).length 
+                          }
+                        ].map((tab) => (
                           <button
-                            key={tab}
-                            onClick={() => setActiveProductFilter(tab)}
-                            className={`py-4 px-3 text-[10px] whitespace-nowrap font-bold uppercase tracking-widest transition-all relative cursor-pointer
-                              ${activeProductFilter === tab ? 'text-neutral-900' : 'text-neutral-500 hover:text-neutral-700'}`}
+                            key={tab.id}
+                            onClick={() => setActiveProductFilter(tab.id)}
+                            className={`pb-4 text-[11px] font-bold uppercase tracking-widest transition-all relative cursor-pointer
+                              ${activeProductFilter === tab.id 
+                                ? 'text-black border-b-2 border-black' 
+                                : 'text-neutral-500 hover:text-black'}`}
                           >
-                            <div className="flex items-center gap-2">
-                              <span>{tab}</span>
-                              <span className="bg-neutral-50 border border-neutral-200 px-1.5 py-0.5 rounded text-[10px] font-bold text-neutral-500">
-                                {tab === 'All' ? productList.length : 
-                                 tab === 'Low Stock' ? productList.filter(p => {
-                                    const threshold = p.lowStockThreshold || 4;
-                                    const hasLowStockVariant = p.variants?.some(v => v.quantity > 0 && v.quantity <= threshold);
-                                    return hasLowStockVariant || (p.stock > 0 && p.stock <= threshold);
-                                 }).length : 
-                                 tab === 'Out of Stock' ? productList.filter(p => {
-                                    const allVariantsOut = p.variants && p.variants.length > 0 ? p.variants.every(v => v.quantity === 0) : false;
-                                    return p.stock === 0 || allVariantsOut;
-                                 }).length : 0}
-                              </span>
-                            </div>
-                            {activeProductFilter === tab && (
-                              <motion.div layoutId="product-tab-underline" className="absolute bottom-0 left-0 w-full h-0.5 bg-black" />
-                            )}
+                            <span>{tab.label} ({tab.count})</span>
                           </button>
                         ))}
                       </div>
 
-                      {/* Search & Action Controls */}
-                      <div className="p-4 px-6 flex flex-col md:flex-row items-center justify-between gap-4 border-b border-gray-50 bg-neutral-50/30">
-                        <div className="relative flex-1 w-full max-w-sm">
-                          <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
-                          <input 
-                            type="text" 
-                            placeholder="Search by brand, name or specs..." 
-                            className="w-full bg-[#f6f6f7] py-2.5 pl-10 pr-4 rounded-xl text-[13px] font-medium border-none outline-none focus:ring-1 focus:ring-gray-200"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                          />
-                        </div>
-                        
-                        <div className="flex items-center gap-3 w-full md:w-auto">
-                          <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-[10px] font-bold uppercase tracking-widest text-[#1a1c1d] hover:bg-gray-50 transition-colors cursor-pointer bg-white">
-                            <ArrowRight size={13} className="rotate-90 text-gray-500" />
-                            <span>Sort: A-Z</span>
-                          </button>
-                          
-                          <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-[10px] font-bold uppercase tracking-widest text-[#1a1c1d] hover:bg-gray-50 transition-colors cursor-pointer bg-white">
-                            <Filter size={13} className="text-gray-500" />
-                            <span>Filter</span>
-                          </button>
-                        </div>
+                      <div className="flex gap-4 pb-4">
+                        <button className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest border border-[#efeded] px-4 py-2 hover:bg-neutral-50 transition-colors cursor-pointer rounded-sm">
+                          <ArrowUpDown size={12} className="text-[#5e5e5d]" />
+                          <span>Sort: A-Z</span>
+                        </button>
+                        <button className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest border border-[#efeded] px-4 py-2 hover:bg-neutral-50 transition-colors cursor-pointer rounded-sm">
+                          <Filter size={12} className="text-[#5e5e5d]" />
+                          <span>Filter</span>
+                        </button>
                       </div>
+                    </div>
 
-                      {/* Frameless Catalog Row Container */}
-                      <div className="p-6 divide-y divide-gray-100">
-                        {productList.filter(p => {
+                    {/* Vertical Product List */}
+                    <div className="space-y-4">
+                      {productList
+                        .filter(p => {
                           if (activeProductFilter === 'All') return true;
                           if (activeProductFilter === 'Low Stock') {
                             const threshold = p.lowStockThreshold || 4;
@@ -2130,131 +2120,117 @@ export default function DashboardPage() {
                             return p.stock === 0 || allVariantsOut;
                           }
                           return true;
-                        }).filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase())).map(product => (
+                        })
+                        .filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()) || p.brand?.toLowerCase().includes(searchTerm.toLowerCase()))
+                        .map((product) => (
                           <motion.div 
-                            key={product.id} 
+                            key={product.id}
                             initial={{ opacity: 0, y: 8 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="py-6 first:pt-0 last:pb-0 flex flex-col sm:flex-row gap-5 items-start relative hover:bg-neutral-50/30 transition-colors group rounded-xl px-2 -mx-2"
+                            className="bg-white border border-[#efeded] p-6 flex flex-col md:flex-row gap-8 items-start group hover:border-black transition-all duration-350 rounded-sm shadow-2xs hover:shadow-xs"
                           >
                             {/* Product Image Thumbnail */}
-                            <div className="w-20 h-20 rounded-xl border border-neutral-100 overflow-hidden flex-shrink-0 bg-neutral-50 shadow-xs flex items-center justify-center relative select-none">
-                              <img src={product.image} alt={product.name} className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-300" />
+                            <div className="w-full md:w-32 h-32 bg-[#f5f3f3] flex items-center justify-center overflow-hidden border border-[#efeded] rounded-sm flex-shrink-0">
+                              <img 
+                                src={product.image} 
+                                alt={product.name} 
+                                className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-500" 
+                              />
                             </div>
 
-                            {/* Details Column */}
-                            <div className="flex-1 min-w-0 w-full space-y-3">
-                              {/* 1st Line: Brand and Name & BDT dynamic price ranges */}
-                              <div className="space-y-1">
-                                <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest block leading-none">
-                                  {product.brand || 'SMARTPHONE'}
+                            {/* Details layout */}
+                            <div className="flex-1 flex flex-col md:flex-row justify-between w-full gap-6">
+                              <div className="space-y-1.5 text-left">
+                                <span className="text-[9px] uppercase tracking-[0.2em] font-bold text-neutral-400">
+                                  {product.brand || 'Smartphone'}
                                 </span>
-                                
-                                <div className="flex items-baseline justify-between gap-4">
-                                  <h3 className="text-[15px] font-medium text-black leading-snug group-hover:text-[#5438ff] transition-colors truncate">
-                                    {product.name}
-                                  </h3>
-                                  
-                                  <span className="text-xs font-semibold text-neutral-850 whitespace-nowrap">
-                                    {(() => {
-                                      const prices = product.variants?.map(v => v.sellingPrice) || [];
-                                      if (prices.length === 0) return 'MSRP N/A';
-                                      const min = Math.min(...prices);
-                                      const max = Math.max(...prices);
-                                      return min === max ? `৳${min.toLocaleString()}` : `৳${min.toLocaleString()} - ৳${max.toLocaleString()}`;
-                                    })()}
-                                  </span>
-                                </div>
+                                <h3 className="text-[17px] font-light text-black tracking-tight leading-snug group-hover:text-[#5438ff] transition-colors">
+                                  {product.name}
+                                </h3>
+                                <p className="text-black font-semibold text-sm">
+                                  {(() => {
+                                    const prices = product.variants?.map(v => v.sellingPrice) || [];
+                                    if (prices.length === 0) return 'MSRP N/A';
+                                    const min = Math.min(...prices);
+                                    const max = Math.max(...prices);
+                                    return min === max ? `৳${min.toLocaleString()}` : `৳${min.toLocaleString()} - ৳${max.toLocaleString()}`;
+                                  })()}
+                                </p>
                               </div>
 
-                              {/* 2nd Line: Dynamic Variant Capsules */}
-                              <div className="flex flex-wrap gap-2 pt-0.5">
-                                {product.variants && product.variants.length > 0 ? (
-                                  product.variants.map((variant) => {
-                                    const threshold = product.lowStockThreshold || 4;
-                                    const isOutOfStock = variant.quantity === 0;
-                                    const isLowStock = variant.quantity > 0 && variant.quantity <= threshold;
+                              <div className="flex-1 max-w-md text-left">
+                                <p className="text-[9px] uppercase tracking-widest font-bold text-neutral-400 mb-3">Variants & Stock</p>
+                                <div className="flex flex-wrap gap-2">
+                                  {product.variants && product.variants.length > 0 ? (
+                                    product.variants.map((variant) => {
+                                      const threshold = product.lowStockThreshold || 4;
+                                      const isOutOfStock = variant.quantity === 0;
+                                      const isLowStock = variant.quantity > 0 && variant.quantity <= threshold;
 
-                                    return (
-                                      <span 
-                                        key={variant.id} 
-                                        className={`inline-flex items-center gap-1.5 text-[11px] font-normal px-2.5 py-1 rounded-full border transition-all
-                                          ${isOutOfStock ? 'bg-neutral-50 text-neutral-400 border-neutral-100' :
-                                            isLowStock ? 'bg-rose-50 text-rose-700 border-rose-200/50' :
-                                            'bg-neutral-50 text-neutral-800 border-neutral-200'}`}
-                                      >
-                                        <span className={`w-1.5 h-1.5 rounded-full ${
-                                          isOutOfStock ? 'bg-neutral-300' :
-                                          isLowStock ? 'bg-rose-500 animate-pulse' : 'bg-green-500'
-                                        }`} />
-                                        <span>
-                                          {variant.color} {variant.ram.replace('GB', '')}/{variant.storage.replace('GB', '')}
+                                      return (
+                                        <span 
+                                          key={variant.id} 
+                                          className={`px-3 py-1 text-[11px] font-medium border rounded-sm transition-all
+                                            ${isOutOfStock 
+                                              ? 'bg-[#f5f3f3] border-[#efeded] text-neutral-400 opacity-55 italic' 
+                                              : isLowStock 
+                                                ? 'bg-rose-50 border-rose-250 text-rose-700 font-semibold' 
+                                                : 'bg-[#f5f3f3] border-[#efeded] text-neutral-800'}`}
+                                        >
+                                          {variant.color} {variant.ram.replace('GB', '')}/{variant.storage.replace('GB', '')} ({variant.quantity})
                                         </span>
-                                        <span className="font-bold text-[10px] ml-0.5 opacity-90">({variant.quantity})</span>
-                                      </span>
-                                    );
-                                  })
-                                ) : (
-                                  /* Fallback if no specific variants list exists */
-                                  (() => {
-                                    const threshold = product.lowStockThreshold || 4;
-                                    const isOutOfStock = product.stock === 0;
-                                    const isLowStock = product.stock > 0 && product.stock <= threshold;
+                                      );
+                                    })
+                                  ) : (
+                                    (() => {
+                                      const threshold = product.lowStockThreshold || 4;
+                                      const isOutOfStock = product.stock === 0;
+                                      const isLowStock = product.stock > 0 && product.stock <= threshold;
 
-                                    return (
-                                      <span 
-                                        className={`inline-flex items-center gap-1.5 text-[11px] font-normal px-2.5 py-1 rounded-full border transition-all
-                                          ${isOutOfStock ? 'bg-neutral-50 text-neutral-400 border-neutral-100' :
-                                            isLowStock ? 'bg-rose-50 text-rose-700 border-rose-200/50' :
-                                            'bg-neutral-50 text-neutral-800 border-neutral-200'}`}
-                                      >
-                                        <span className={`w-1.5 h-1.5 rounded-full ${
-                                          isOutOfStock ? 'bg-neutral-300' :
-                                          isLowStock ? 'bg-rose-500 animate-pulse' : 'bg-green-500'
-                                        }`} />
-                                        <span>Total Stock</span>
-                                        <span className="font-bold text-[10px] ml-0.5 opacity-90">({product.stock})</span>
-                                      </span>
-                                    );
-                                  })()
-                                )}
+                                      return (
+                                        <span 
+                                          className={`px-3 py-1 text-[11px] font-medium border rounded-sm transition-all
+                                            ${isOutOfStock 
+                                              ? 'bg-[#f5f3f3] border-[#efeded] text-neutral-400 opacity-55 italic' 
+                                              : isLowStock 
+                                                ? 'bg-rose-50 border-rose-250 text-rose-700 font-semibold' 
+                                                : 'bg-[#f5f3f3] border-[#efeded] text-neutral-800'}`}
+                                        >
+                                          Total Stock ({product.stock})
+                                        </span>
+                                      );
+                                    })()
+                                  )}
+                                </div>
                               </div>
 
-                              {/* 3rd Line: Action Toolbar (Mark Sold, Preview, restock edit) */}
-                              <div className="flex items-center justify-between pt-3 border-t border-gray-100/60">
-                                <div className="flex items-center gap-4">
-                                  <button 
-                                    onClick={() => setPreviewingProduct(product)}
-                                    className="flex items-center gap-1.5 text-[10px] text-gray-500 hover:text-black font-bold uppercase tracking-widest transition-colors cursor-pointer"
-                                  >
-                                    <ExternalLink size={12} className="stroke-[2.5]" />
-                                    <span>Preview</span>
-                                  </button>
-
-                                  <button 
-                                    onClick={() => setEditingProduct(product)}
-                                    className="flex items-center gap-1.5 text-[10px] text-gray-500 hover:text-black font-bold uppercase tracking-widest transition-colors cursor-pointer"
-                                  >
-                                    <span>Modify Specs</span>
-                                  </button>
-                                </div>
-
+                              <div className="flex md:flex-col gap-2 justify-end items-stretch md:w-32">
+                                <button 
+                                  onClick={() => setPreviewingProduct(product)}
+                                  className="text-[9px] font-bold uppercase tracking-widest border border-[#efeded] px-4 py-2 hover:bg-black hover:text-white hover:border-black transition-all cursor-pointer rounded-sm text-center"
+                                >
+                                  Preview
+                                </button>
+                                <button 
+                                  onClick={() => setEditingProduct(product)}
+                                  className="text-[9px] font-bold uppercase tracking-widest border border-[#efeded] px-4 py-2 hover:bg-black hover:text-white hover:border-black transition-all cursor-pointer rounded-sm text-center"
+                                >
+                                  Modify Specs
+                                </button>
                                 <button 
                                   onClick={() => handleMarkAsSoldClick(product)}
                                   disabled={product.stock === 0}
-                                  className={`flex items-center gap-1.5 px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest transition-all rounded-md cursor-pointer shadow-xs
+                                  className={`text-[9px] font-bold uppercase tracking-widest transition-colors py-2 text-center rounded-sm cursor-pointer
                                     ${product.stock === 0 
-                                      ? 'bg-neutral-100 text-neutral-400 border border-neutral-200 cursor-not-allowed line-through shadow-none' 
-                                      : 'bg-[#5438ff] text-white hover:bg-[#4324ff]'}`}
+                                      ? 'text-neutral-350 line-through cursor-not-allowed' 
+                                      : 'text-[#5e5e5d] hover:text-[#ba1a1a]'}`}
                                 >
-                                  <Plus size={11} className="stroke-[3]" />
-                                  <span>Mark Sold</span>
+                                  Mark Sold
                                 </button>
                               </div>
                             </div>
                           </motion.div>
                         ))}
-                      </div>
                     </div>
 
                   </div>
