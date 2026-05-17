@@ -35,12 +35,37 @@ import { SidebarSection, SidebarItem, SidebarSubItem, NavItem } from '@/componen
 import NewProductScreen from '@/components/NewProductScreen';
 import ProductDetailsScreen from '@/components/ProductDetailsScreen';
 import { Product } from '@/types/zenvy';
-import { jsPDF } from 'jspdf';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
+import { Suspense } from 'react';
+import POSCheckoutModal from '@/components/POSCheckoutModal';
+import MarkSoldModal from '@/components/MarkSoldModal';
+import InvoiceSuccessModal from '@/components/InvoiceSuccessModal';
+
 import confetti from 'canvas-confetti';
 
-export default function DashboardPage() {
+function DashboardContent() {
   const { storeName } = useZenvy();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState('Home');
+
+  // Sync activeTab with URL search parameters on mount / changes
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam) {
+      const formatted = tabParam.charAt(0).toUpperCase() + tabParam.slice(1).toLowerCase();
+      if (['Home', 'Products', 'Orders'].includes(formatted)) {
+        setActiveTab(formatted);
+      }
+    }
+  }, [searchParams]);
+
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('tab', tab.toLowerCase());
+    router.push(`?${params.toString()}`);
+  };
   const [searchTerm, setSearchTerm] = useState('');
   const [activeProductFilter, setActiveProductFilter] = useState('All');
   const [isCreatingProduct, setIsCreatingProduct] = useState(false);
@@ -213,459 +238,16 @@ export default function DashboardPage() {
 
   const handleMarkAsSoldClick = (product: Product) => {
     setActiveMarkSoldProduct(product);
-    // Find the first variant with stock > 0, otherwise default to first variant
-    const firstInStock = product.variants?.find(v => v.quantity > 0) || product.variants?.[0] || null;
-    setSelectedMarkSoldVariant(firstInStock);
-    setSoldQty(1);
-    setBuyerName('');
-    setInvoiceSaleData(null);
-  };
 
-  const handleConfirmSale = () => {
-    if (!activeMarkSoldProduct || !selectedMarkSoldVariant) return;
 
-    const qtyToDeduct = soldQty;
-    const pId = activeMarkSoldProduct.id;
-    const vId = selectedMarkSoldVariant.id;
-    const customer = buyerName.trim() || 'Walk-in Customer';
 
-    // 1. Mutate state productList: decrement variant quantity
-    setProductList(prevList => prevList.map(p => {
-      if (p.id === pId) {
-        const updatedVariants = p.variants?.map(v => 
-          v.id === vId ? { ...v, quantity: Math.max(0, v.quantity - qtyToDeduct) } : v
-        ) || [];
-        const newTotalStock = updatedVariants.reduce((sum, v) => sum + v.quantity, 0);
-        
-        const dateStr = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        const logText = `Sold ${qtyToDeduct} unit${qtyToDeduct > 1 ? 's' : ''} to ${customer} — ${selectedMarkSoldVariant.color} ${selectedMarkSoldVariant.ram}/${selectedMarkSoldVariant.storage} — ${dateStr}`;
 
-        return {
-          ...p,
-          variants: updatedVariants,
-          stock: newTotalStock,
-          history: [
-            { text: logText, type: 'sell' },
-            ...(p.history || [])
-          ]
-        };
-      }
-      return p;
-    }));
 
-    // 2. Add dynamic entry to dashboard bottom activity feed
-    const activityText = `Marked sold`;
-    const productDetail = `${activeMarkSoldProduct.brand} ${activeMarkSoldProduct.name} ${selectedMarkSoldVariant.color} ${selectedMarkSoldVariant.ram}/${selectedMarkSoldVariant.storage} (Qty: ${qtyToDeduct})`;
-    setRecentActivities(prev => [
-      { 
-        type: 'sold', 
-        text: activityText, 
-        product: productDetail, 
-        time: 'Just now' 
-      },
-      ...prev
-    ].slice(0, 10));
 
-    // 3. Set invoice sale data for receipt modal
-    const finalInvoice = {
-      shopName: storeName || 'Zenvy Store',
-      invoiceNumber: `ZN-${Date.now().toString().slice(-6)}`,
-      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-      buyerName: customer,
-      productName: activeMarkSoldProduct.name,
-      brandName: activeMarkSoldProduct.brand || 'Generic',
-      variantColor: selectedMarkSoldVariant.color,
-      variantSpecs: `${selectedMarkSoldVariant.ram}/${selectedMarkSoldVariant.storage}`,
-      price: selectedMarkSoldVariant.sellingPrice,
-      qty: qtyToDeduct,
-      total: selectedMarkSoldVariant.sellingPrice * qtyToDeduct
-    };
-    setInvoiceSaleData(finalInvoice);
-
-    // 4. Trigger confetti explosion for wow moment!
-    confetti({
-      particleCount: 120,
-      spread: 70,
-      origin: { y: 0.6 }
-    });
-
-    // 5. Close mark sold modal
-    setActiveMarkSoldProduct(null);
-  };
-
-  const generateBrandedInvoicePDF = (receipt: any) => {
-    const doc = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: 'a4'
-    });
-
-    const darkColor = [26, 28, 29]; // Clean charcoal black
-    const greyColor = [100, 100, 105]; // Slate grey
-    const lightBorder = [221, 221, 221]; // #dddddd dividers
-
-    // --- 1. Elegant Minimalist Header ---
-    doc.setFont("times", "bold");
-    doc.setFontSize(20);
-    doc.setTextColor(68, 68, 68);
-    doc.text(`${receipt.shopName}.`, 15, 26);
-    
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9.5);
-    doc.setTextColor(greyColor[0], greyColor[1], greyColor[2]);
-    doc.text("Premium Smartphone Distribution Outlet", 15, 32);
-    doc.text("Dhaka, Bangladesh  |  Phone: 01712 345678  |  zenvy.com.bd", 15, 37);
-
-    // Invoice Details (Right Aligned)
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(20);
-    doc.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
-    doc.text("INVOICE", 195, 26, { align: "right" });
-    
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9.5);
-    doc.setTextColor(80, 80, 85);
-    doc.text(`Invoice Number: ${receipt.invoiceNumber}`, 195, 32, { align: "right" });
-    doc.text(`Date: ${receipt.date}`, 195, 37, { align: "right" });
-    doc.text(`Status: PAID`, 195, 42, { align: "right" });
-
-    // --- 2. Billed To Block (Generous Spacing) ---
-    let metaY = 58;
-    
-    // Left Column: Issued To
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(11);
-    doc.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
-    doc.text("Issued To:", 15, metaY);
-
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9.5);
-    doc.setTextColor(greyColor[0], greyColor[1], greyColor[2]);
-    doc.text(`Name: ${receipt.buyerName}`, 15, metaY + 6);
-    doc.text("Type: Walk-in Customer", 15, metaY + 11);
-    doc.text("Channel: Verified Smartphone Transaction", 15, metaY + 16);
-
-    // Middle Column: Pay To
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(11);
-    doc.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
-    doc.text("Pay To / Outlet:", 95, metaY);
-
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9.5);
-    doc.setTextColor(greyColor[0], greyColor[1], greyColor[2]);
-    doc.text(`Outlet: ${receipt.shopName}`, 95, metaY + 6);
-    doc.text("Phone: +8801712345678", 95, metaY + 11);
-    doc.text("Website: zenvy.com.bd", 95, metaY + 16);
-
-    // --- 3. Elegant Table Headers ---
-    let yStart = metaY + 29;
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(10);
-    doc.setTextColor(0, 0, 0);
-    doc.text("Service / Device", 15, yStart);
-    doc.text("Unit Price", 125, yStart, { align: "right" });
-    doc.text("Duration / Qty", 155, yStart, { align: "right" });
-    doc.text("Amount", 195, yStart, { align: "right" });
-
-    // Thin stroke divider matching '#dddddd'
-    doc.setDrawColor(lightBorder[0], lightBorder[1], lightBorder[2]);
-    doc.setLineWidth(0.4);
-    doc.line(15, yStart + 3, 195, yStart + 3);
-
-    let currentY = yStart + 3;
-
-    receipt.items.forEach((item: any) => {
-      currentY += 8;
-      
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(9.5);
-      doc.setTextColor(68, 68, 68);
-      const desc = item.description || `${item.brand || ''} ${item.name || ''} - ${item.color || ''} (${item.specs || ''})`.trim();
-      doc.text(desc, 15, currentY);
-
-      doc.text(`Tk ${item.price.toLocaleString()}`, 125, currentY, { align: "right" });
-      doc.text(String(item.quantity), 155, currentY, { align: "right" });
-      
-      doc.text(`Tk ${item.total.toLocaleString()}`, 195, currentY, { align: "right" });
-    });
-
-    currentY += 6;
-    // Bottom border under table rows
-    doc.setDrawColor(lightBorder[0], lightBorder[1], lightBorder[2]);
-    doc.setLineWidth(0.4);
-    doc.line(15, currentY, 195, currentY);
-
-    // --- 4. Totals Area ---
-    currentY += 10;
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9.5);
-    doc.setTextColor(68, 68, 68);
-    doc.text("Subtotal:", 135, currentY);
-    doc.text(`Tk ${receipt.subtotal.toLocaleString()}`, 195, currentY, { align: "right" });
-
-    if (receipt.discount > 0) {
-      currentY += 6;
-      doc.text("Discount:", 135, currentY);
-      doc.text(`-Tk ${receipt.discount.toLocaleString()}`, 195, currentY, { align: "right" });
-    }
-
-    currentY += 7;
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
-    doc.text("Total Paid:", 135, currentY);
-    doc.text(`Tk ${receipt.total.toLocaleString()}`, 195, currentY, { align: "right" });
-
-    // --- 5. Clean Times-Italic Signature ---
-    let signatureY = 222;
-    const signName = receipt.shopName.split(' ')[0] || 'Zenvy';
-    
-    doc.setFont("times", "italic");
-    doc.setFontSize(32);
-    doc.setTextColor(0, 0, 0);
-    doc.text(signName, 15, signatureY);
-
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(10);
-    doc.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
-    doc.text("Authorized Representative", 15, signatureY + 8);
-
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9.5);
-    doc.setTextColor(greyColor[0], greyColor[1], greyColor[2]);
-    doc.text(`Founder, ${receipt.shopName}`, 15, signatureY + 13);
-
-    // --- 6. PAID Stamp Overlay (Slanted Indigo Ink Stamp) ---
-    doc.setTextColor(90, 82, 213); // #5a52d5 matching SmartCAF color
-    doc.setFont("times", "bold");
-    doc.setFontSize(44);
-    // Draw slanted text at x=142, y=signatureY + 2 with rotation angle 12 degrees
-    doc.text("PAID", 142, signatureY + 2, { angle: 12 });
-
-    // --- 7. Clean Monochromatic Footer ---
-    doc.setDrawColor(lightBorder[0], lightBorder[1], lightBorder[2]);
-    doc.setLineWidth(0.3);
-    doc.line(15, 262, 195, 262);
-
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(9);
-    doc.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
-    doc.text("Thank you for your purchase!", 15, 268);
-
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(8);
-    doc.setTextColor(greyColor[0], greyColor[1], greyColor[2]);
-    doc.text("For support, warranties, or transaction inquiries, contact our customer helpdesk.", 15, 272);
-
-    // Subtle powered by watermark
-    doc.setFont("helvetica", "oblique");
-    doc.setFontSize(7.5);
-    doc.setTextColor(165, 165, 170);
-    doc.text("Powered by StockNet - Premium Smartphone Terminal", 195, 268, { align: "right" });
-    doc.text("zenvy.com.bd/stocknet", 195, 272, { align: "right" });
-
-    doc.save(`${receipt.invoiceNumber}_invoice.pdf`);
-  };
-
-  const handleDownloadPDF = (data: any) => {
-    // Map single variant invoice details to A4 invoice
-    const A4Receipt = {
-      shopName: data.shopName,
-      invoiceNumber: data.invoiceNumber,
-      date: data.date,
-      time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-      buyerName: data.buyerName,
-      items: [{
-        description: `${data.brandName} ${data.productName} - ${data.variantColor} (${data.variantSpecs})`,
-        quantity: data.qty,
-        price: data.price,
-        total: data.total
-      }],
-      subtotal: data.total,
-      discount: 0,
-      total: data.total
-    };
-    generateBrandedInvoicePDF(A4Receipt);
-  };
-
-  const handleShareWhatsApp = (data: any) => {
-    const textMessage = `Hello ${data.buyerName},\n\nThank you for purchasing at ${data.shopName}!\nHere is your receipt details:\n\n*Invoice No:* ${data.invoiceNumber}\n*Date:* ${data.date}\n*Device:* ${data.brandName} ${data.productName} - ${data.variantColor} (${data.variantSpecs})\n*Quantity:* ${data.qty}\n*Price:* Tk ${data.price.toLocaleString()}\n*Total Amount:* *Tk ${data.total.toLocaleString()}*\n\nThank you for shopping with us! Have a wonderful day! 🌟`;
-    const encodedText = encodeURIComponent(textMessage);
-    window.open(`https://api.whatsapp.com/send?text=${encodedText}`, '_blank');
   };
 
   const handleOpenCheckout = () => {
     setPosCheckoutOpen(true);
-    setPosStep(1);
-    setPosCart([]);
-    setPosSearch('');
-    setPosBuyerName('');
-    setPosDiscountType('flat');
-    setPosDiscountValue(0);
-    setPosSuccessData(null);
-    setExpandedProductId(null);
-  };
-
-  const handleAddToCart = (product: Product, variant: any) => {
-    setPosCart(prevCart => {
-      const existingItemIndex = prevCart.findIndex(item => item.variant.id === variant.id);
-      if (existingItemIndex > -1) {
-        const existingItem = prevCart[existingItemIndex];
-        if (existingItem.quantity >= variant.quantity) {
-          // Cannot add more than in-stock
-          return prevCart;
-        }
-        const updatedCart = [...prevCart];
-        updatedCart[existingItemIndex] = {
-          ...existingItem,
-          quantity: existingItem.quantity + 1
-        };
-        return updatedCart;
-      } else {
-        return [...prevCart, {
-          product,
-          variant,
-          quantity: 1,
-          overridePrice: variant.sellingPrice
-        }];
-      }
-    });
-  };
-
-  const handleDecrementFromCart = (variantId: string) => {
-    setPosCart(prevCart => {
-      const existingItemIndex = prevCart.findIndex(item => item.variant.id === variantId);
-      if (existingItemIndex > -1) {
-        const existingItem = prevCart[existingItemIndex];
-        if (existingItem.quantity <= 1) {
-          return prevCart.filter(item => item.variant.id !== variantId);
-        }
-        const updatedCart = [...prevCart];
-        updatedCart[existingItemIndex] = {
-          ...existingItem,
-          quantity: existingItem.quantity - 1
-        };
-        return updatedCart;
-      }
-      return prevCart;
-    });
-  };
-
-  const handleRemoveFromCart = (variantId: string) => {
-    setPosCart(prevCart => prevCart.filter(item => item.variant.id !== variantId));
-  };
-
-  const handleUpdateCartItemQty = (variantId: string, qty: number, maxQty: number) => {
-    const cleanQty = Math.max(1, Math.min(maxQty, qty));
-    setPosCart(prevCart => prevCart.map(item => 
-      item.variant.id === variantId ? { ...item, quantity: cleanQty } : item
-    ));
-  };
-
-  const handleUpdateCartItemPrice = (variantId: string, newPrice: number) => {
-    const cleanPrice = Math.max(0, newPrice);
-    setPosCart(prevCart => prevCart.map(item => 
-      item.variant.id === variantId ? { ...item, overridePrice: cleanPrice } : item
-    ));
-  };
-
-  const handleConfirmPOSSale = () => {
-    if (posCart.length === 0) return;
-
-    const customer = posBuyerName.trim() || 'Walk-in Customer';
-    const subtotal = posCart.reduce((sum, item) => sum + (item.overridePrice * item.quantity), 0);
-    
-    let discountAmount = 0;
-    if (posDiscountType === 'flat') {
-      discountAmount = Math.min(subtotal, posDiscountValue);
-    } else {
-      discountAmount = Math.min(subtotal, Math.round(subtotal * (posDiscountValue / 100)));
-    }
-    const grandTotal = subtotal - discountAmount;
-
-    // 1. Mutate state productList: decrement variant quantity for all sold items
-    setProductList(prevList => prevList.map(p => {
-      // Find all cart items for this product
-      const productCartItems = posCart.filter(item => item.product.id === p.id);
-      if (productCartItems.length === 0) return p;
-
-      const updatedVariants = p.variants?.map(v => {
-        const cartItem = productCartItems.find(item => item.variant.id === v.id);
-        if (cartItem) {
-          return {
-            ...v,
-            quantity: Math.max(0, v.quantity - cartItem.quantity)
-          };
-        }
-        return v;
-      }) || [];
-
-      const newTotalStock = updatedVariants.reduce((sum, v) => sum + v.quantity, 0);
-      const dateStr = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-      
-      const newHistoryLogs = productCartItems.map(item => ({
-        text: `Sold ${item.quantity} unit${item.quantity > 1 ? 's' : ''} to ${customer} — ${item.variant.color} ${item.variant.ram}/${item.variant.storage} — ${dateStr}`,
-        type: 'sell' as const
-      }));
-
-      return {
-        ...p,
-        variants: updatedVariants,
-        stock: newTotalStock,
-        history: [...newHistoryLogs, ...(p.history || [])]
-      };
-    }));
-
-    // 2. Prepends Bottom Feed dynamic activities
-    posCart.forEach(item => {
-      setRecentActivities(prev => [
-        { 
-          type: 'sold', 
-          text: 'Marked sold', 
-          product: `${item.product.brand} ${item.product.name} ${item.variant.color} ${item.variant.ram}/${item.variant.storage} (Qty: ${item.quantity})`, 
-          time: 'Just now' 
-        },
-        ...prev
-      ].slice(0, 10));
-    });
-
-    // 3. Compile POS Invoice receipt data
-    const finalReceipt = {
-      shopName: storeName || 'Zenvy Store',
-      invoiceNumber: `INV-${new Date().getFullYear()}-${Date.now().toString().slice(-4)}`,
-      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-      time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-      buyerName: customer,
-      items: posCart.map(item => ({
-        brand: item.product.brand || 'Generic',
-        name: item.product.name,
-        color: item.variant.color,
-        specs: `${item.variant.ram}/${item.variant.storage}`,
-        quantity: item.quantity,
-        price: item.overridePrice,
-        total: item.overridePrice * item.quantity
-      })),
-      subtotal,
-      discount: discountAmount,
-      total: grandTotal
-    };
-
-    setPosSuccessData(finalReceipt);
-
-    // 4. Confetti Explosion
-    confetti({
-      particleCount: 150,
-      spread: 80,
-      origin: { y: 0.5 }
-    });
-
-    // 5. Haptic Vibe
-    if (typeof navigator !== 'undefined' && navigator.vibrate) {
-      navigator.vibrate([100, 50, 100]);
-    }
-
-    // 6. Transition
-    setPosStep(3);
   };
 
   const handleShareShopCard = () => {
@@ -711,7 +293,7 @@ export default function DashboardPage() {
           <div className="space-y-1">
             <p className="px-6 text-[9px] uppercase tracking-[0.2em] text-[#5e5e5d] mb-2 opacity-50 font-bold">General</p>
             <button 
-              onClick={() => setActiveTab('Home')}
+              onClick={() => handleTabChange('Home')}
               className={`w-full flex items-center gap-3 py-3 px-6 transition-all text-left cursor-pointer border-r-2 text-xs font-semibold ${
                 activeTab === 'Home' 
                   ? 'text-[#020302] font-bold bg-[#f5f3f3] border-[#020302]' 
@@ -723,7 +305,7 @@ export default function DashboardPage() {
             </button>
 
             <button 
-              onClick={() => setActiveTab('Products')}
+              onClick={() => handleTabChange('Products')}
               className={`w-full flex items-center gap-3 py-3 px-6 transition-all text-left cursor-pointer border-r-2 text-xs font-semibold ${
                 activeTab === 'Products' 
                   ? 'text-[#020302] font-bold bg-[#f5f3f3] border-[#020302]' 
@@ -735,7 +317,7 @@ export default function DashboardPage() {
             </button>
 
             <button 
-              onClick={() => setActiveTab('Orders')}
+              onClick={() => handleTabChange('Orders')}
               className={`w-full flex items-center gap-3 py-3 px-6 transition-all text-left cursor-pointer border-r-2 text-xs font-semibold ${
                 activeTab === 'Orders' 
                   ? 'text-[#020302] font-bold bg-[#f5f3f3] border-[#020302]' 
@@ -933,7 +515,7 @@ export default function DashboardPage() {
                       <button 
                         onClick={() => {
                           setShowSuccessOverlay(false);
-                          setActiveTab('Products');
+                          handleTabChange('Products');
                         }}
                         className="w-full py-4 text-sm bg-gray-50 text-gray-500 font-bold border border-gray-300 hover:bg-gray-100 transition-all"
                       >
@@ -945,855 +527,32 @@ export default function DashboardPage() {
               )}
             </AnimatePresence>
 
-            {/* Modal 1: Mark as Sold Dialog */}
-            <AnimatePresence>
-              {activeMarkSoldProduct && (
-                <div className="fixed inset-0 bg-black/60 z-[200] flex items-center justify-center p-4 backdrop-blur-sm">
-                  {/* Backdrop Click to Close */}
-                  <div className="absolute inset-0" onClick={() => setActiveMarkSoldProduct(null)} />
-                  
-                  <motion.div 
-                    initial={{ scale: 0.95, opacity: 0, y: 10 }}
-                    animate={{ scale: 1, opacity: 1, y: 0 }}
-                    exit={{ scale: 0.95, opacity: 0, y: 10 }}
-                    className="bg-white max-w-md w-full shadow-2xl relative text-left border border-gray-100 flex flex-col p-6 rounded-2xl overflow-hidden z-10"
-                  >
-                    {/* Header */}
-                    <div className="flex items-center justify-between border-b border-gray-100 pb-4 mb-5">
-                      <h3 className="text-base font-sans font-semibold text-[#1a1c1d] tracking-tight">Record Smartphone Sale</h3>
-                      <button 
-                        onClick={() => setActiveMarkSoldProduct(null)} 
-                        className="text-gray-400 hover:text-neutral-900 transition-colors cursor-pointer p-1 hover:bg-neutral-50 rounded-full"
-                      >
-                        <X size={18} />
-                      </button>
-                    </div>
+            {/* Modular Modals */}
+            <POSCheckoutModal
+              isOpen={posCheckoutOpen}
+              onClose={() => setPosCheckoutOpen(false)}
+              productList={productList}
+              setProductList={setProductList}
+              setRecentActivities={setRecentActivities}
+              storeName={storeName}
+            />
 
-                    {/* Product Specs Showcase */}
-                    <div className="flex gap-3 bg-[#f6f6f7] border border-gray-100 p-3 mb-5 rounded-xl">
-                      <div className="w-12 h-12 bg-white border border-gray-150 rounded-lg overflow-hidden flex-shrink-0 flex items-center justify-center">
-                        <img 
-                          src={activeMarkSoldProduct.image} 
-                          alt={activeMarkSoldProduct.name} 
-                          className="w-full h-full object-cover" 
-                        />
-                      </div>
-                      <div className="min-w-0 flex flex-col justify-center">
-                        <h4 className="text-xs font-bold text-neutral-900 leading-snug">{activeMarkSoldProduct.name}</h4>
-                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-0.5">{activeMarkSoldProduct.brand}</p>
-                      </div>
-                    </div>
+            <MarkSoldModal
+              isOpen={!!activeMarkSoldProduct}
+              onClose={() => setActiveMarkSoldProduct(null)}
+              product={activeMarkSoldProduct}
+              setProductList={setProductList}
+              setRecentActivities={setRecentActivities}
+              storeName={storeName}
+              onSaleRecorded={(invoice) => setInvoiceSaleData(invoice)}
+            />
 
-                    {/* Select Variant */}
-                    <div className="space-y-2 mb-5">
-                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Select Sold Variant</label>
-                      <div className="grid grid-cols-2 gap-2 max-h-[160px] overflow-y-auto pr-1">
-                        {activeMarkSoldProduct.variants?.map((v) => {
-                          const isSelected = selectedMarkSoldVariant?.id === v.id;
-                          const isOutOfStock = v.quantity === 0;
-                          return (
-                            <button
-                              key={v.id}
-                              type="button"
-                              disabled={isOutOfStock}
-                              onClick={() => {
-                                setSelectedMarkSoldVariant(v);
-                                setSoldQty(1); // reset qty limits
-                              }}
-                              className={`p-3 text-left border transition-all flex flex-col justify-between rounded-xl relative cursor-pointer h-[66px]
-                                ${isOutOfStock 
-                                  ? 'opacity-30 bg-[#f6f6f7] border-gray-100 cursor-not-allowed line-through' 
-                                  : isSelected 
-                                    ? 'border-black bg-black text-white shadow-sm' 
-                                    : 'border-gray-200 bg-white hover:border-gray-400 hover:shadow-xs'}`}
-                            >
-                              <span className="text-xs font-bold truncate block w-full">{v.color}</span>
-                              <span className={`text-[10px] font-semibold mt-0.5 block ${isSelected ? 'text-gray-300' : 'text-gray-500'}`}>
-                                {v.ram}/{v.storage} • {isOutOfStock ? '0 Stock' : `${v.quantity} Stock`}
-                              </span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
+            <InvoiceSuccessModal
+              isOpen={!!invoiceSaleData}
+              onClose={() => setInvoiceSaleData(null)}
+              invoiceData={invoiceSaleData}
+            />
 
-                    {/* Quantity and Buyer Fields */}
-                    {selectedMarkSoldVariant && (
-                      <div className="grid grid-cols-2 gap-4 mb-6">
-                        {/* Stepper */}
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Quantity</label>
-                          <div className="flex items-center border border-gray-200 h-[42px] rounded-xl bg-white">
-                            <button
-                              type="button"
-                              onClick={() => setSoldQty(q => Math.max(1, q - 1))}
-                              className="w-10 h-full flex items-center justify-center hover:bg-neutral-50 text-neutral-800 transition-colors cursor-pointer"
-                            >
-                              <Minus size={12} strokeWidth={2.5} />
-                            </button>
-                            <span className="flex-1 text-center font-bold text-xs text-neutral-950">{soldQty}</span>
-                            <button
-                              type="button"
-                              onClick={() => setSoldQty(q => Math.min(selectedMarkSoldVariant.quantity, q + 1))}
-                              className="w-10 h-full flex items-center justify-center hover:bg-neutral-50 text-neutral-800 transition-colors cursor-pointer"
-                            >
-                              <Plus size={12} strokeWidth={2.5} />
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Buyer Name */}
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Buyer (Optional)</label>
-                          <input
-                            type="text"
-                            value={buyerName}
-                            onChange={(e) => setBuyerName(e.target.value)}
-                            placeholder="e.g. John Doe"
-                            className="w-full border border-gray-200 px-3.5 h-[42px] text-xs font-semibold focus:outline-none focus:border-black focus:ring-1 focus:ring-black/5 rounded-xl transition-all"
-                          />
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Footer Actions */}
-                    <div className="flex gap-3.5 border-t border-gray-100 pt-4 mt-6">
-                      <button
-                        type="button"
-                        onClick={() => setActiveMarkSoldProduct(null)}
-                        className="flex-1 py-3 text-xs bg-gray-50 hover:bg-gray-100 text-gray-700 font-bold uppercase tracking-wider rounded-xl transition-all cursor-pointer text-center"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="button"
-                        disabled={!selectedMarkSoldVariant || selectedMarkSoldVariant.quantity === 0}
-                        onClick={handleConfirmSale}
-                        className={`flex-1 py-3 text-xs text-white font-bold uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-sm text-center
-                          ${(!selectedMarkSoldVariant || selectedMarkSoldVariant.quantity === 0)
-                            ? 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-none'
-                            : 'bg-black hover:bg-neutral-900'}`}
-                      >
-                        Confirm Sale
-                      </button>
-                    </div>
-
-                  </motion.div>
-                </div>
-              )}
-            </AnimatePresence>
-
-            {/* Modal 2: Invoice Receipt Success Panel */}
-            <AnimatePresence>
-              {invoiceSaleData && (
-                <div className="fixed inset-0 bg-black/60 z-[200] flex items-center justify-center p-4 backdrop-blur-sm">
-                  {/* Backdrop Click to Close */}
-                  <div className="absolute inset-0" onClick={() => setInvoiceSaleData(null)} />
-                  
-                  <motion.div 
-                    initial={{ scale: 0.95, opacity: 0, y: 10 }}
-                    animate={{ scale: 1, opacity: 1, y: 0 }}
-                    exit={{ scale: 0.95, opacity: 0, y: 10 }}
-                    className="bg-white max-w-sm w-full shadow-2xl relative text-left border border-gray-100 flex flex-col p-6 rounded-2xl overflow-hidden z-10"
-                  >
-                    {/* Visual Success Icon */}
-                    <div className="w-12 h-12 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-3 text-emerald-600 shadow-inner">
-                      <CheckCircle2 size={24} className="stroke-[2.5]" />
-                    </div>
-
-                    <h3 className="text-base font-sans font-semibold text-neutral-900 text-center tracking-tight">Sale Recorded!</h3>
-                    <p className="text-[11px] text-gray-500 text-center mt-1 font-light leading-relaxed">
-                      Inventory has been adjusted. Print or share a digital receipt.
-                    </p>
-
-                    {/* Receipt Mock Paper Preview */}
-                    <div className="my-5 p-4 bg-[#f8f8f9] rounded-2xl border border-gray-150 font-mono text-[10px] text-neutral-800 space-y-3 relative overflow-hidden shadow-xs">
-                      
-                      {/* Receipt Header */}
-                      <div className="text-center border-b border-dashed border-gray-200 pb-2.5">
-                        <p className="font-bold text-xs uppercase tracking-widest text-neutral-900">{invoiceSaleData.shopName}</p>
-                        <p className="text-[8px] text-gray-400 font-sans mt-0.5 uppercase tracking-wider">Smartphone Merchant Terminal</p>
-                      </div>
-
-                      {/* Info Block */}
-                      <div className="space-y-0.5 text-neutral-600">
-                        <p className="flex justify-between">
-                          <span>Invoice No:</span>
-                          <strong className="text-neutral-900 font-bold">{invoiceSaleData.invoiceNumber}</strong>
-                        </p>
-                        <p className="flex justify-between">
-                          <span>Date:</span>
-                          <span className="text-neutral-800">{invoiceSaleData.date}</span>
-                        </p>
-                        <p className="flex justify-between">
-                          <span>Customer:</span>
-                          <span className="text-neutral-800 truncate max-w-[150px]">{invoiceSaleData.buyerName}</span>
-                        </p>
-                      </div>
-
-                      {/* Items block */}
-                      <div className="border-t border-b border-dashed border-gray-200 py-2">
-                        <div className="flex justify-between font-bold text-neutral-900 mb-1 text-[9px] uppercase tracking-wider">
-                          <span>Item / Description</span>
-                          <span>Qty / Total</span>
-                        </div>
-                        <div className="flex justify-between leading-snug">
-                          <div className="truncate pr-3 max-w-[180px]">
-                            <p className="font-bold text-neutral-950 text-[10px] truncate">{invoiceSaleData.brandName} {invoiceSaleData.productName}</p>
-                            <p className="text-[8px] text-gray-400 italic">{invoiceSaleData.variantColor} • {invoiceSaleData.variantSpecs}</p>
-                          </div>
-                          <div className="text-right flex-shrink-0">
-                            <p className="text-neutral-950 font-bold">{invoiceSaleData.qty} x Tk {invoiceSaleData.price.toLocaleString()}</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Grand Total */}
-                      <div className="flex justify-between items-baseline font-bold text-xs text-neutral-950 pt-1">
-                        <span>GRAND TOTAL:</span>
-                        <span className="text-sm text-neutral-900 font-bold">Tk {invoiceSaleData.total.toLocaleString()}</span>
-                      </div>
-
-                      {/* Footer Message */}
-                      <div className="text-center text-[8px] text-gray-400 pt-2 border-t border-dashed border-gray-200 italic">
-                        Thank you for shopping with us!
-                      </div>
-                    </div>
-
-                    {/* Actions Grid */}
-                    <div className="space-y-2">
-                      <button
-                        onClick={() => handleDownloadPDF(invoiceSaleData)}
-                        className="w-full py-3 bg-black hover:bg-neutral-900 text-white font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5 rounded-xl transition-all cursor-pointer shadow-sm"
-                      >
-                        <Receipt size={13} />
-                        <span>Download PDF Receipt</span>
-                      </button>
-                      
-                      <button
-                        onClick={() => handleShareWhatsApp(invoiceSaleData)}
-                        className="w-full py-3 bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5 rounded-xl transition-all cursor-pointer shadow-sm shadow-[#25D366]/10"
-                      >
-                        <Share2 size={13} />
-                        <span>Share via WhatsApp</span>
-                      </button>
-
-                      <button
-                        onClick={() => setInvoiceSaleData(null)}
-                        className="w-full py-2.5 bg-gray-50 hover:bg-gray-100 text-gray-500 hover:text-gray-700 text-[10px] font-bold uppercase tracking-wider transition-all rounded-xl cursor-pointer"
-                      >
-                        Done / Close
-                      </button>
-                    </div>
-
-                  </motion.div>
-                </div>
-              )}
-            </AnimatePresence>
-
-            {/* Modal 3: Complete Sale POS Checkout Drawer */}
-            <AnimatePresence>
-              {posCheckoutOpen && posStep === 1 && (
-                <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-[#020302]/20 backdrop-blur-sm">
-                  {/* Backdrop Close Click */}
-                  <div className="absolute inset-0" onClick={() => setPosCheckoutOpen(false)} />
-
-                  <motion.div 
-                    initial={{ opacity: 0, y: 100 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 100 }}
-                    transition={{ type: "spring", stiffness: 350, damping: 35 }}
-                    className="w-full max-w-2xl z-[210] flex flex-col font-sans text-on-surface"
-                  >
-                    {/* Step 1: Select Products */}
-                    <div className="bg-[#fbf9f9] w-full max-h-[85vh] sm:max-h-[90vh] md:max-h-[850px] flex flex-col rounded-t-2xl sm:rounded-xl border-t sm:border border-[#c7c7bf] shadow-2xl overflow-hidden">
-                      {/* Modal Header */}
-                      <div className="px-4 pt-5 pb-3 sm:px-8 sm:pt-8 sm:pb-4 flex justify-between items-center shrink-0">
-                        <h1 className="font-medium text-xl sm:text-2xl md:text-[32px] tracking-[0.01em] text-[#020302]">Select Products</h1>
-                        <button 
-                          type="button"
-                          onClick={() => setPosCheckoutOpen(false)} 
-                          className="p-1.5 sm:p-2 hover:bg-[#f5f3f3] rounded-full transition-all cursor-pointer"
-                        >
-                          <X size={20} className="text-[#464741] sm:hidden" />
-                          <X size={24} className="text-[#464741] hidden sm:block" />
-                        </button>
-                      </div>
-                      
-                      {/* Search Section */}
-                      <div className="px-4 pb-4 sm:px-8 sm:pb-6 border-b border-[#c7c7bf]/30 shrink-0">
-                        <div className="relative flex items-center">
-                          <Search size={18} className="absolute left-3.5 text-[#464741] sm:hidden" />
-                          <Search size={20} className="absolute left-4 text-[#464741] hidden sm:block" />
-                          <input
-                            type="text"
-                            value={posSearch}
-                            onChange={(e) => setPosSearch(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2.5 sm:pl-12 sm:pr-4 sm:py-3 bg-white border border-[#c7c7bf] rounded-lg text-sm sm:text-base font-light text-[#1b1c1c] focus:outline-none focus:border-[#020302] transition-colors placeholder:text-[#464741]/50"
-                            placeholder="Search mobile by name, brand..."
-                          />
-                          {posSearch && (
-                            <button 
-                              type="button"
-                              onClick={() => setPosSearch('')} 
-                              className="absolute right-4 text-[#464741] cursor-pointer"
-                            >
-                              <X size={16} />
-                            </button>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Product List Area */}
-                      <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-8 sm:py-6 space-y-4 sm:space-y-6 bg-[#ffffff]">
-                        {(() => {
-                          const query = posSearch.toLowerCase().trim();
-                          const filtered = productList.filter(p => {
-                            if (p.stock === 0) return false;
-                            const matchProduct = p.name.toLowerCase().includes(query) || (p.brand || '').toLowerCase().includes(query);
-                            if (matchProduct) return true;
-                            const matchVariants = p.variants?.some(v => 
-                              (v.color || '').toLowerCase().includes(query) || 
-                              (v.storage || '').toLowerCase().includes(query) ||
-                              (v.ram || '').toLowerCase().includes(query)
-                            );
-                            return matchVariants;
-                          });
-
-                          if (filtered.length === 0) {
-                            return (
-                              <div className="text-center py-16 text-neutral-400">
-                                <AlertTriangle size={24} className="mx-auto mb-2 opacity-50 text-[#1b1c1c]" />
-                                <p className="text-[11px] font-medium uppercase tracking-wider text-[#5e5e5d]">No matching smartphone in stock</p>
-                              </div>
-                            );
-                          }
-
-                          return filtered.map(product => {
-                            const isExpanded = expandedProductId === product.id;
-                            const cartItemCount = posCart
-                              .filter(item => item.product.id === product.id)
-                              .reduce((sum, item) => sum + item.quantity, 0);
-
-                            if (isExpanded) {
-                              return (
-                                <section key={product.id} className="bg-white border border-[#020302] rounded-xl overflow-hidden transition-all duration-300 ring-1 ring-[#020302]/10">
-                                  <div 
-                                    onClick={() => setExpandedProductId(null)}
-                                    className="p-4 sm:p-6 flex items-start gap-4 sm:gap-6 cursor-pointer"
-                                  >
-                                    <div className="w-14 h-14 sm:w-20 sm:h-20 bg-[#fbf9f9] rounded-lg flex-shrink-0 border border-[#c7c7bf] overflow-hidden">
-                                      <img className="w-full h-full object-cover" src={product.image} alt={product.name} />
-                                    </div>
-                                    <div className="flex-grow min-w-0">
-                                      <div className="flex justify-between items-center gap-2">
-                                        <h2 className="text-lg sm:text-[24px] font-normal tracking-[0.01em] text-[#020302] truncate">{product.name}</h2>
-                                        <ChevronRight size={20} className="text-[#020302] transition-transform duration-200 rotate-90 shrink-0 sm:hidden" />
-                                        <ChevronRight size={24} className="text-[#020302] transition-transform duration-200 rotate-90 shrink-0 hidden sm:block" />
-                                      </div>
-                                      <p className="text-[10px] sm:text-[12px] text-[#c7c6c5] uppercase tracking-wider mt-1 truncate">{"Mobile & Tablets • " + product.brand}</p>
-                                    </div>
-                                  </div>
-
-                                  {/* Variant Selection */}
-                                  <div className="px-4 pb-4 sm:px-6 sm:pb-6 space-y-2 sm:space-y-3 bg-[#ffffff]">
-                                    {product.variants?.map(v => {
-                                      const cartItem = posCart.find(item => item.variant.id === v.id);
-                                      const itemQtyInCart = cartItem?.quantity || 0;
-                                      const isOutOfStock = v.quantity === 0;
-
-                                      if (isOutOfStock) {
-                                        return (
-                                          <div key={v.id} className="p-3 sm:p-4 bg-[#efeded] border border-[#c7c7bf] rounded-lg flex items-center justify-between opacity-50 cursor-not-allowed">
-                                            <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-                                              <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-[#c7c7bf] rounded-sm shrink-0"></div>
-                                              <div className="min-w-0">
-                                                <p className="text-sm sm:text-[16px] font-light text-[#1b1c1c] truncate">{v.color + " " + v.ram + "/" + v.storage}</p>
-                                                <p className="text-[11px] sm:text-[12px] text-[#ba1a1a]">0 Available</p>
-                                              </div>
-                                            </div>
-                                            <span className="text-xs sm:text-[14px] text-[#5e5e5d] font-medium shrink-0">{"Tk " + v.sellingPrice.toLocaleString()}</span>
-                                          </div>
-                                        );
-                                      }
-
-                                      if (itemQtyInCart > 0) {
-                                        return (
-                                          <div 
-                                            key={v.id} 
-                                            onClick={(e) => { e.stopPropagation(); handleRemoveFromCart(v.id); }} 
-                                            className="p-3 sm:p-4 bg-[#1d1d1b] border border-[#020302] rounded-lg flex items-center justify-between cursor-pointer transition-all"
-                                          >
-                                            <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-                                              <div className="w-4 h-4 sm:w-5 sm:h-5 bg-[#020302] rounded-sm flex items-center justify-center text-white shrink-0">
-                                                <Check size={12} strokeWidth={3} className="sm:hidden" />
-                                                <Check size={14} strokeWidth={3} className="hidden sm:block" />
-                                              </div>
-                                              <div className="min-w-0">
-                                                <p className="text-sm sm:text-[16px] font-light text-white truncate">{v.color + " " + v.ram + "/" + v.storage} <span className="ml-1 text-white/50 text-[9px] sm:text-[10px] uppercase">{"x" + itemQtyInCart}</span></p>
-                                                <p className="text-[11px] sm:text-[12px] text-[#868582]">{v.quantity + " Available"}</p>
-                                              </div>
-                                            </div>
-                                            <span className="text-xs sm:text-[14px] text-white font-medium shrink-0">{"Tk " + v.sellingPrice.toLocaleString()}</span>
-                                          </div>
-                                        );
-                                      }
-
-                                      return (
-                                        <div 
-                                          key={v.id} 
-                                          onClick={(e) => { e.stopPropagation(); handleAddToCart(product, v); }} 
-                                          className="p-3 sm:p-4 bg-[#fbf9f9] border border-[#c7c7bf] rounded-lg flex items-center justify-between hover:border-[#020302] cursor-pointer transition-all group"
-                                        >
-                                          <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-                                            <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-[#c7c7bf] rounded-sm flex items-center justify-center group-hover:border-[#020302] shrink-0"></div>
-                                            <div className="min-w-0">
-                                              <p className="text-sm sm:text-[16px] font-light text-[#1b1c1c] truncate">{v.color + " " + v.ram + "/" + v.storage}</p>
-                                              <p className="text-[11px] sm:text-[12px] text-[#5e5e5d]">{v.quantity + " Available"}</p>
-                                            </div>
-                                          </div>
-                                          <span className="text-xs sm:text-[14px] text-[#020302] font-medium shrink-0">{"Tk " + v.sellingPrice.toLocaleString()}</span>
-                                        </div>
-                                      );
-                                    })}
-                                  </div>
-                                </section>
-                              );
-                            }
-
-                            return (
-                              <div 
-                                key={product.id}
-                                onClick={() => setExpandedProductId(product.id)}
-                                className="p-4 sm:p-6 bg-white border border-[#c7c7bf] rounded-xl flex items-center gap-4 sm:gap-6 hover:bg-[#ffffff] hover:border-[#5e5e5d] transition-all cursor-pointer min-w-0"
-                              >
-                                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-[#fbf9f9] rounded-lg flex-shrink-0 border border-[#c7c7bf] overflow-hidden opacity-80">
-                                  <img className="w-full h-full object-cover" src={product.image} alt={product.name} />
-                                </div>
-                                <div className="flex-grow min-w-0">
-                                  <div className="flex justify-between items-center gap-2">
-                                    <h2 className="text-lg sm:text-[24px] font-normal tracking-[0.01em] text-[#020302] opacity-80 truncate">{product.name}</h2>
-                                    {cartItemCount > 0 && (
-                                      <span className="bg-[#020302] text-white text-[9px] sm:text-[10px] font-medium px-1.5 py-0.5 rounded uppercase tracking-wider shrink-0">
-                                        {cartItemCount + " added"}
-                                      </span>
-                                    )}
-                                  </div>
-                                  <p className="text-[10px] sm:text-[12px] text-[#c7c6c5] uppercase tracking-wider truncate">{"Mobile & Tablets • " + product.brand}</p>
-                                </div>
-                                <ChevronRight className="text-[#5e5e5d] shrink-0" size={20} />
-                              </div>
-                            );
-                          });
-                        })()}
-                      </div>
-
-                      {/* Modal Footer (Stepper Actions) */}
-                      <div className="px-4 py-4 sm:px-8 sm:py-6 bg-[#fbf9f9] border-t border-[#c7c7bf] flex items-center justify-between shrink-0">
-                        <div className="flex items-center gap-3 sm:gap-4">
-                          <div className="flex gap-1.5 sm:gap-2">
-                            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-[#020302]"></div>
-                            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-[#e3e2e2]"></div>
-                            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-[#e3e2e2]"></div>
-                          </div>
-                          <span className="text-[11px] sm:text-[12px] text-[#5e5e5d]">Step 1 of 3</span>
-                        </div>
-                        <div className="flex gap-2 sm:gap-4">
-                          <button 
-                            type="button"
-                            onClick={() => setPosCheckoutOpen(false)} 
-                            className="px-4 py-2 sm:px-6 sm:py-2.5 rounded-lg border border-[#020302] text-[#020302] text-xs sm:text-[14px] font-medium hover:bg-[#f5f3f3] transition-all cursor-pointer"
-                          >
-                            Cancel
-                          </button>
-                          <button 
-                            type="button"
-                            disabled={posCart.length === 0}
-                            onClick={() => setPosStep(2)} 
-                            className={"px-4 py-2.5 sm:px-8 sm:py-2.5 rounded-lg text-xs sm:text-[14px] font-medium flex items-center gap-1 sm:gap-2 transition-all cursor-pointer " + (posCart.length === 0 ? "bg-[#c7c6c5] text-[#1b1c1c] cursor-not-allowed" : "bg-[#020302] text-white hover:opacity-90")}
-                          >
-                            Next: Customer Info
-                            <ArrowRight size={16} className="sm:hidden" />
-                            <ArrowRight size={18} className="hidden sm:block" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                </div>
-              )}
-            </AnimatePresence>
-
-            <AnimatePresence>
-              {posCheckoutOpen && posStep === 2 && (
-                <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-[#020302]/20 backdrop-blur-sm">
-                  {/* Backdrop Close Click */}
-                  <div className="absolute inset-0" onClick={() => setPosCheckoutOpen(false)} />
-
-                  <motion.div 
-                    initial={{ opacity: 0, y: 100 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 100 }}
-                    transition={{ type: "spring", stiffness: 350, damping: 35 }}
-                    className="w-full max-w-2xl z-[210] flex flex-col font-sans text-on-surface"
-                  >
-                    {/* Step 2: Configure Negotiation & Overrides */}
-                    <div className="bg-[#fbf9f9] w-full max-h-[85vh] sm:max-h-[90vh] md:max-h-[850px] flex flex-col rounded-t-2xl sm:rounded-xl border-t sm:border border-[#c7c7bf] shadow-2xl overflow-hidden">
-                      {/* Modal Header */}
-                      <div className="px-4 pt-5 pb-3 sm:px-8 sm:py-6 border-b border-[#c7c7bf]/30 flex justify-between items-center shrink-0">
-                        <div>
-                          <p className="text-[10px] sm:text-xs font-medium uppercase tracking-widest text-[#5e5e5d] mb-1">Step 2 of 3</p>
-                          <h1 className="text-lg sm:text-[24px] font-medium tracking-tight text-[#020302]">Configure Negotiation &amp; Overrides</h1>
-                        </div>
-                        <button 
-                          type="button"
-                          onClick={() => setPosCheckoutOpen(false)} 
-                          className="p-1.5 sm:p-2 text-[#5e5e5d] hover:text-[#020302] rounded-full transition-all cursor-pointer shrink-0"
-                        >
-                          <X size={20} className="sm:hidden" />
-                          <X size={24} className="hidden sm:block" />
-                        </button>
-                      </div>
-
-                      {/* Content Area */}
-                      <div className="flex-1 overflow-y-auto px-4 py-4 sm:p-8 space-y-6 sm:space-y-8 bg-[#ffffff]">
-                        {/* Cart Items List */}
-                        <div className="space-y-4">
-                          {posCart.map((item, idx) => (
-                            <div key={`${item.variant.id}-${idx}`} className="bg-[#fbf9f9] p-4 sm:p-6 border border-[#c7c7bf] rounded-lg">
-                              <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
-                                <div className="w-16 h-16 sm:w-24 sm:h-24 bg-white border border-[#c7c7bf] rounded-lg overflow-hidden flex-shrink-0">
-                                  <img className="w-full h-full object-cover" src={item.product.image} alt={item.product.name} />
-                                </div>
-                                <div className="flex-grow min-w-0">
-                                  <div className="flex justify-between items-start gap-2">
-                                    <div className="min-w-0">
-                                      <h3 className="text-lg sm:text-[24px] font-medium text-[#020302] truncate leading-tight">{item.product.name}</h3>
-                                      <p className="text-xs sm:text-[14px] text-[#5e5e5d] mt-1 truncate">
-                                        {item.product.brand} • {item.variant.color} {item.variant.ram}/{item.variant.storage}
-                                      </p>
-                                    </div>
-                                    <button 
-                                      type="button"
-                                      onClick={() => handleRemoveFromCart(item.variant.id)}
-                                      className="text-[#ba1a1a] text-xs sm:text-[14px] font-medium flex items-center gap-1 hover:opacity-80 transition-opacity shrink-0 cursor-pointer"
-                                    >
-                                      <Trash2 size={16} />
-                                      <span>Remove</span>
-                                    </button>
-                                  </div>
-                                  
-                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 sm:mt-6">
-                                    <div>
-                                      <label className="block text-xs sm:text-[14px] font-medium text-[#020302] uppercase mb-1.5">Unit Price</label>
-                                      <div className="relative flex items-center">
-                                        <span className="absolute left-4 text-[#5e5e5d] font-normal text-sm sm:text-base">Tk</span>
-                                        <input 
-                                          type="number"
-                                          value={item.overridePrice}
-                                          onChange={(e) => handleUpdateCartItemPrice(item.variant.id, Number(e.target.value))}
-                                          className="w-full bg-white border border-[#c7c7bf] pl-10 pr-4 py-2 sm:py-3 rounded focus:ring-1 focus:ring-[#020302] focus:border-[#020302] outline-none text-sm sm:text-base font-normal text-[#1b1c1c]"
-                                        />
-                                      </div>
-                                      <p className="text-[11px] sm:text-xs text-[#5e5e5d] mt-1.5">MSRP: Tk {item.variant.sellingPrice.toLocaleString()}</p>
-                                    </div>
-                                    <div>
-                                      <label className="block text-xs sm:text-[14px] font-medium text-[#020302] uppercase mb-1.5">Quantity</label>
-                                      <div className="flex items-center border border-[#c7c7bf] rounded bg-white w-28 sm:w-32 overflow-hidden">
-                                        <button 
-                                          type="button"
-                                          onClick={() => handleDecrementFromCart(item.variant.id)}
-                                          className="p-2 sm:p-3 text-[#5e5e5d] hover:text-[#020302] hover:bg-[#f5f3f3] transition-colors cursor-pointer shrink-0"
-                                        >
-                                          <Minus size={14} />
-                                        </button>
-                                        <input 
-                                          type="text" 
-                                          readOnly
-                                          value={item.quantity}
-                                          className="w-full text-center border-none focus:ring-0 font-normal text-sm sm:text-base text-[#1b1c1c] p-0"
-                                        />
-                                        <button 
-                                          type="button"
-                                          onClick={() => handleAddToCart(item.product, item.variant)}
-                                          className="p-2 sm:p-3 text-[#5e5e5d] hover:text-[#020302] hover:bg-[#f5f3f3] transition-colors cursor-pointer shrink-0"
-                                        >
-                                          <Plus size={14} />
-                                        </button>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-
-                        {/* Negotiation Form (Customer & Discount) */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                          <div className="space-y-1.5">
-                            <label className="block text-xs sm:text-[14px] font-medium text-[#020302] uppercase">Customer Name</label>
-                            <input 
-                              type="text"
-                              value={posBuyerName}
-                              onChange={(e) => setPosBuyerName(e.target.value)}
-                              className="w-full bg-white border border-[#c7c7bf] px-4 py-2.5 sm:py-3 rounded focus:ring-1 focus:ring-[#020302] focus:border-[#020302] outline-none text-sm sm:text-base font-light text-[#1b1c1c]" 
-                              placeholder="Search or add customer..." 
-                            />
-                          </div>
-                          <div className="space-y-1.5">
-                            <div className="flex justify-between items-center">
-                              <label className="block text-xs sm:text-[14px] font-medium text-[#020302] uppercase">Discount</label>
-                              <div className="flex bg-[#fbf9f9] border border-[#c7c7bf] rounded p-0.5 shrink-0">
-                                <button 
-                                  type="button"
-                                  onClick={() => {
-                                    setPosDiscountType('flat');
-                                    setPosDiscountValue(0);
-                                  }}
-                                  className={`px-3 py-0.5 text-[10px] sm:text-xs font-medium rounded-sm transition-all cursor-pointer
-                                    ${posDiscountType === 'flat' ? 'bg-[#020302] text-white' : 'text-[#5e5e5d] hover:text-[#020302]'}`}
-                                >
-                                  Tk
-                                </button>
-                                <button 
-                                  type="button"
-                                  onClick={() => {
-                                    setPosDiscountType('percent');
-                                    setPosDiscountValue(0);
-                                  }}
-                                  className={`px-3 py-0.5 text-[10px] sm:text-xs font-medium rounded-sm transition-all cursor-pointer
-                                    ${posDiscountType === 'percent' ? 'bg-[#020302] text-white' : 'text-[#5e5e5d] hover:text-[#020302]'}`}
-                                >
-                                  %
-                                </button>
-                              </div>
-                            </div>
-                            <div className="relative flex items-center">
-                              <input 
-                                type="number"
-                                value={posDiscountValue || ''}
-                                onChange={(e) => setPosDiscountValue(Number(e.target.value))}
-                                className="w-full bg-white border border-[#c7c7bf] pl-4 pr-10 py-2.5 sm:py-3 rounded focus:ring-1 focus:ring-[#020302] focus:border-[#020302] outline-none text-sm sm:text-base font-light text-[#1b1c1c] text-right" 
-                                placeholder="0" 
-                              />
-                              <span className="absolute right-4 text-[#5e5e5d] font-normal text-sm shrink-0">
-                                {posDiscountType === 'flat' ? 'Tk' : '%'}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Calculations Summary Section */}
-                        {(() => {
-                          const subtotal = posCart.reduce((sum, item) => sum + (item.overridePrice * item.quantity), 0);
-                          let discount = 0;
-                          if (posDiscountType === 'flat') {
-                            discount = Math.min(subtotal, posDiscountValue);
-                          } else {
-                            discount = Math.min(subtotal, Math.round(subtotal * (posDiscountValue / 100)));
-                          }
-                          const grandTotal = subtotal - discount;
-
-                          return (
-                            <div className="pt-4 sm:pt-6 border-t border-[#c7c7bf]/30 space-y-3 sm:space-y-4">
-                              <div className="flex justify-between items-center text-[#5e5e5d]">
-                                <span className="text-sm sm:text-base font-light">Subtotal</span>
-                                <span className="text-sm sm:text-base font-normal text-[#1b1c1c]">Tk {subtotal.toLocaleString()}</span>
-                              </div>
-                              <div className="flex justify-between items-center text-[#5e5e5d]">
-                                <span className="text-sm sm:text-base font-light">Adjustments</span>
-                                <span className="text-sm sm:text-base font-normal text-[#ba1a1a]">-Tk {discount.toLocaleString()}</span>
-                              </div>
-                              <div className="flex justify-between items-center pt-3 sm:pt-4 border-t border-dashed border-[#c7c7bf]/30">
-                                <span className="text-xs sm:text-[14px] font-bold text-[#020302] uppercase tracking-wider">Grand Total</span>
-                                <span className="text-xl sm:text-[32px] font-medium text-[#020302] tracking-tight">Tk {grandTotal.toLocaleString()}</span>
-                              </div>
-                            </div>
-                          );
-                        })()}
-                      </div>
-
-                      {/* Modal Actions */}
-                      <div className="px-4 py-4 sm:px-8 sm:py-6 bg-[#efeded] flex flex-col sm:flex-row justify-between gap-3 sm:gap-4 shrink-0 border-t border-[#c7c7bf]/30">
-                        <button 
-                          type="button"
-                          onClick={() => setPosCheckoutOpen(false)}
-                          className="px-6 py-2.5 sm:py-3 bg-white border border-[#020302] text-[#020302] text-xs sm:text-sm font-medium rounded-lg hover:bg-[#f5f3f3] transition-colors uppercase tracking-widest cursor-pointer text-center"
-                        >
-                          Save as Draft
-                        </button>
-                        <div className="flex gap-2 sm:gap-4">
-                          <button 
-                            type="button"
-                            onClick={() => setPosStep(1)}
-                            className="flex-1 sm:flex-initial px-6 py-2.5 sm:py-3 bg-white border border-[#c7c7bf] text-[#5e5e5d] text-xs sm:text-sm font-medium rounded-lg hover:border-[#020302] hover:text-[#020302] transition-all uppercase tracking-widest cursor-pointer text-center"
-                          >
-                            Back
-                          </button>
-                          <button 
-                            type="button"
-                            onClick={handleConfirmPOSSale}
-                            className="flex-1 sm:flex-initial px-8 py-2.5 sm:py-3 bg-[#020302] text-white text-xs sm:text-sm font-medium rounded-lg hover:opacity-90 transition-opacity uppercase tracking-widest cursor-pointer text-center"
-                          >
-                            Continue to Payment
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                </div>
-              )}
-            </AnimatePresence>
-
-            <AnimatePresence>
-              {posCheckoutOpen && posStep === 3 && posSuccessData && (
-                <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-[#020302]/20 backdrop-blur-sm">
-                  {/* Backdrop Close Click */}
-                  <div className="absolute inset-0" onClick={() => setPosCheckoutOpen(false)} />
-
-                  <motion.div 
-                    initial={{ opacity: 0, y: 100 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 100 }}
-                    transition={{ type: "spring", stiffness: 350, damping: 35 }}
-                    className="w-full max-w-2xl z-[210] flex flex-col font-sans text-on-surface"
-                  >
-                    <div className="bg-[#fbf9f9] w-full max-h-[85vh] sm:max-h-[90vh] md:max-h-[850px] flex flex-col rounded-t-2xl sm:rounded-xl border-t sm:border border-[#c7c7bf] shadow-2xl overflow-hidden">
-                      
-                      {/* Scrollable Container */}
-                      <div className="flex-1 overflow-y-auto p-6 sm:p-12 flex flex-col items-center text-center">
-                        {/* Success Icon */}
-                        <div className="mb-6 w-16 h-16 rounded-full bg-[#efeded] flex items-center justify-center text-[#020302] shrink-0">
-                          <CheckCircle2 size={32} className="stroke-[2.5]" />
-                        </div>
-
-                        {/* Header Content */}
-                        <div className="mb-8 space-y-2 shrink-0">
-                          <h1 className="text-xl sm:text-[32px] font-medium tracking-tight text-[#020302]">Sale Recorded Successfully!</h1>
-                          <p className="text-xs sm:text-sm text-[#5e5e5d] max-w-md mx-auto">
-                            Smartphone stocks have been adjusted live. Branded designer invoice is prepared.
-                          </p>
-                        </div>
-
-                        {/* Digital Ticket Section */}
-                        <div className="w-full max-w-md bg-white border border-[#c7c7bf] p-6 sm:p-8 mb-8 relative overflow-hidden text-left shadow-[0_4px_24px_rgba(0,0,0,0.04)] rounded-lg">
-                          {/* Branding */}
-                          <div className="flex justify-between items-start mb-6">
-                            <div className="space-y-0.5">
-                              <h2 className="text-xs sm:text-[14px] font-bold text-[#020302] uppercase tracking-widest">{posSuccessData.shopName || "Zenvy Store"}</h2>
-                              <p className="text-[10px] sm:text-xs text-[#5e5e5d]">STOCKNET POS TICKET</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-[10px] sm:text-xs text-[#5e5e5d]">Invoice No</p>
-                              <p className="text-xs sm:text-[14px] font-medium text-[#020302]">{posSuccessData.invoiceNumber}</p>
-                            </div>
-                          </div>
-
-                          {/* Meta Details */}
-                          <div className="grid grid-cols-2 gap-4 mb-6 pb-4 border-b border-[#c7c7bf]/30">
-                            <div>
-                              <p className="text-[10px] sm:text-xs text-[#5e5e5d]">Date/Time</p>
-                              <p className="text-xs sm:text-sm text-[#020302]">{posSuccessData.date} {posSuccessData.time}</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-[10px] sm:text-xs text-[#5e5e5d]">Buyer Name</p>
-                              <p className="text-xs sm:text-sm text-[#020302] truncate max-w-[150px] ml-auto">{posSuccessData.buyerName}</p>
-                            </div>
-                          </div>
-
-                          {/* Items */}
-                          <div className="space-y-4 mb-6">
-                            {posSuccessData.items.map((item: any, i: number) => (
-                              <div key={i} className="flex justify-between items-start leading-snug">
-                                <div className="flex-1 pr-4 min-w-0">
-                                  <p className="text-xs sm:text-sm font-medium text-[#020302] truncate">{item.brand} {item.name}</p>
-                                  <p className="text-[10px] sm:text-xs text-[#5e5e5d]">{item.color} • {item.specs}</p>
-                                </div>
-                                <div className="text-right shrink-0">
-                                  <p className="text-xs sm:text-sm text-[#020302] font-medium">{item.quantity} x Tk {item.price.toLocaleString()}</p>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-
-                          {/* Financial Summary */}
-                          <div className="space-y-2 pt-4 border-t border-dashed border-[#c7c7bf]">
-                            <div className="flex justify-between items-center text-[#5e5e5d]">
-                              <p className="text-xs sm:text-[14px]">Subtotal</p>
-                              <p className="text-xs sm:text-sm font-medium text-[#020302]">Tk {posSuccessData.subtotal.toLocaleString()}</p>
-                            </div>
-                            {posSuccessData.discount > 0 && (
-                              <div className="flex justify-between items-center text-red-500">
-                                <p className="text-xs sm:text-[14px]">Applied Discount</p>
-                                <p className="text-xs sm:text-sm font-medium">-Tk {posSuccessData.discount.toLocaleString()}</p>
-                              </div>
-                            )}
-                            <div className="flex justify-between items-center text-[#020302] pt-2 border-t border-[#c7c7bf]/10">
-                              <p className="text-xs sm:text-[14px] font-bold uppercase tracking-wider">TOTAL VALUE PAID</p>
-                              <p className="text-lg sm:text-[24px] font-bold">Tk {posSuccessData.total.toLocaleString()}</p>
-                            </div>
-                          </div>
-
-                          {/* Decorative Bottom Circle Cuts */}
-                          <div className="absolute bottom-0 left-0 right-0 h-1 flex justify-between px-1" style={{ transform: "translateY(50%)" }}>
-                            <div className="w-3 h-3 rounded-full bg-[#fbf9f9] -mt-1.5"></div>
-                            <div className="w-3 h-3 rounded-full bg-[#fbf9f9] -mt-1.5"></div>
-                            <div className="w-3 h-3 rounded-full bg-[#fbf9f9] -mt-1.5"></div>
-                            <div className="w-3 h-3 rounded-full bg-[#fbf9f9] -mt-1.5"></div>
-                            <div className="w-3 h-3 rounded-full bg-[#fbf9f9] -mt-1.5"></div>
-                            <div className="w-3 h-3 rounded-full bg-[#fbf9f9] -mt-1.5"></div>
-                            <div className="w-3 h-3 rounded-full bg-[#fbf9f9] -mt-1.5"></div>
-                            <div className="w-3 h-3 rounded-full bg-[#fbf9f9] -mt-1.5"></div>
-                            <div className="w-3 h-3 rounded-full bg-[#fbf9f9] -mt-1.5"></div>
-                            <div className="w-3 h-3 rounded-full bg-[#fbf9f9] -mt-1.5"></div>
-                          </div>
-                        </div>
-
-                        {/* Actions */}
-                        <div className="w-full flex flex-col gap-3 sm:gap-4 max-w-md shrink-0">
-                          <button 
-                            type="button"
-                            onClick={() => setPosCheckoutOpen(false)}
-                            className="w-full bg-[#020302] text-white py-3 px-6 rounded-lg text-xs sm:text-sm font-bold hover:bg-[#868582] transition-colors duration-200 uppercase tracking-wider cursor-pointer"
-                          >
-                            Return to Merchant Dashboard
-                          </button>
-                          
-                          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                            <button 
-                              type="button"
-                              onClick={() => generateBrandedInvoicePDF(posSuccessData)}
-                              className="flex-1 flex items-center justify-center gap-2 border border-[#020302] bg-white text-[#020302] py-2.5 sm:py-3 px-4 rounded-lg text-xs sm:text-sm font-bold hover:bg-[#efeded] transition-colors duration-200 uppercase cursor-pointer"
-                            >
-                              <Receipt size={16} />
-                              <span>Print Invoice PDF</span>
-                            </button>
-                            
-                            <button 
-                              type="button"
-                              onClick={() => {
-                                generateBrandedInvoicePDF(posSuccessData);
-                                const textMessage = `Hello ${posSuccessData.buyerName},\n\nThank you for purchasing at ${posSuccessData.shopName || 'Zenvy Store'}!\nHere is your receipt details:\n\n*Invoice No:* ${posSuccessData.invoiceNumber}\n*Date:* ${posSuccessData.date} ${posSuccessData.time}\n\n*Items Purchased:* \n${posSuccessData.items.map((item: any) => `- *${item.brand} ${item.name}* (${item.color} ${item.specs}) x ${item.quantity} units @ Tk ${item.price.toLocaleString()}`).join('\n')}\n\n*Subtotal:* Tk ${posSuccessData.subtotal.toLocaleString()}\n*Discount Applied:* -Tk ${posSuccessData.discount.toLocaleString()}\n*Grand Total:* *Tk ${posSuccessData.total.toLocaleString()}*\n\nYour digital A4 Invoice PDF has been generated offline. Thank you for shopping with us! 🌟`;
-                                const encodedText = encodeURIComponent(textMessage);
-                                window.open(`https://api.whatsapp.com/send?text=${encodedText}`, '_blank');
-                              }}
-                              className="flex-1 flex items-center justify-center gap-2 border border-[#020302] bg-white text-[#020302] py-2.5 sm:py-3 px-4 rounded-lg text-xs sm:text-sm font-bold hover:bg-[#efeded] transition-colors duration-200 uppercase cursor-pointer"
-                            >
-                              <MessageCircle size={16} />
-                              <span>WhatsApp Receipt</span>
-                            </button>
-                          </div>
-                        </div>
-
-                      </div>
-                    </div>
-                  </motion.div>
-                </div>
-              )}
-            </AnimatePresence>
-
-            {/* Header */}
             <header className="bg-white px-6 py-4 flex items-center justify-between sticky top-0 z-10 border-b border-[#efeded]">
               <div className="flex items-center gap-3">
                 <div className="lg:hidden w-8 h-8 rounded-full bg-[#020302] flex items-center justify-center text-white font-bold text-xs">
@@ -2040,7 +799,7 @@ export default function DashboardPage() {
                           <p className="text-[11px] text-[#5e5e5d] opacity-60 mt-0.5 font-semibold">Real-time chronicle of stock operations</p>
                         </div>
                         <button 
-                          onClick={() => setActiveTab('Products')}
+                          onClick={() => handleTabChange('Products')}
                           className="text-[10px] font-bold text-[#5e5e5d] hover:text-black uppercase tracking-widest transition-colors cursor-pointer"
                         >
                           View products
@@ -2454,5 +1213,17 @@ export default function DashboardPage() {
         )}
       </AnimatePresence>
     </motion.div>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex h-screen items-center justify-center bg-[#fbf9f9]">
+        <div className="text-sm font-light text-[#5e5e5d] animate-pulse">Loading dashboard...</div>
+      </div>
+    }>
+      <DashboardContent />
+    </Suspense>
   );
 }
