@@ -251,7 +251,7 @@ export default function PublicShopCard() {
               <p className="text-gray-400 font-light text-sm">No in-stock products found matching your filter.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-x-4 gap-y-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {filteredProducts.map((product) => {
                 const isLiked = !!likedProducts[product.id.toString()];
                 const activeVariants = product.variants?.filter(v => v.quantity > 0) || [];
@@ -262,16 +262,16 @@ export default function PublicShopCard() {
                   <motion.div 
                     key={product.id}
                     layout
-                    className={`flex flex-col text-left group cursor-pointer ${
+                    className={`group flex flex-col bg-white border border-[#c7c7bf] hover:border-[#020302] rounded-xl overflow-hidden shadow-2xs hover:shadow-sm transition-all duration-300 text-left ${
                       isOutOfStock ? 'opacity-70' : ''
                     }`}
                   >
-                    {/* Image Panel with rounded-2xl */}
-                    <div className="relative pt-[115%] bg-[#f8f9fa] rounded-2xl overflow-hidden mb-3.5 shadow-xs border border-gray-100">
+                    {/* Image Container with aspect-[4/5] */}
+                    <div className="aspect-[4/5] relative overflow-hidden bg-[#f5f3f3]">
                       <img 
                         src={product.image || 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=300&auto=format'} 
                         alt={product.name}
-                        className="absolute inset-0 w-full h-full object-cover transform group-hover:scale-[1.03] transition-transform duration-500"
+                        className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
                         loading="lazy"
                       />
                       
@@ -281,31 +281,37 @@ export default function PublicShopCard() {
                           e.stopPropagation();
                           toggleLike(product.id);
                         }}
-                        className="absolute top-3.5 right-3.5 z-10 active:scale-90 transition-transform"
+                        className="absolute top-4 right-4 bg-white/85 backdrop-blur-md p-2 rounded-full hover:bg-white shadow-xs transition-all z-10 active:scale-90"
                       >
-                        {isLiked ? (
-                          <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm">
-                            <Heart size={14} className="fill-red-500 text-red-500" />
-                          </div>
-                        ) : (
-                          <Heart size={20} className="text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] stroke-[2]" />
-                        )}
+                        <Heart 
+                          size={14} 
+                          className={isLiked ? "fill-[#ba1a1a] text-[#ba1a1a]" : "text-[#5e5e5d] stroke-[2]"} 
+                        />
                       </button>
 
-                      {/* Bestseller Badge (Top-Left Rectangular) */}
-                      {(product.id === 1 || product.id === 3) && (
-                        <span className="absolute top-3.5 left-3.5 bg-white text-black text-[10px] font-medium py-1 px-2.5 rounded-sm shadow-xs tracking-wide">
-                          Bestseller
-                        </span>
-                      )}
-
-                      {/* Out of Stock Overlay */}
-                      {isOutOfStock && (
+                      {/* Dynamic Badging */}
+                      {isOutOfStock ? (
                         <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] flex items-center justify-center">
-                          <span className="bg-red-500 text-white text-[10px] font-bold uppercase tracking-wider py-1.5 px-3.5 rounded-full shadow-md">
+                          <span className="bg-[#ba1a1a] text-white text-[10px] font-bold uppercase tracking-wider py-1.5 px-3.5 rounded-full shadow-md">
                             Out of Stock
                           </span>
                         </div>
+                      ) : (
+                        <>
+                          {/* Bestseller Badge */}
+                          {product.id === 1 && (
+                            <div className="absolute top-4 left-4 bg-[#020302] text-white text-[9px] px-2.5 py-1 rounded-sm font-bold uppercase tracking-wider">
+                              Bestseller
+                            </div>
+                          )}
+                          
+                          {/* New Arrival Badge */}
+                          {(product.id === 2 || product.id === 3) && (
+                            <div className="absolute top-4 left-4 bg-[#020302] text-white text-[9px] px-2.5 py-1 rounded-sm font-bold uppercase tracking-wider">
+                              New Arrival
+                            </div>
+                          )}
+                        </>
                       )}
 
                       {/* White circular floating plus (+) button on bottom right */}
@@ -315,33 +321,55 @@ export default function PublicShopCard() {
                           target="_blank"
                           rel="noopener noreferrer"
                           onClick={(e) => e.stopPropagation()}
-                          className="absolute bottom-3.5 right-3.5 w-9 h-9 bg-white rounded-full flex items-center justify-center text-black shadow-lg hover:bg-gray-50 active:scale-90 transition-all z-10"
+                          className="absolute bottom-4 right-4 w-9 h-9 bg-white rounded-full flex items-center justify-center text-black shadow-lg hover:bg-gray-50 active:scale-90 transition-all z-10 border border-[#efeded]"
                         >
                           <span className="text-xl font-light leading-none">+</span>
                         </a>
                       )}
                     </div>
 
-                    {/* Flat details below image */}
-                    <div className="space-y-1">
-                      <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest leading-none">
-                        {product.brand}
-                      </p>
-                      <h3 className="text-[13.5px] font-light text-gray-800 leading-snug line-clamp-1">
-                        {product.name}
-                      </h3>
-                      
-                      {/* Price Section */}
-                      <div className="flex items-baseline gap-1.5 pt-0.5">
-                        <span className="text-[14px] font-medium text-black">
-                          {defaultVariant ? `৳${defaultVariant.sellingPrice.toLocaleString()}` : 'Contact Shop'}
-                        </span>
-                        {product.id === 1 && (
-                          <span className="text-[11px] text-gray-400 line-through">
-                            ৳42,000
-                          </span>
-                        )}
+                    {/* Details Container with p-5 padding */}
+                    <div className="p-5 flex flex-col gap-3 flex-grow justify-between">
+                      <div className="flex flex-col gap-1">
+                        <p className="text-[10px] font-bold text-[#5e5e5d] uppercase tracking-widest leading-none">
+                          {product.brand}
+                        </p>
+                        <h3 className="text-[15px] font-light text-[#020302] group-hover:text-neutral-700 transition-colors tracking-tight leading-snug line-clamp-1 mt-0.5">
+                          {product.name}
+                        </h3>
                       </div>
+
+                      {/* Price Section */}
+                      <p className="text-[14px] font-bold text-[#020302] tracking-tight leading-none">
+                        {(() => {
+                          const prices = product.variants?.map(v => v.sellingPrice) || [];
+                          if (prices.length === 0) return 'MSRP N/A';
+                          const min = Math.min(...prices);
+                          const max = Math.max(...prices);
+                          return min === max ? `৳${min.toLocaleString()}` : `৳${min.toLocaleString()} - ৳${max.toLocaleString()}`;
+                        })()}
+                      </p>
+
+                      {/* Variant Pills Section */}
+                      {product.variants && product.variants.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 pt-3 border-t border-[#efeded]">
+                          {product.variants.slice(0, 2).map((variant) => (
+                            <span 
+                              key={variant.id} 
+                              className="text-[9px] text-[#5e5e5d] px-2 py-0.5 bg-[#f5f3f3] rounded-full border border-[#c7c7bf]/50 font-medium"
+                            >
+                              {variant.color} {variant.ram.replace('GB', '')}/{variant.storage.replace('GB', '')}
+                            </span>
+                          ))}
+                          {product.variants.length > 2 && (
+                            <span 
+                              className="text-[9px] text-[#5e5e5d] px-2 py-0.5 bg-[#f5f3f3] rounded-full border border-[#c7c7bf]/50 font-semibold"
+                            >
+                              +{product.variants.length - 2} More
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </motion.div>
                 );
