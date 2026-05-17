@@ -532,10 +532,7 @@ function DashboardContent() {
 
             <header className="bg-white px-6 py-4 flex items-center justify-between sticky top-0 z-10 border-b border-[#efeded]">
               <div className="flex items-center gap-3">
-                <div className="lg:hidden w-8 h-8 rounded-full bg-[#020302] flex items-center justify-center text-white font-bold text-xs">
-                  {storeName ? storeName.substring(0, 2).toUpperCase() : 'HW'}
-                </div>
-                <h1 className="text-base font-bold text-[#020302]">
+                <h1 className="text-xl font-semibold text-[#020302]">
                   {activeTab}
                 </h1>
               </div>
@@ -564,7 +561,7 @@ function DashboardContent() {
                     <Bell size={18} className="text-[#020302] stroke-[2]" />
                     <span className="absolute top-2.5 right-2.5 w-1.5 h-1.5 bg-[#ba1a1a] rounded-full"></span>
                   </button>
-                  <div className="w-8 h-8 rounded-full bg-[#020302] flex items-center justify-center text-white font-bold text-xs border border-[#efeded] select-none">
+                  <div className="w-8 h-8 rounded-full border-2 border-purple-400 flex items-center justify-center font-bold text-md border border-[#efeded] select-none">
                     {storeName ? storeName.substring(0, 1).toUpperCase() : 'M'}
                   </div>
                 </div>
@@ -824,14 +821,10 @@ function DashboardContent() {
                   <div className="space-y-8 text-left py-2">
                     
                     {/* Header Section */}
-                    <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-8">
-                      <div className="space-y-2">
-                        <h1 className="text-3xl md:text-4xl text-[#020302] font-light tracking-tight font-sans">
-                          Products
-                        </h1>
-                        <p className="text-xs md:text-sm text-[#5e5e5d] font-semibold leading-relaxed max-w-xl">
-                          Active Inventory: Manage smartphone models, colors, storage capacities, and sales pipelines.
-                        </p>
+                    <div className="flex flex-col hidden md:flex md:flex-row justify-between items-end gap-6 mb-0 md:mb-12">
+                      <div>
+                        <h3 className="font-[400] text-[#020302] text-[24px]">Products</h3>
+                        <p className="text-[14px] text-[#5e5e5d] opacity-60 mt-0.5 font-light">Manage your products and inventory</p>
                       </div>
                       <button 
                         onClick={() => router.push('/dashboard/products/new')}

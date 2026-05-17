@@ -240,7 +240,7 @@ export default function POSCheckoutModal({
             className="w-full max-w-2xl z-[210] flex flex-col font-sans text-on-surface"
           >
             {/* Step 1: Select Products */}
-            <div className="bg-[#fbf9f9] w-full max-h-[85vh] sm:max-h-[90vh] md:max-h-[850px] flex flex-col rounded-t-2xl sm:rounded-xl border-t sm:border border-[#c7c7bf] shadow-2xl overflow-hidden">
+            <div className="bg-[#fbf9f9] w-full max-h-[85vh] sm:max-h-[90vh] md:max-h-[850px] flex flex-col border-t sm:border border-[#c7c7bf] shadow-2xl overflow-hidden">
               {/* Modal Header */}
               <div className="px-4 pt-5 pb-3 sm:px-8 sm:pt-8 sm:pb-4 flex justify-between items-center shrink-0">
                 <h1 className="font-medium text-xl sm:text-2xl md:text-[32px] tracking-[0.01em] text-[#020302]">Select Products</h1>
@@ -311,7 +311,7 @@ export default function POSCheckoutModal({
 
                     if (isExpanded) {
                       return (
-                        <section key={product.id} className="bg-white border border-[#020302] rounded-xl overflow-hidden transition-all duration-300 ring-1 ring-[#020302]/10">
+                        <section key={product.id} className="bg-white border border-[#020302] overflow-hidden transition-all duration-300 ring-1 ring-[#020302]/10">
                           <div 
                             onClick={() => setExpandedProductId(null)}
                             className="p-4 sm:p-6 flex items-start gap-4 sm:gap-6 cursor-pointer"
@@ -338,7 +338,7 @@ export default function POSCheckoutModal({
 
                               if (isOutOfStock) {
                                   return (
-                                    <div key={v.id} className="p-3 sm:p-4 bg-[#efeded] border border-[#c7c7bf] rounded-lg flex items-center justify-between opacity-50 cursor-not-allowed">
+                                    <div key={v.id} className="p-3 sm:p-4 bg-[#efeded] border border-[#c7c7bf] flex items-center justify-between opacity-50 cursor-not-allowed">
                                       <div className="flex items-center gap-3 sm:gap-4 min-w-0">
                                         <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-[#c7c7bf] rounded-sm shrink-0"></div>
                                         <div className="min-w-0">
@@ -356,7 +356,7 @@ export default function POSCheckoutModal({
                                   <div 
                                     key={v.id} 
                                     onClick={(e) => { e.stopPropagation(); handleRemoveFromCart(v.id); }} 
-                                    className="p-3 sm:p-4 bg-[#1d1d1b] border border-[#020302] rounded-lg flex items-center justify-between cursor-pointer transition-all"
+                                    className="p-3 sm:p-4 bg-[#1d1d1b] border border-[#020302] flex items-center justify-between cursor-pointer transition-all"
                                   >
                                     <div className="flex items-center gap-3 sm:gap-4 min-w-0">
                                       <div className="w-4 h-4 sm:w-5 sm:h-5 bg-[#020302] rounded-sm flex items-center justify-center text-white shrink-0">
@@ -377,7 +377,7 @@ export default function POSCheckoutModal({
                                 <div 
                                   key={v.id} 
                                   onClick={(e) => { e.stopPropagation(); handleAddToCart(product, v); }} 
-                                  className="p-3 sm:p-4 bg-[#fbf9f9] border border-[#c7c7bf] rounded-lg flex items-center justify-between hover:border-[#020302] cursor-pointer transition-all group"
+                                  className="p-3 sm:p-4 bg-[#fbf9f9] border border-[#c7c7bf] flex items-center justify-between hover:border-[#020302] cursor-pointer transition-all group"
                                 >
                                   <div className="flex items-center gap-3 sm:gap-4 min-w-0">
                                     <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-[#c7c7bf] rounded-sm flex items-center justify-center group-hover:border-[#020302] shrink-0"></div>
@@ -399,14 +399,14 @@ export default function POSCheckoutModal({
                       <div 
                         key={product.id}
                         onClick={() => setExpandedProductId(product.id)}
-                        className="p-4 sm:p-6 bg-white border border-[#c7c7bf] rounded-xl flex items-center gap-4 sm:gap-6 hover:bg-[#ffffff] hover:border-[#5e5e5d] transition-all cursor-pointer min-w-0"
+                        className="p-4 sm:p-6 bg-white border border-[#c7c7bf] flex items-center gap-4 sm:gap-6 hover:bg-[#ffffff] hover:border-[#5e5e5d] transition-all cursor-pointer min-w-0"
                       >
-                        <div className="w-12 h-12 sm:w-16 sm:h-16 bg-[#fbf9f9] rounded-lg flex-shrink-0 border border-[#c7c7bf] overflow-hidden opacity-80">
+                        <div className="w-12 h-12 sm:w-16 sm:h-16 bg-[#fbf9f9] flex-shrink-0 border border-[#c7c7bf] overflow-hidden opacity-80">
                           <img className="w-full h-full object-cover" src={product.image} alt={product.name} />
                         </div>
                         <div className="flex-grow min-w-0">
                           <div className="flex justify-between items-center gap-2">
-                            <h2 className="text-lg sm:text-[24px] font-normal tracking-[0.01em] text-[#020302] opacity-80 truncate">{product.name}</h2>
+                            <h2 className="text-md sm:text-[18px] font-normal tracking-[0.01em] text-[#020302] opacity-80 truncate">{product.name}</h2>
                             {cartItemCount > 0 && (
                               <span className="bg-[#020302] text-white text-[9px] sm:text-[10px] font-medium px-1.5 py-0.5 rounded uppercase tracking-wider shrink-0">
                                 {cartItemCount + " added"}
@@ -436,7 +436,7 @@ export default function POSCheckoutModal({
                   <button 
                     type="button"
                     onClick={handleClose} 
-                    className="px-4 py-2 sm:px-6 sm:py-2.5 rounded-lg border border-[#020302] text-[#020302] text-xs sm:text-[14px] font-medium hover:bg-[#f5f3f3] transition-all cursor-pointer"
+                    className="px-4 py-2 sm:px-6 sm:py-2.5 border border-[#020302] text-[#020302] text-xs sm:text-[14px] font-medium hover:bg-[#f5f3f3] transition-all cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -444,9 +444,9 @@ export default function POSCheckoutModal({
                     type="button"
                     disabled={posCart.length === 0}
                     onClick={() => setPosStep(2)} 
-                    className={"px-4 py-2.5 sm:px-8 sm:py-2.5 rounded-lg text-xs sm:text-[14px] font-medium flex items-center gap-1 sm:gap-2 transition-all cursor-pointer " + (posCart.length === 0 ? "bg-[#c7c6c5] text-[#1b1c1c] cursor-not-allowed" : "bg-[#020302] text-white hover:opacity-90")}
+                    className={"px-4 py-2.5 sm:px-8 sm:py-2.5 text-xs sm:text-[14px] font-medium flex items-center gap-1 sm:gap-2 transition-all cursor-pointer " + (posCart.length === 0 ? "bg-[#c7c6c5] text-[#1b1c1c] cursor-not-allowed" : "bg-[#020302] text-white hover:opacity-90")}
                   >
-                    Next: Customer Info
+                    Next
                     <ArrowRight size={16} className="sm:hidden" />
                     <ArrowRight size={18} className="hidden sm:block" />
                   </button>
@@ -466,7 +466,7 @@ export default function POSCheckoutModal({
             className="w-full max-w-2xl z-[210] flex flex-col font-sans text-on-surface"
           >
             {/* Step 2: Configure Negotiation & Overrides */}
-            <div className="bg-[#fbf9f9] w-full max-h-[85vh] sm:max-h-[90vh] md:max-h-[850px] flex flex-col rounded-t-2xl sm:rounded-xl border-t sm:border border-[#c7c7bf] shadow-2xl overflow-hidden">
+            <div className="bg-[#fbf9f9] w-full max-h-[85vh] sm:max-h-[90vh] md:max-h-[850px] flex flex-col border-t sm:border border-[#c7c7bf] shadow-2xl overflow-hidden">
               {/* Modal Header */}
               <div className="px-4 pt-5 pb-3 sm:px-8 sm:py-6 border-b border-[#c7c7bf]/30 flex justify-between items-center shrink-0">
                 <div>
@@ -476,7 +476,7 @@ export default function POSCheckoutModal({
                 <button 
                   type="button"
                   onClick={handleClose} 
-                  className="p-1.5 sm:p-2 text-[#5e5e5d] hover:text-[#020302] rounded-full transition-all cursor-pointer shrink-0"
+                  className="p-1.5 sm:p-2 text-[#5e5e5d] hover:text-[#020302] transition-all cursor-pointer shrink-0"
                 >
                   <X size={20} className="sm:hidden" />
                   <X size={24} className="hidden sm:block" />
@@ -490,7 +490,7 @@ export default function POSCheckoutModal({
                   {posCart.map((item, idx) => (
                     <div key={`${item.variant.id}-${idx}`} className="bg-[#fbf9f9] p-4 sm:p-6 border border-[#c7c7bf] rounded-lg">
                       <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
-                        <div className="w-16 h-16 sm:w-24 sm:h-24 bg-white border border-[#c7c7bf] rounded-lg overflow-hidden flex-shrink-0">
+                        <div className="w-16 h-16 sm:w-24 sm:h-24 bg-white border border-[#c7c7bf] overflow-hidden flex-shrink-0">
                           <img className="w-full h-full object-cover" src={item.product.image} alt={item.product.name} />
                         </div>
                         <div className="flex-grow min-w-0">
@@ -644,27 +644,20 @@ export default function POSCheckoutModal({
 
               {/* Modal Actions */}
               <div className="px-4 py-4 sm:px-8 sm:py-6 bg-[#efeded] flex flex-col sm:flex-row justify-between gap-3 sm:gap-4 shrink-0 border-t border-[#c7c7bf]/30">
-                <button 
-                  type="button"
-                  onClick={handleClose}
-                  className="px-6 py-2.5 sm:py-3 bg-white border border-[#020302] text-[#020302] text-xs sm:text-sm font-medium rounded-lg hover:bg-[#f5f3f3] transition-colors uppercase tracking-widest cursor-pointer text-center"
-                >
-                  Save as Draft
-                </button>
                 <div className="flex gap-2 sm:gap-4">
                   <button 
                     type="button"
                     onClick={() => setPosStep(1)}
-                    className="flex-1 sm:flex-initial px-6 py-2.5 sm:py-3 bg-white border border-[#c7c7bf] text-[#5e5e5d] text-xs sm:text-sm font-medium rounded-lg hover:border-[#020302] hover:text-[#020302] transition-all uppercase tracking-widest cursor-pointer text-center"
+                    className="flex-1 sm:flex-initial px-6 py-2.5 sm:py-3 bg-white border border-[#c7c7bf] text-[#5e5e5d] text-xs sm:text-sm font-medium hover:border-[#020302] hover:text-[#020302] transition-all uppercase tracking-widest cursor-pointer text-center"
                   >
                     Back
                   </button>
                   <button 
                     type="button"
                     onClick={handleConfirmPOSSale}
-                    className="flex-1 sm:flex-initial px-8 py-2.5 sm:py-3 bg-[#020302] text-white text-xs sm:text-sm font-medium rounded-lg hover:opacity-90 transition-opacity uppercase tracking-widest cursor-pointer text-center"
+                    className="flex-1 sm:flex-initial px-8 py-2.5 sm:py-3 bg-[#020302] text-white text-xs sm:text-sm font-medium hover:opacity-90 transition-opacity uppercase tracking-widest cursor-pointer text-center"
                   >
-                    Continue to Payment
+                    Continue
                   </button>
                 </div>
               </div>
@@ -681,7 +674,7 @@ export default function POSCheckoutModal({
             transition={{ type: "spring", stiffness: 350, damping: 35 }}
             className="w-full max-w-2xl z-[210] flex flex-col font-sans text-on-surface"
           >
-            <div className="bg-[#fbf9f9] w-full max-h-[85vh] sm:max-h-[90vh] md:max-h-[850px] flex flex-col rounded-t-2xl sm:rounded-xl border-t sm:border border-[#c7c7bf] shadow-2xl overflow-hidden">
+            <div className="bg-[#fbf9f9] w-full max-h-[85vh] sm:max-h-[90vh] md:max-h-[850px] flex flex-col border-t sm:border border-[#c7c7bf] shadow-2xl overflow-hidden">
               
               {/* Scrollable Container */}
               <div className="flex-1 overflow-y-auto p-6 sm:p-12 flex flex-col items-center text-center">
@@ -777,7 +770,7 @@ export default function POSCheckoutModal({
                   <button 
                     type="button"
                     onClick={handleClose}
-                    className="w-full bg-[#020302] text-white py-3 px-6 rounded-lg text-xs sm:text-sm font-bold hover:bg-[#868582] transition-colors duration-200 uppercase tracking-wider cursor-pointer"
+                    className="w-full bg-[#020302] text-white py-3 px-6 text-xs sm:text-sm font-bold hover:bg-[#868582] transition-colors duration-200 uppercase tracking-wider cursor-pointer"
                   >
                     Return to Merchant Dashboard
                   </button>
@@ -786,7 +779,7 @@ export default function POSCheckoutModal({
                     <button 
                       type="button"
                       onClick={() => generateBrandedInvoicePDF(posSuccessData)}
-                      className="flex-1 flex items-center justify-center gap-2 border border-[#020302] bg-white text-[#020302] py-2.5 sm:py-3 px-4 rounded-lg text-xs sm:text-sm font-bold hover:bg-[#efeded] transition-colors duration-200 uppercase cursor-pointer"
+                      className="flex-1 flex items-center justify-center gap-2 border border-[#020302] bg-white text-[#020302] py-2.5 sm:py-3 px-4 text-xs sm:text-sm font-bold hover:bg-[#efeded] transition-colors duration-200 uppercase cursor-pointer"
                     >
                       <Receipt size={16} />
                       <span>Print Invoice PDF</span>
@@ -800,7 +793,7 @@ export default function POSCheckoutModal({
                         const encodedText = encodeURIComponent(textMessage);
                         window.open(`https://api.whatsapp.com/send?text=${encodedText}`, '_blank');
                       }}
-                      className="flex-1 flex items-center justify-center gap-2 border border-[#020302] bg-white text-[#020302] py-2.5 sm:py-3 px-4 rounded-lg text-xs sm:text-sm font-bold hover:bg-[#efeded] transition-colors duration-200 uppercase cursor-pointer"
+                      className="flex-1 text-white flex items-center justify-center gap-2 bg-green-500/90 text-[#020302] py-2.5 sm:py-3 px-4 text-xs sm:text-sm font-bold hover:bg-[#efeded] transition-colors duration-200 uppercase cursor-pointer"
                     >
                       <MessageCircle size={16} />
                       <span>WhatsApp Receipt</span>
