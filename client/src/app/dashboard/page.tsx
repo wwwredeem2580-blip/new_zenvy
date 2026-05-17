@@ -325,7 +325,7 @@ export default function DashboardPage() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
+                    {/* <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
                       <div className="bg-brand-card pb-8 border border-brand-divider rounded-3xl flex flex-col gap-2 relative overflow-hidden">
                         <div className="px-8 pt-8 pb-0">
                           <div className="flex items-baseline justify-between mb-2">
@@ -367,7 +367,7 @@ export default function DashboardPage() {
                           ))}
                         </div>
                       </div>
-                    </div>
+                    </div> */}
 
                     {/* <div className="bg-white p-6 md:p-12 border border-gray-100 text-center relative overflow-hidden mb-12">
                       <div className="absolute top-0 left-0 w-full h-full opacity-[0.02] pointer-events-none">
@@ -590,9 +590,19 @@ export default function DashboardPage() {
             </main>
 
             {/* Mobile Footer Navigation */}
-            <div className="lg:hidden bg-white border-t border-gray-100 px-8 py-3 flex items-center justify-between sticky bottom-0 w-full z-10">
+            <div className="lg:hidden bg-white border-t border-gray-100 px-6 py-2 flex items-center justify-between sticky bottom-0 w-full z-10">
               <NavItem icon={Home} label="Home" active={activeTab === 'Home'} onClick={() => setActiveTab('Home')} />
               <NavItem icon={Package} label="Orders" active={activeTab === 'Orders'} onClick={() => setActiveTab('Orders')} />
+              
+              {/* Central Floating Plus Button */}
+              <button 
+                onClick={() => setIsCreatingProduct(true)}
+                className="relative -mt-6 w-12 h-12 bg-primary-500 hover:bg-primary-600 text-neutral-0 rounded-full flex items-center justify-center shadow-lg shadow-primary-500/30 hover:scale-[1.08] active:scale-[0.95] transition-all border-4 border-white"
+                aria-label="Add Product"
+              >
+                <Plus size={20} className="stroke-[3]" />
+              </button>
+              
               <NavItem icon={TagIcon} label="Products" active={activeTab === 'Products'} onClick={() => setActiveTab('Products')} />
               <NavItem icon={MoreHorizontal} label="More" active={activeTab === 'More'} onClick={() => setActiveTab('More')} />
             </div>
