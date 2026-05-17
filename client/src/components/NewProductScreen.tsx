@@ -232,7 +232,7 @@ export default function NewProductScreen({
     <div className="flex-1 bg-[#fbf9f9] overflow-y-auto relative h-full flex flex-col font-sans text-[#1b1c1c]">
       
       {/* breadcrumbs header */}
-      <header className="sticky top-0 z-40 bg-white flex justify-between items-center w-full px-6 md:px-12 h-16 border-b border-[#c7c7bf]">
+      <header className="sticky top-0 z-40 bg-white flex justify-between items-center w-full px-6 py-4 md:px-12 h-[64px] border-b border-[#c7c7bf]">
         <div className="flex items-center gap-4">
           <span className="font-bold text-lg tracking-[0.2em] text-[#020302]">LUMINA</span>
         </div>
