@@ -23,7 +23,8 @@ import {
   Receipt,
   Share2,
   Minus,
-  X
+  X,
+  ShoppingBag
 } from 'lucide-react';
 import { useZenvy } from '@/context/ZenvyContext';
 import { SidebarSection, SidebarItem, SidebarSubItem, NavItem } from '@/components/SidebarComponents';
@@ -49,6 +50,17 @@ export default function DashboardPage() {
   const [soldQty, setSoldQty] = useState<number>(1);
   const [buyerName, setBuyerName] = useState<string>('');
   const [invoiceSaleData, setInvoiceSaleData] = useState<any | null>(null);
+
+  // Native POS checkout terminal states
+  const [posCheckoutOpen, setPosCheckoutOpen] = useState<boolean>(false);
+  const [posStep, setPosStep] = useState<number>(1);
+  const [posCart, setPosCart] = useState<Array<{ product: Product, variant: any, quantity: number, overridePrice: number }>>([]);
+  const [posSearch, setPosSearch] = useState<string>('');
+  const [posBuyerName, setPosBuyerName] = useState<string>('');
+  const [posDiscountType, setPosDiscountType] = useState<'flat' | 'percent'>('flat');
+  const [posDiscountValue, setPosDiscountValue] = useState<number>(0);
+  const [posSuccessData, setPosSuccessData] = useState<any | null>(null);
+  const [expandedProductId, setExpandedProductId] = useState<string | number | null>(null);
   const [recentActivities, setRecentActivities] = useState([
     { type: 'added',  text: 'Added 5 units',   product: 'Samsung A35 Blue 8/256',        time: '2 min ago'  },
     { type: 'sold',   text: 'Marked sold',     product: 'iPhone 15 Black 128GB',          time: '18 min ago' },
@@ -254,93 +266,359 @@ export default function DashboardPage() {
     setActiveMarkSoldProduct(null);
   };
 
-  const handleDownloadPDF = (data: any) => {
+  const generateBrandedInvoicePDF = (receipt: any) => {
     const doc = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
-      format: [80, 180] // Terminal slip format: 80mm width
+      format: 'a4'
     });
 
-    // 1. Header
+    const primaryColor = [84, 56, 255]; // Brand Purple #5438ff
+    const darkColor = [26, 28, 29]; // Muted Black #1a1c1d
+    const lightGrey = [245, 245, 247]; // Soft Grey #f6f6f7
+
+    // --- 1. Top Decorative Brand Accent Bar ---
+    doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.rect(0, 0, 210, 6, 'F');
+
+    // --- 2. Header Brand Block ---
     doc.setFont("Helvetica", "bold");
-    doc.setFontSize(14);
-    doc.text(data.shopName.toUpperCase(), 40, 15, { align: "center" });
+    doc.setFontSize(26);
+    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.text(receipt.shopName.toUpperCase(), 15, 25);
 
     doc.setFont("Helvetica", "normal");
-    doc.setFontSize(8);
-    doc.text("Premium Smartphone Terminal", 40, 20, { align: "center" });
-    doc.text("Contact: 01712 345678 | Dhaka, BD", 40, 24, { align: "center" });
+    doc.setFontSize(9);
+    doc.setTextColor(110, 110, 115);
+    doc.text("PREMIUM SMARTPHONE DISTRIBUTION OUTLET", 15, 31);
+    doc.text("Dhaka, Bangladesh  |  Phone: 01712 345678  |  zenvy.com.bd", 15, 35);
 
-    // Dotted separator
-    doc.setLineDashPattern([1, 1], 0);
-    doc.line(5, 28, 75, 28);
-
-    // 2. Info Block
+    // --- 3. Right-aligned Invoice Title Block ---
     doc.setFont("Helvetica", "bold");
-    doc.text("INVOICE RECEIPT", 5, 34);
+    doc.setFontSize(28);
+    doc.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
+    doc.text("INVOICE", 195, 25, { align: "right" });
+
     doc.setFont("Helvetica", "normal");
-    doc.setFontSize(7.5);
-    doc.text(`Invoice: ${data.invoiceNumber}`, 5, 39);
-    doc.text(`Date: ${data.date}`, 5, 43);
-    doc.text(`Customer: ${data.buyerName}`, 5, 47);
+    doc.setFontSize(9);
+    doc.setTextColor(80, 80, 85);
+    doc.text(`Invoice No: ${receipt.invoiceNumber}`, 195, 31, { align: "right" });
+    doc.text(`Date: ${receipt.date} ${receipt.time ? ' ' + receipt.time : ''}`, 195, 35, { align: "right" });
 
-    // Dotted separator
-    doc.line(5, 51, 75, 51);
+    // Divider Line
+    doc.setDrawColor(220, 220, 225);
+    doc.setLineWidth(0.4);
+    doc.line(15, 42, 195, 42);
 
-    // 3. Purchase Item Header
+    // --- 4. Billed To Block ---
     doc.setFont("Helvetica", "bold");
-    doc.text("Item / Description", 5, 56);
-    doc.text("Qty", 52, 56, { align: "right" });
-    doc.text("Price", 62, 56, { align: "right" });
-    doc.text("Total", 75, 56, { align: "right" });
+    doc.setFontSize(10);
+    doc.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
+    doc.text("BILLED TO:", 15, 52);
 
-    doc.line(5, 58, 75, 58);
+    doc.setFont("Helvetica", "bold");
+    doc.setFontSize(11);
+    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.text(receipt.buyerName, 15, 57);
 
-    // 4. Purchase Item Details
     doc.setFont("Helvetica", "normal");
-    const itemTitle = `${data.brandName} ${data.productName}`;
-    const itemSub = `${data.variantColor} (${data.variantSpecs})`;
-    
-    doc.text(itemTitle, 5, 63);
-    doc.setFontSize(6.5);
-    doc.text(itemSub, 5, 67);
+    doc.setFontSize(9);
+    doc.setTextColor(110, 110, 115);
+    doc.text("Walk-in Customer  |  Verified Smartphone Transaction", 15, 61);
 
-    doc.setFontSize(7.5);
-    doc.text(String(data.qty), 52, 63, { align: "right" });
-    doc.text(`Tk ${data.price.toLocaleString()}`, 62, 63, { align: "right" });
-    doc.text(`Tk ${data.total.toLocaleString()}`, 75, 63, { align: "right" });
+    // --- 5. Itemized Table ---
+    let yStart = 72;
+    doc.setFillColor(lightGrey[0], lightGrey[1], lightGrey[2]);
+    doc.rect(15, yStart, 180, 8, 'F');
 
-    // Dotted separator
-    doc.line(5, 73, 75, 73);
-
-    // 5. Total
     doc.setFont("Helvetica", "bold");
     doc.setFontSize(9);
-    doc.text("GRAND TOTAL:", 5, 80);
-    doc.text(`Tk ${data.total.toLocaleString()}`, 75, 80, { align: "right" });
+    doc.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
+    doc.text("ITEM DESCRIPTION", 18, yStart + 5.5);
+    doc.text("PRICE", 115, yStart + 5.5, { align: "right" });
+    doc.text("QTY", 145, yStart + 5.5, { align: "right" });
+    doc.text("TOTAL (BDT)", 192, yStart + 5.5, { align: "right" });
+
+    let currentY = yStart + 8;
+    
+    receipt.items.forEach((item: any, index: number) => {
+      // Row alternate background
+      if (index % 2 === 1) {
+        doc.setFillColor(250, 250, 252);
+        doc.rect(15, currentY, 180, 10, 'F');
+      }
+
+      doc.setFont("Helvetica", "bold");
+      doc.setFontSize(9.5);
+      doc.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
+      doc.text(item.description, 18, currentY + 6);
+
+      doc.setFont("Helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(60, 60, 65);
+      doc.text(`Tk ${item.price.toLocaleString()}`, 115, currentY + 6, { align: "right" });
+      doc.text(String(item.quantity), 145, currentY + 6, { align: "right" });
+      
+      doc.setFont("Helvetica", "bold");
+      doc.text(`Tk ${item.total.toLocaleString()}`, 192, currentY + 6, { align: "right" });
+
+      doc.setDrawColor(240, 240, 245);
+      doc.line(15, currentY + 10, 195, currentY + 10);
+      currentY += 10;
+    });
+
+    // --- 6. Total Calculations Summary ---
+    currentY += 8;
+    doc.setFont("Helvetica", "normal");
+    doc.setFontSize(9.5);
+    doc.setTextColor(110, 110, 115);
+    doc.text("Subtotal:", 135, currentY);
+    doc.setFont("Helvetica", "bold");
+    doc.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
+    doc.text(`Tk ${receipt.subtotal.toLocaleString()}`, 192, currentY, { align: "right" });
+
+    if (receipt.discount > 0) {
+      currentY += 6;
+      doc.setFont("Helvetica", "normal");
+      doc.setTextColor(180, 30, 30);
+      doc.text("Discount:", 135, currentY);
+      doc.setFont("Helvetica", "bold");
+      doc.text(`-Tk ${receipt.discount.toLocaleString()}`, 192, currentY, { align: "right" });
+    }
+
+    currentY += 8;
+    // Highlight background for grand total
+    doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.rect(130, currentY - 5, 65, 8, 'F');
+    doc.setFont("Helvetica", "bold");
+    doc.setFontSize(10.5);
+    doc.setTextColor(255, 255, 255);
+    doc.text("GRAND TOTAL:", 134, currentY + 0.5);
+    doc.text(`Tk ${receipt.total.toLocaleString()}`, 192, currentY + 0.5, { align: "right" });
+
+    // --- 7. Footer Watermark & Powered By StockNet ---
+    doc.setDrawColor(220, 220, 225);
+    doc.line(15, 265, 195, 265);
+
+    doc.setFont("Helvetica", "bold");
+    doc.setFontSize(10);
+    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.text("Thank you for your purchase!", 15, 273);
 
     doc.setFont("Helvetica", "normal");
-    doc.setFontSize(7.5);
-    doc.text("Paid via Cash / MFS", 75, 85, { align: "right" });
+    doc.setFontSize(8.5);
+    doc.setTextColor(110, 110, 115);
+    doc.text("For warranty claim or queries, chat via WhatsApp: wa.me/8801712345678", 15, 277);
 
-    // Dotted separator
-    doc.line(5, 91, 75, 91);
-
-    // 6. Footer
+    // Free marketing watermark
     doc.setFont("Helvetica", "oblique");
-    doc.setFontSize(7);
-    doc.text("Thank you for shopping with us!", 40, 97, { align: "center" });
-    doc.text("Warranty claims require original invoice receipt.", 40, 101, { align: "center" });
-    doc.text("System generated by Zenvy.com.bd", 40, 105, { align: "center" });
+    doc.setFontSize(7.5);
+    doc.setTextColor(160, 160, 165);
+    doc.text("Powered by StockNet - High Performance Smartphone Terminal", 195, 273, { align: "right" });
+    doc.text("zenvy.com.bd/stocknet", 195, 277, { align: "right" });
 
-    // Save PDF
-    doc.save(`${data.invoiceNumber}_receipt.pdf`);
+    doc.save(`${receipt.invoiceNumber}_invoice.pdf`);
+  };
+
+  const handleDownloadPDF = (data: any) => {
+    // Map single variant invoice details to A4 invoice
+    const A4Receipt = {
+      shopName: data.shopName,
+      invoiceNumber: data.invoiceNumber,
+      date: data.date,
+      time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+      buyerName: data.buyerName,
+      items: [{
+        description: `${data.brandName} ${data.productName} - ${data.variantColor} (${data.variantSpecs})`,
+        quantity: data.qty,
+        price: data.price,
+        total: data.total
+      }],
+      subtotal: data.total,
+      discount: 0,
+      total: data.total
+    };
+    generateBrandedInvoicePDF(A4Receipt);
   };
 
   const handleShareWhatsApp = (data: any) => {
     const textMessage = `Hello ${data.buyerName},\n\nThank you for purchasing at ${data.shopName}!\nHere is your receipt details:\n\n*Invoice No:* ${data.invoiceNumber}\n*Date:* ${data.date}\n*Device:* ${data.brandName} ${data.productName} - ${data.variantColor} (${data.variantSpecs})\n*Quantity:* ${data.qty}\n*Price:* Tk ${data.price.toLocaleString()}\n*Total Amount:* *Tk ${data.total.toLocaleString()}*\n\nThank you for shopping with us! Have a wonderful day! 🌟`;
     const encodedText = encodeURIComponent(textMessage);
     window.open(`https://api.whatsapp.com/send?text=${encodedText}`, '_blank');
+  };
+
+  const handleOpenCheckout = () => {
+    setPosCheckoutOpen(true);
+    setPosStep(1);
+    setPosCart([]);
+    setPosSearch('');
+    setPosBuyerName('');
+    setPosDiscountType('flat');
+    setPosDiscountValue(0);
+    setPosSuccessData(null);
+    setExpandedProductId(null);
+  };
+
+  const handleAddToCart = (product: Product, variant: any) => {
+    setPosCart(prevCart => {
+      const existingItemIndex = prevCart.findIndex(item => item.variant.id === variant.id);
+      if (existingItemIndex > -1) {
+        const existingItem = prevCart[existingItemIndex];
+        if (existingItem.quantity >= variant.quantity) {
+          // Cannot add more than in-stock
+          return prevCart;
+        }
+        const updatedCart = [...prevCart];
+        updatedCart[existingItemIndex] = {
+          ...existingItem,
+          quantity: existingItem.quantity + 1
+        };
+        return updatedCart;
+      } else {
+        return [...prevCart, {
+          product,
+          variant,
+          quantity: 1,
+          overridePrice: variant.sellingPrice
+        }];
+      }
+    });
+  };
+
+  const handleDecrementFromCart = (variantId: string) => {
+    setPosCart(prevCart => {
+      const existingItemIndex = prevCart.findIndex(item => item.variant.id === variantId);
+      if (existingItemIndex > -1) {
+        const existingItem = prevCart[existingItemIndex];
+        if (existingItem.quantity <= 1) {
+          return prevCart.filter(item => item.variant.id !== variantId);
+        }
+        const updatedCart = [...prevCart];
+        updatedCart[existingItemIndex] = {
+          ...existingItem,
+          quantity: existingItem.quantity - 1
+        };
+        return updatedCart;
+      }
+      return prevCart;
+    });
+  };
+
+  const handleRemoveFromCart = (variantId: string) => {
+    setPosCart(prevCart => prevCart.filter(item => item.variant.id !== variantId));
+  };
+
+  const handleUpdateCartItemQty = (variantId: string, qty: number, maxQty: number) => {
+    const cleanQty = Math.max(1, Math.min(maxQty, qty));
+    setPosCart(prevCart => prevCart.map(item => 
+      item.variant.id === variantId ? { ...item, quantity: cleanQty } : item
+    ));
+  };
+
+  const handleUpdateCartItemPrice = (variantId: string, newPrice: number) => {
+    const cleanPrice = Math.max(0, newPrice);
+    setPosCart(prevCart => prevCart.map(item => 
+      item.variant.id === variantId ? { ...item, overridePrice: cleanPrice } : item
+    ));
+  };
+
+  const handleConfirmPOSSale = () => {
+    if (posCart.length === 0) return;
+
+    const customer = posBuyerName.trim() || 'Walk-in Customer';
+    const subtotal = posCart.reduce((sum, item) => sum + (item.overridePrice * item.quantity), 0);
+    
+    let discountAmount = 0;
+    if (posDiscountType === 'flat') {
+      discountAmount = Math.min(subtotal, posDiscountValue);
+    } else {
+      discountAmount = Math.min(subtotal, Math.round(subtotal * (posDiscountValue / 100)));
+    }
+    const grandTotal = subtotal - discountAmount;
+
+    // 1. Mutate state productList: decrement variant quantity for all sold items
+    setProductList(prevList => prevList.map(p => {
+      // Find all cart items for this product
+      const productCartItems = posCart.filter(item => item.product.id === p.id);
+      if (productCartItems.length === 0) return p;
+
+      const updatedVariants = p.variants?.map(v => {
+        const cartItem = productCartItems.find(item => item.variant.id === v.id);
+        if (cartItem) {
+          return {
+            ...v,
+            quantity: Math.max(0, v.quantity - cartItem.quantity)
+          };
+        }
+        return v;
+      }) || [];
+
+      const newTotalStock = updatedVariants.reduce((sum, v) => sum + v.quantity, 0);
+      const dateStr = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      
+      const newHistoryLogs = productCartItems.map(item => ({
+        text: `Sold ${item.quantity} unit${item.quantity > 1 ? 's' : ''} to ${customer} — ${item.variant.color} ${item.variant.ram}/${item.variant.storage} — ${dateStr}`,
+        type: 'sell' as const
+      }));
+
+      return {
+        ...p,
+        variants: updatedVariants,
+        stock: newTotalStock,
+        history: [...newHistoryLogs, ...(p.history || [])]
+      };
+    }));
+
+    // 2. Prepends Bottom Feed dynamic activities
+    posCart.forEach(item => {
+      setRecentActivities(prev => [
+        { 
+          type: 'sold', 
+          text: 'Marked sold', 
+          product: `${item.product.brand} ${item.product.name} ${item.variant.color} ${item.variant.ram}/${item.variant.storage} (Qty: ${item.quantity})`, 
+          time: 'Just now' 
+        },
+        ...prev
+      ].slice(0, 10));
+    });
+
+    // 3. Compile POS Invoice receipt data
+    const finalReceipt = {
+      shopName: storeName || 'Zenvy Store',
+      invoiceNumber: `INV-${new Date().getFullYear()}-${Date.now().toString().slice(-4)}`,
+      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+      buyerName: customer,
+      items: posCart.map(item => ({
+        brand: item.product.brand || 'Generic',
+        name: item.product.name,
+        color: item.variant.color,
+        specs: `${item.variant.ram}/${item.variant.storage}`,
+        quantity: item.quantity,
+        price: item.overridePrice,
+        total: item.overridePrice * item.quantity
+      })),
+      subtotal,
+      discount: discountAmount,
+      total: grandTotal
+    };
+
+    setPosSuccessData(finalReceipt);
+
+    // 4. Confetti Explosion
+    confetti({
+      particleCount: 150,
+      spread: 80,
+      origin: { y: 0.5 }
+    });
+
+    // 5. Haptic Vibe
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      navigator.vibrate([100, 50, 100]);
+    }
+
+    // 6. Transition
+    setPosStep(3);
   };
 
   return (
@@ -380,6 +658,7 @@ export default function DashboardPage() {
             <SidebarItem icon={Home} label="Home" active={activeTab === 'Home'} onClick={() => setActiveTab('Home')} />
             <SidebarItem icon={TagIcon} label="Products" active={activeTab === 'Products'} onClick={() => setActiveTab('Products')} hasMore />
             <SidebarItem icon={Package} label="Orders" active={activeTab === 'Orders'} onClick={() => setActiveTab('Orders')} badge="12" />
+            <SidebarItem icon={ShoppingBag} label="Complete Sale (POS)" active={false} onClick={handleOpenCheckout} badge="POS" />
           </SidebarSection>
 
           <SidebarSection title="Favorites" collapsible defaultOpen>
@@ -761,6 +1040,530 @@ export default function DashboardPage() {
                         Done / Close
                       </button>
                     </div>
+
+                  </motion.div>
+                </div>
+              )}
+            </AnimatePresence>
+
+            {/* Modal 3: Complete Sale POS Checkout Bottom Sheet */}
+            <AnimatePresence>
+              {posCheckoutOpen && (
+                <div className="fixed inset-0 bg-black/60 z-[200] flex items-end md:items-center justify-center p-0 md:p-4 backdrop-blur-xs">
+                  {/* Backdrop Close Click */}
+                  <div className="absolute inset-0" onClick={() => setPosCheckoutOpen(false)} />
+
+                  <motion.div 
+                    initial={{ y: "100%", opacity: 0.5 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: "100%", opacity: 0.5 }}
+                    transition={{ type: "spring", damping: 25, stiffness: 220 }}
+                    className="bg-white w-full h-[92vh] md:h-[85vh] md:max-w-2xl border-t md:border border-gray-300 shadow-2xl relative text-left md:rounded-lg overflow-hidden flex flex-col z-[210]"
+                  >
+                    {/* Header */}
+                    <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4 flex-shrink-0 bg-white">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center text-emerald-600">
+                          <ShoppingBag size={16} />
+                        </div>
+                        <div>
+                          <h3 className="text-[14px] font-sans font-bold text-neutral-900 uppercase tracking-widest">Zenvy POS Terminal</h3>
+                          <p className="text-[12px] text-gray-500 font-normal mt-0.5">Step {posStep} of 3: {posStep === 1 ? 'Build Customer Cart' : posStep === 2 ? 'Sale Details & Negotiations' : 'Receipt Invoice Generation'}</p>
+                        </div>
+                      </div>
+                      <button 
+                        onClick={() => setPosCheckoutOpen(false)} 
+                        className="text-gray-400 hover:text-neutral-900 transition-colors p-1.5 hover:bg-neutral-50 rounded-full cursor-pointer"
+                      >
+                        <X size={18} />
+                      </button>
+                    </div>
+
+                    {/* Step 1: Product Selection */}
+                    {posStep === 1 && (
+                      <div className="flex-1 flex flex-col min-h-0 bg-neutral-50">
+                        {/* Search Block */}
+                        <div className="bg-white border-b border-gray-200 p-4 flex-shrink-0">
+                          <div className="relative">
+                            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">
+                              <Search size={16} />
+                            </span>
+                            <input
+                              type="text"
+                              autoFocus
+                              value={posSearch}
+                              onChange={(e) => setPosSearch(e.target.value)}
+                              placeholder="Search brand, model name, color swatch..."
+                              className="w-full bg-[#f6f6f7] py-3 pl-10 pr-4 rounded-xl text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:bg-white transition-all border border-transparent focus:border-emerald-500"
+                            />
+                            {posSearch && (
+                              <button 
+                                onClick={() => setPosSearch('')}
+                                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-neutral-900"
+                              >
+                                <X size={14} />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* In-stock Products List */}
+                        <div className="flex-1 overflow-y-auto p-4 space-y-3.5">
+                          {(() => {
+                            const query = posSearch.toLowerCase().trim();
+                            // Filter products: must be in stock and match search query
+                            const filtered = productList.filter(p => {
+                              if (p.stock === 0) return false;
+                              
+                              const matchProduct = p.name.toLowerCase().includes(query) || (p.brand || '').toLowerCase().includes(query);
+                              if (matchProduct) return true;
+
+                              // Also match variant descriptions (like "Black", "256GB")
+                              const matchVariants = p.variants?.some(v => 
+                                (v.color || '').toLowerCase().includes(query) || 
+                                (v.storage || '').toLowerCase().includes(query) ||
+                                (v.ram || '').toLowerCase().includes(query)
+                              );
+                              return matchVariants;
+                            });
+
+                            if (filtered.length === 0) {
+                              return (
+                                <div className="text-center py-12 text-gray-400">
+                                  <AlertTriangle size={32} className="mx-auto mb-2 opacity-55" />
+                                  <p className="text-xs font-bold uppercase tracking-wider">No matching smartphone in stock</p>
+                                </div>
+                              );
+                            }
+
+                            return filtered.map(product => {
+                              const isExpanded = expandedProductId === product.id;
+                              // Count of variants of this product in the cart
+                              const cartItemCount = posCart
+                                .filter(item => item.product.id === product.id)
+                                .reduce((sum, item) => sum + item.quantity, 0);
+
+                              return (
+                                <div 
+                                  key={product.id}
+                                  className={`bg-white border border-gray-300 overflow-hidden transition-all duration-200 
+                                    ${isExpanded ? 'border-neutral-300 ring-1 ring-neutral-300/5' : 'border-gray-300 hover:border-gray-300'}`}
+                                >
+                                  {/* Product Card Top bar */}
+                                  <div 
+                                    onClick={() => setExpandedProductId(isExpanded ? null : product.id)}
+                                    className="p-3.5 flex items-center justify-between cursor-pointer select-none"
+                                  >
+                                    <div className="flex items-center gap-3">
+                                      {/* Thumbnail */}
+                                      <div className="w-10 h-10 bg-neutral-50 border border-gray-150 overflow-hidden flex-shrink-0 flex items-center justify-center">
+                                        <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                                      </div>
+                                      <div>
+                                        <h4 className="text-sm font-semibold text-neutral-900 leading-snug">{product.name}</h4>
+                                        <div className="flex items-center gap-2 mt-0.5">
+                                          <span className="text-[10px] text-gray-500 font-normal uppercase tracking-wider">{product.brand}</span>
+                                          <span className="w-1 h-1 rounded-full bg-gray-300"></span>
+                                          <span className="text-[12px] text-emerald-600 font-medium uppercase tracking-wider">{product.stock} <span className='text-[10px]'>in stock</span></span>
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    {/* Action items indicators */}
+                                    <div className="flex items-center gap-3">
+                                      {cartItemCount > 0 && (
+                                        <span className="bg-emerald-600 text-white text-[9px] font-light px-2 py-0.5 rounded-xs uppercase tracking-wider shadow-sm">
+                                          {cartItemCount} selected
+                                        </span>
+                                      )}
+                                      <ChevronRight 
+                                        size={16} 
+                                        className={`text-gray-400 transition-transform duration-200 ${isExpanded ? 'rotate-90 text-neutral-800' : ''}`} 
+                                      />
+                                    </div>
+                                  </div>
+
+                                  {/* Product Card Inline Expandable Swatches */}
+                                  {isExpanded && (
+                                    <div className="border-t border-gray-150 bg-neutral-50 px-4 py-3.5 space-y-3">
+                                      <span className="text-[9px] font-normal text-gray-700 uppercase tracking-widest block">Choose Color/Storage Variant</span>
+                                      <div className="grid grid-cols-2 gap-2">
+                                        {product.variants?.map(v => {
+                                          const cartItem = posCart.find(item => item.variant.id === v.id);
+                                          const itemQtyInCart = cartItem?.quantity || 0;
+                                          const isOutOfStock = v.quantity === 0;
+
+                                          return (
+                                            <div
+                                              key={v.id}
+                                              className="relative"
+                                            >
+                                              <button
+                                                type="button"
+                                                disabled={isOutOfStock}
+                                                onClick={() => handleAddToCart(product, v)}
+                                                className={`w-full p-2.5 text-left border rounded-md transition-all flex flex-col justify-between cursor-pointer relative h-[68px]
+                                                  ${isOutOfStock 
+                                                    ? 'opacity-40 bg-neutral-100 border-neutral-200 cursor-not-allowed' 
+                                                    : itemQtyInCart > 0 
+                                                      ? 'border-emerald-600 bg-emerald-50/50 hover:bg-emerald-50' 
+                                                      : 'border-gray-200 bg-white hover:border-gray-300'}`}
+                                              >
+                                                <span className="text-sm font-medium text-neutral-900 truncate block pr-8">{v.color}</span>
+                                                <span className="text-[11px] text-gray-700 font-normal block mt-1">
+                                                  {v.ram}/{v.storage} • {isOutOfStock ? '0 Stock' : `${v.quantity} Stock`}
+                                                </span>
+
+                                                {/* Qty count indicators on active swatches */}
+                                                {itemQtyInCart > 0 && (
+                                                  <span className="absolute top-1.5 right-1.5 w-6 h-6 bg-emerald-600 text-white rounded-full flex items-center justify-center text-[10px] font-black shadow-sm">
+                                                    x{itemQtyInCart}
+                                                  </span>
+                                                )}
+                                              </button>
+
+                                              {/* Remove Badge Button */}
+                                              {itemQtyInCart > 0 && (
+                                                <button
+                                                  type="button"
+                                                  onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleRemoveFromCart(v.id);
+                                                  }}
+                                                  className="absolute -top-1.5 -left-1.5 w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-650 transition-colors shadow-sm cursor-pointer border border-white"
+                                                  title="Click to remove"
+                                                >
+                                                  <X size={10} strokeWidth={3} />
+                                                </button>
+                                              )}
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
+                                      <p className="text-[8px] text-gray-400 italic">Tip: Tap swatches again to increase sold counts. Press red (x) button to remove variant.</p>
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            });
+                          })()}
+                        </div>
+
+                        {/* Cart running summary bar */}
+                        <div className="bg-white border-t border-gray-200 p-4 flex-shrink-0 space-y-3">
+                          {posCart.length > 0 && (
+                            <div className="text-[10px] text-gray-600 bg-neutral-50 px-3 py-2 border border-gray-150 rounded-md font-semibold leading-relaxed">
+                              <span className="font-bold text-neutral-900 uppercase tracking-widest block text-[9px] mb-1">Selected Cart Items:</span>
+                              <div className="truncate max-w-[500px]">
+                                {posCart.map(item => `${item.product.name} (${item.variant.color} x${item.quantity})`).join(', ')}
+                              </div>
+                            </div>
+                          )}
+
+                          <button
+                            type="button"
+                            disabled={posCart.length === 0}
+                            onClick={() => setPosStep(2)}
+                            className={`w-full py-3.5 rounded-lg text-xs font-bold uppercase tracking-widest text-center transition-all cursor-pointer shadow-md
+                              ${posCart.length === 0
+                                ? 'bg-neutral-200 text-neutral-400 cursor-not-allowed shadow-none'
+                                : 'bg-[#5438ff] hover:bg-[#4324ff] text-white'}`}
+                          >
+                            Done — {posCart.reduce((sum, item) => sum + item.quantity, 0)} Items Selected
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Step 2: Sale Summary and Details */}
+                    {posStep === 2 && (
+                      <div className="flex-1 flex flex-col min-h-0 bg-neutral-50">
+                        {/* Cart List */}
+                        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                          <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest block">Configure Negotiation & Overrides</span>
+                          
+                          {posCart.map((item, idx) => (
+                            <div 
+                              key={`${item.variant.id}-${idx}`}
+                              className="bg-white border border-gray-300 p-3.5 flex items-center justify-between"
+                            >
+                              <div className="min-w-0 pr-4 flex-1">
+                                <h4 className="text-sm font-medium text-neutral-900 truncate leading-snug">{item.product.name}</h4>
+                                <p className="text-[10px] text-gray-600 uppercase font-medium tracking-wider mt-0.5">{item.product.brand} • {item.variant.color} ({item.variant.ram}/{item.variant.storage})</p>
+                                
+                                {/* Inline Editable Price Toggle */}
+                                <div className="mt-2.5 flex items-center gap-1.5">
+                                  <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Unit Price:</span>
+                                  <div className="relative flex items-center">
+                                    <span className="text-xs font-bold text-neutral-900 mr-1">Tk</span>
+                                    <input
+                                      type="number"
+                                      value={item.overridePrice}
+                                      onChange={(e) => handleUpdateCartItemPrice(item.variant.id, Number(e.target.value))}
+                                      className="border-b border-gray-300 focus:border-neutral-900 w-24 text-xs font-bold text-neutral-950 focus:outline-none bg-transparent py-0.5 px-1"
+                                      title="Negotiated custom price overrides"
+                                    />
+                                  </div>
+                                </div>
+                                <span className="text-[10px] bg-neutral-100 text-neutral-500 px-1 py-0.5 rounded ml-1 font-semibold uppercase tracking-wide">MSRP Tk {item.variant.sellingPrice.toLocaleString()}</span>
+                              </div>
+
+                              {/* Stepper Quantity control */}
+                              <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                                <div className="flex items-center border border-gray-350 h-[34px] rounded-md overflow-hidden bg-white">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDecrementFromCart(item.variant.id)}
+                                    className="w-8 h-full flex items-center justify-center hover:bg-neutral-50 text-neutral-800 transition-colors cursor-pointer"
+                                  >
+                                    <Minus size={11} strokeWidth={2.5} />
+                                  </button>
+                                  <span className="w-8 text-center font-bold text-xs text-neutral-950">{item.quantity}</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleAddToCart(item.product, item.variant)}
+                                    className="w-8 h-full flex items-center justify-center hover:bg-neutral-50 text-neutral-800 transition-colors cursor-pointer"
+                                  >
+                                    <Plus size={11} strokeWidth={2.5} />
+                                  </button>
+                                </div>
+
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveFromCart(item.variant.id)}
+                                  className="text-[9px] text-red-500 hover:text-red-650 font-bold uppercase tracking-wider"
+                                >
+                                  Remove
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Sale Details Inputs */}
+                        <div className="bg-white border-t border-gray-200 p-4 space-y-4 flex-shrink-0">
+                          {/* Buyer Name & Discount */}
+                          <div className="grid grid-cols-2 gap-4">
+                            {/* Buyer Name */}
+                            <div className="space-y-1.5">
+                              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block">Customer Name</label>
+                              <input
+                                type="text"
+                                value={posBuyerName}
+                                onChange={(e) => setPosBuyerName(e.target.value)}
+                                placeholder="Customer name (optional)"
+                                className="w-full border border-gray-300 px-3 h-[42px] text-xs font-semibold focus:outline-none focus:border-neutral-900 rounded-lg"
+                              />
+                            </div>
+
+                            {/* Discount Picker */}
+                            <div className="space-y-1.5">
+                              <div className="flex items-center justify-between">
+                                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block">Discount</label>
+                                {/* Toggle buttons flat vs % */}
+                                <div className="flex bg-neutral-100 rounded-md p-0.5">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setPosDiscountType('flat');
+                                      setPosDiscountValue(0);
+                                    }}
+                                    className={`px-2 py-0.5 text-[12px] font-bold rounded uppercase tracking-wider cursor-pointer transition-all
+                                      ${posDiscountType === 'flat' ? 'bg-white text-neutral-900 shadow-xs' : 'text-neutral-500 hover:text-neutral-900'}`}
+                                  >
+                                    Tk
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setPosDiscountType('percent');
+                                      setPosDiscountValue(0);
+                                    }}
+                                    className={`px-3 py-0.5 text-[12px] font-bold rounded uppercase tracking-wider cursor-pointer transition-all
+                                      ${posDiscountType === 'percent' ? 'bg-white text-neutral-900 shadow-xs' : 'text-neutral-500 hover:text-neutral-900'}`}
+                                  >
+                                    %
+                                  </button>
+                                </div>
+                              </div>
+
+                              <div className="relative">
+                                <input
+                                  type="number"
+                                  value={posDiscountValue || ''}
+                                  onChange={(e) => setPosDiscountValue(Number(e.target.value))}
+                                  placeholder={posDiscountType === 'flat' ? 'BDT flat discount' : 'Percentage %'}
+                                  className="w-full border border-gray-300 pl-3 pr-8 h-[42px] text-xs font-semibold focus:outline-none focus:border-neutral-900 rounded-lg"
+                                />
+                                <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-xs">
+                                  {posDiscountType === 'flat' ? 'Tk' : '%'}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Calculations breakdown block */}
+                          <div className="bg-neutral-50 border border-gray-200 p-4.5 rounded-lg space-y-2">
+                            {(() => {
+                              const subtotal = posCart.reduce((sum, item) => sum + (item.overridePrice * item.quantity), 0);
+                              let discount = 0;
+                              if (posDiscountType === 'flat') {
+                                discount = Math.min(subtotal, posDiscountValue);
+                              } else {
+                                discount = Math.min(subtotal, Math.round(subtotal * (posDiscountValue / 100)));
+                              }
+                              const grandTotal = subtotal - discount;
+
+                              return (
+                                <>
+                                  <div className="flex justify-between text-xs font-medium text-gray-500">
+                                    <span>Subtotal:</span>
+                                    <span className="font-bold text-neutral-900">Tk {subtotal.toLocaleString()}</span>
+                                  </div>
+                                  {discount > 0 && (
+                                    <div className="flex justify-between text-xs font-medium text-red-500">
+                                      <span>Discount:</span>
+                                      <span className="font-bold">-Tk {discount.toLocaleString()}</span>
+                                    </div>
+                                  )}
+                                  <div className="border-t border-gray-200 pt-2 flex justify-between items-baseline">
+                                    <span className="text-xs font-bold text-neutral-900 uppercase tracking-widest">GRAND TOTAL:</span>
+                                    <span className="text-xl font-black text-[#5438ff]">Tk {grandTotal.toLocaleString()}</span>
+                                  </div>
+                                </>
+                              );
+                            })()}
+                          </div>
+
+                          {/* Actions */}
+                          <div className="flex gap-3.5 pt-1">
+                            <button
+                              type="button"
+                              onClick={() => setPosStep(1)}
+                              className="flex-1 py-2 text-xs border border-gray-300 hover:bg-gray-50 text-neutral-750 font-bold uppercase tracking-wider rounded-sm transition-all cursor-pointer text-center"
+                            >
+                              Go Back
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleConfirmPOSSale}
+                              className="flex-1 py-2 text-xs text-white bg-emerald-600 hover:bg-emerald-700 font-bold uppercase tracking-wider rounded-sm transition-all cursor-pointer shadow-md shadow-emerald-600/10 text-center"
+                            >
+                              Confirm Sale
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Step 3: Success Confirmation and Invoice exports */}
+                    {posStep === 3 && posSuccessData && (
+                      <div className="flex-1 flex flex-col justify-center items-center p-6 bg-white overflow-y-auto">
+                        {/* Success Animated Checkmark */}
+                        <div className="w-16 h-16 mt-20 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-600 mb-4 animate-bounce">
+                          <CheckCircle2 size={38} className="stroke-[2.5]" />
+                        </div>
+
+                        <h3 className="text-lg font-sans font-bold text-neutral-900 text-center uppercase tracking-wider">Sale Recorded Successfully!</h3>
+                        <p className="text-xs text-neutral-500 text-center mt-1.5 font-medium max-w-sm">
+                          Smartphone stock quantities have been adjusted. A branded premium invoice slip is ready.
+                        </p>
+
+                        {/* Invoice Summary Box */}
+                        <div className="my-6 p-5 border border-dashed border-gray-300 bg-neutral-50 font-mono text-xs text-neutral-800 space-y-4 max-w-sm w-full shadow-inner rounded-md">
+                          <div className="text-center border-b border-dashed border-gray-300 pb-2.5">
+                            <p className="font-bold text-sm uppercase tracking-widest text-neutral-950">{posSuccessData.shopName}</p>
+                            <p className="text-[9px] text-gray-500 mt-0.5 uppercase tracking-widest">STOCKNET TERMINAL SALE</p>
+                          </div>
+
+                          <div className="space-y-1 text-neutral-600">
+                            <p className="flex justify-between">
+                              <span>Invoice No:</span>
+                              <strong className="text-neutral-950 font-bold">{posSuccessData.invoiceNumber}</strong>
+                            </p>
+                            <p className="flex justify-between">
+                              <span>Date/Time:</span>
+                              <span className="text-neutral-900 font-semibold">{posSuccessData.date} {posSuccessData.time}</span>
+                            </p>
+                            <p className="flex justify-between">
+                              <span>Customer:</span>
+                              <span className="text-neutral-900 font-semibold truncate max-w-[170px]">{posSuccessData.buyerName}</span>
+                            </p>
+                          </div>
+
+                          <div className="border-t border-b border-dashed border-gray-300 py-3 space-y-2">
+                            <div className="flex justify-between font-bold text-neutral-950 text-[10px] uppercase tracking-wider">
+                              <span>Item description</span>
+                              <span>Qty / Total</span>
+                            </div>
+                            
+                            {posSuccessData.items.map((item: any, i: number) => (
+                              <div key={i} className="flex justify-between leading-snug">
+                                <div className="truncate pr-3 max-w-[190px]">
+                                  <p className="font-bold text-neutral-900 text-[11px] truncate">{item.brand} {item.name}</p>
+                                  <p className="text-[9px] text-gray-400 italic">{item.color} • {item.specs}</p>
+                                </div>
+                                <div className="text-right flex-shrink-0 text-neutral-950 font-bold">
+                                  <p>{item.quantity} x Tk {item.price.toLocaleString()}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+
+                          <div className="space-y-1 pt-1">
+                            <div className="flex justify-between text-xs font-semibold text-neutral-600">
+                              <span>Subtotal:</span>
+                              <span>Tk {posSuccessData.subtotal.toLocaleString()}</span>
+                            </div>
+                            {posSuccessData.discount > 0 && (
+                              <div className="flex justify-between text-xs font-semibold text-red-500">
+                                <span>Discount:</span>
+                                <span>-Tk {posSuccessData.discount.toLocaleString()}</span>
+                              </div>
+                            )}
+                            <div className="flex justify-between items-baseline font-bold text-sm text-neutral-950 pt-1.5 border-t border-dashed border-gray-250">
+                              <span>GRAND TOTAL:</span>
+                              <span className="text-base text-neutral-950 font-black">Tk {posSuccessData.total.toLocaleString()}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Actions block */}
+                        <div className="space-y-2.5 max-w-sm w-full">
+                          <div className="grid grid-cols-2 gap-3">
+                            <button
+                              onClick={() => generateBrandedInvoicePDF(posSuccessData)}
+                              className="py-2 bg-neutral-950 hover:bg-black text-white font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5 rounded-sm transition-all cursor-pointer shadow-md"
+                            >
+                              <Receipt size={13} />
+                              <span>Generate Invoice</span>
+                            </button>
+                            
+                            <button
+                              onClick={() => {
+                                // Background PDF compilation and WhatsApp link share
+                                generateBrandedInvoicePDF(posSuccessData);
+                                
+                                const textMessage = `Hello ${posSuccessData.buyerName},\n\nThank you for purchasing at ${posSuccessData.shopName}!\nHere is your receipt details:\n\n*Invoice No:* ${posSuccessData.invoiceNumber}\n*Date:* ${posSuccessData.date} ${posSuccessData.time}\n\n*Items Purchased:* \n${posSuccessData.items.map((item: any) => `- *${item.brand} ${item.name}* (${item.color} ${item.specs}) x ${item.quantity} units @ Tk ${item.price.toLocaleString()}`).join('\n')}\n\n*Subtotal:* Tk ${posSuccessData.subtotal.toLocaleString()}\n*Discount Applied:* -Tk ${posSuccessData.discount.toLocaleString()}\n*Grand Total:* *Tk ${posSuccessData.total.toLocaleString()}*\n\nYour digital A4 Invoice PDF has been generated offline. Thank you for shopping with us! 🌟`;
+                                const encodedText = encodeURIComponent(textMessage);
+                                window.open(`https://api.whatsapp.com/send?text=${encodedText}`, '_blank');
+                              }}
+                              className="py-2 bg-green-600 hover:bg-green-700 text-white font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5 rounded-sm transition-all cursor-pointer shadow-md shadow-green-600/10"
+                            >
+                              <Share2 size={13} />
+                              <span>Share on WhatsApp</span>
+                            </button>
+                          </div>
+
+                          <button
+                            onClick={() => setPosCheckoutOpen(false)}
+                            className="w-full py-3 bg-gray-50 text-gray-500 border border-gray-300 hover:bg-gray-100 text-[10px] font-bold uppercase tracking-wider transition-all rounded-lg cursor-pointer text-center"
+                          >
+                            Done, go back to dashboard
+                          </button>
+                        </div>
+                      </div>
+                    )}
 
                   </motion.div>
                 </div>
@@ -1238,18 +2041,30 @@ export default function DashboardPage() {
             </main>
 
             {/* Mobile Footer Navigation */}
-            <div className="lg:hidden bg-white border-t border-gray-100 px-6 py-2 flex items-center justify-between sticky bottom-0 w-full z-10">
+            <div className="lg:hidden bg-white border-t border-gray-100 px-4 py-2 flex items-center justify-between sticky bottom-0 w-full z-10 gap-1.5">
               <NavItem icon={Home} label="Home" active={activeTab === 'Home'} onClick={() => setActiveTab('Home')} />
               <NavItem icon={Package} label="Orders" active={activeTab === 'Orders'} onClick={() => setActiveTab('Orders')} />
               
-              {/* Central Floating Plus Button */}
-              <button 
-                onClick={() => setIsCreatingProduct(true)}
-                className="relative -mt-6 w-12 h-12 bg-primary-500 hover:bg-primary-600 text-neutral-0 rounded-full flex items-center justify-center shadow-lg shadow-primary-500/30 hover:scale-[1.08] active:scale-[0.95] transition-all border-4 border-white"
-                aria-label="Add Product"
-              >
-                <Plus size={20} className="stroke-[3]" />
-              </button>
+              {/* Central Floating Navigation Twin Buttons */}
+              <div className="relative -mt-6 flex items-center gap-2 flex-shrink-0">
+                {/* Floating Plus Button (Add Product) */}
+                <button 
+                  onClick={() => setIsCreatingProduct(true)}
+                  className="w-11 h-11 bg-primary-500 hover:bg-primary-600 text-white rounded-full flex items-center justify-center shadow-md shadow-primary-500/20 hover:scale-[1.08] active:scale-[0.95] transition-all border-[3px] border-white cursor-pointer"
+                  aria-label="Add Product"
+                >
+                  <Plus size={18} className="stroke-[3]" />
+                </button>
+
+                {/* Floating Shopping Bag Button (Complete Sale / Checkout) */}
+                <button 
+                  onClick={handleOpenCheckout}
+                  className="w-11 h-11 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full flex items-center justify-center shadow-md shadow-emerald-600/20 hover:scale-[1.08] active:scale-[0.95] transition-all border-[3px] border-white cursor-pointer"
+                  aria-label="Complete Sale (POS)"
+                >
+                  <ShoppingBag size={16} className="stroke-[2.5]" />
+                </button>
+              </div>
               
               <NavItem icon={TagIcon} label="Products" active={activeTab === 'Products'} onClick={() => setActiveTab('Products')} />
               <NavItem icon={MoreHorizontal} label="More" active={activeTab === 'More'} onClick={() => setActiveTab('More')} />
