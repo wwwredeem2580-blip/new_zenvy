@@ -204,20 +204,20 @@ export default function DashboardPage() {
                   <motion.div 
                     initial={{ scale: 0.9, y: 20 }}
                     animate={{ scale: 1, y: 0 }}
-                    className="bg-white rounded-3xl p-10 max-w-sm w-full text-center shadow-2xl"
+                    className="bg-white p-10 max-w-sm w-full text-center shadow-2xl"
                   >
                     <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
                       <CheckCircle2 size={40} className="text-green-600" />
                     </div>
-                    <h2 className="text-2xl font-serif font-black text-[#1a1c1d] mb-2">Product Added!</h2>
-                    <p className="text-gray-500 mb-8 font-medium">Your new product is live and ready for customers.</p>
+                    <h2 className="text-2xl font-sans font-medium text-[#1a1c1d] mb-2">Product Added!</h2>
+                    <p className="text-gray-500 mb-8 font-light text-sm">Your new product is live and ready for customers.</p>
                     <div className="space-y-3">
                       <button 
                         onClick={() => {
                           setShowSuccessOverlay(false);
                           setIsCreatingProduct(true);
                         }}
-                        className="w-full py-4 bg-[#5438ff] text-white rounded-xl font-bold transition-all hover:opacity-90 active:scale-[0.98]"
+                        className="w-full text-sm py-4 bg-[#5438ff] text-white font-bold transition-all hover:opacity-90 active:scale-[0.98]"
                       >
                         Add Another Product
                       </button>
@@ -226,7 +226,7 @@ export default function DashboardPage() {
                           setShowSuccessOverlay(false);
                           setActiveTab('Products');
                         }}
-                        className="w-full py-4 bg-gray-50 text-gray-500 rounded-xl font-bold border border-gray-100 hover:bg-gray-100 transition-all"
+                        className="w-full py-4 text-sm bg-gray-50 text-gray-500 font-bold border border-gray-300 hover:bg-gray-100 transition-all"
                       >
                         Go to Inventory
                       </button>
