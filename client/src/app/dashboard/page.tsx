@@ -275,203 +275,166 @@ export default function DashboardPage() {
 
     const darkColor = [26, 28, 29]; // Clean charcoal black
     const greyColor = [100, 100, 105]; // Slate grey
-    const lightBorder = [225, 225, 230]; // Soft border dividers
+    const lightBorder = [221, 221, 221]; // #dddddd dividers
 
     // --- 1. Elegant Minimalist Header ---
-    // Left-aligned thin line
-    doc.setDrawColor(lightBorder[0], lightBorder[1], lightBorder[2]);
-    doc.setLineWidth(0.4);
-    doc.line(15, 22, 105, 22);
-
-    // Right-aligned tracked "I N V O I C E"
-    doc.setFont("Helvetica", "bold");
-    doc.setFontSize(26);
-    doc.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
-    doc.text("I N V O I C E", 195, 24, { align: "right" });
-
-    // --- 2. Branding Block (Left Aligned) ---
-    doc.setFont("Helvetica", "bold");
-    doc.setFontSize(22);
-    doc.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
-    doc.text(receipt.shopName.toUpperCase(), 15, 36);
-
-    doc.setFont("Helvetica", "normal");
-    doc.setFontSize(8.5);
+    doc.setFont("times", "bold");
+    doc.setFontSize(20);
+    doc.setTextColor(68, 68, 68);
+    doc.text(`${receipt.shopName}.`, 15, 26);
+    
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9.5);
     doc.setTextColor(greyColor[0], greyColor[1], greyColor[2]);
-    doc.text("PREMIUM SMARTPHONE DISTRIBUTION OUTLET", 15, 42);
-    doc.text("Dhaka, Bangladesh  |  Phone: 01712 345678  |  zenvy.com.bd", 15, 46);
+    doc.text("Premium Smartphone Distribution Outlet", 15, 32);
+    doc.text("Dhaka, Bangladesh  |  Phone: 01712 345678  |  zenvy.com.bd", 15, 37);
 
-    // --- 3. Billed To & Right Metadata Rows ---
-    let metaY = 60;
+    // Invoice Details (Right Aligned)
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(20);
+    doc.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
+    doc.text("INVOICE", 195, 26, { align: "right" });
+    
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9.5);
+    doc.setTextColor(80, 80, 85);
+    doc.text(`Invoice Number: ${receipt.invoiceNumber}`, 195, 32, { align: "right" });
+    doc.text(`Date: ${receipt.date}`, 195, 37, { align: "right" });
+    doc.text(`Status: PAID`, 195, 42, { align: "right" });
+
+    // --- 2. Billed To Block (Generous Spacing) ---
+    let metaY = 58;
     
     // Left Column: Issued To
-    doc.setFont("Helvetica", "bold");
-    doc.setFontSize(8.5);
-    doc.setTextColor(greyColor[0], greyColor[1], greyColor[2]);
-    doc.text("ISSUED TO:", 15, metaY);
-
-    doc.setFont("Helvetica", "bold");
-    doc.setFontSize(10.5);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
     doc.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
-    doc.text(receipt.buyerName.toUpperCase(), 15, metaY + 6);
+    doc.text("Issued To:", 15, metaY);
 
-    doc.setFont("Helvetica", "normal");
-    doc.setFontSize(8.5);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9.5);
     doc.setTextColor(greyColor[0], greyColor[1], greyColor[2]);
-    doc.text("Walk-in Customer", 15, metaY + 11);
-    doc.text("Verified Smartphone Transaction", 15, metaY + 16);
+    doc.text(`Name: ${receipt.buyerName}`, 15, metaY + 6);
+    doc.text("Type: Walk-in Customer", 15, metaY + 11);
+    doc.text("Channel: Verified Smartphone Transaction", 15, metaY + 16);
 
     // Middle Column: Pay To
-    doc.setFont("Helvetica", "bold");
-    doc.setFontSize(8.5);
-    doc.setTextColor(greyColor[0], greyColor[1], greyColor[2]);
-    doc.text("PAY TO / OUTLET:", 95, metaY);
-
-    doc.setFont("Helvetica", "bold");
-    doc.setFontSize(10.5);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
     doc.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
-    doc.text(receipt.shopName.toUpperCase(), 95, metaY + 6);
+    doc.text("Pay To / Outlet:", 95, metaY);
 
-    doc.setFont("Helvetica", "normal");
-    doc.setFontSize(8.5);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9.5);
     doc.setTextColor(greyColor[0], greyColor[1], greyColor[2]);
-    doc.text("Phone: 01712 345678", 95, metaY + 11);
-    doc.text("Domain: zenvy.com.bd", 95, metaY + 16);
+    doc.text(`Outlet: ${receipt.shopName}`, 95, metaY + 6);
+    doc.text("Phone: +8801712345678", 95, metaY + 11);
+    doc.text("Website: zenvy.com.bd", 95, metaY + 16);
 
-    // Right Column: Invoice Details
-    doc.setFont("Helvetica", "bold");
-    doc.setFontSize(8.5);
-    doc.setTextColor(greyColor[0], greyColor[1], greyColor[2]);
-    
-    doc.text("INVOICE NO:", 152, metaY);
-    doc.text("DATE:", 152, metaY + 6);
-    doc.text("STATUS:", 152, metaY + 12);
-
-    doc.setFont("Helvetica", "bold");
-    doc.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
-    doc.text(receipt.invoiceNumber, 195, metaY, { align: "right" });
-    doc.text(receipt.date, 195, metaY + 6, { align: "right" });
-    doc.text("PAID", 195, metaY + 12, { align: "right" });
-
-    // Table divider line
-    doc.setDrawColor(26, 28, 29);
-    doc.setLineWidth(0.4);
-    doc.line(15, metaY + 23, 195, metaY + 23);
-
-    // --- 4. Elegant Minimalist Table ---
+    // --- 3. Elegant Table Headers ---
     let yStart = metaY + 29;
-    doc.setFont("Helvetica", "bold");
-    doc.setFontSize(8.5);
-    doc.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
-    doc.text("DESCRIPTION", 17, yStart);
-    doc.text("UNIT PRICE", 125, yStart, { align: "right" });
-    doc.text("QTY", 155, yStart, { align: "right" });
-    doc.text("TOTAL", 193, yStart, { align: "right" });
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.setTextColor(0, 0, 0);
+    doc.text("Service / Device", 15, yStart);
+    doc.text("Unit Price", 125, yStart, { align: "right" });
+    doc.text("Duration / Qty", 155, yStart, { align: "right" });
+    doc.text("Amount", 195, yStart, { align: "right" });
 
-    // Thin underline for table header
-    doc.setDrawColor(26, 28, 29);
-    doc.setLineWidth(0.35);
+    // Thin stroke divider matching '#dddddd'
+    doc.setDrawColor(lightBorder[0], lightBorder[1], lightBorder[2]);
+    doc.setLineWidth(0.4);
     doc.line(15, yStart + 3, 195, yStart + 3);
 
     let currentY = yStart + 3;
 
     receipt.items.forEach((item: any) => {
-      // Row text
-      doc.setFont("Helvetica", "bold");
-      doc.setFontSize(9.5);
-      doc.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
-      const desc = item.description || `${item.brand || ''} ${item.name || ''} - ${item.color || ''} (${item.specs || ''})`.trim();
-      doc.text(desc, 17, currentY + 6.5);
-
-      doc.setFont("Helvetica", "normal");
-      doc.setFontSize(9);
-      doc.setTextColor(45, 45, 45);
-      doc.text(`Tk ${item.price.toLocaleString()}`, 125, currentY + 6.5, { align: "right" });
-      doc.text(String(item.quantity), 155, currentY + 6.5, { align: "right" });
+      currentY += 8;
       
-      doc.setFont("Helvetica", "bold");
-      doc.text(`Tk ${item.total.toLocaleString()}`, 193, currentY + 6.5, { align: "right" });
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9.5);
+      doc.setTextColor(68, 68, 68);
+      const desc = item.description || `${item.brand || ''} ${item.name || ''} - ${item.color || ''} (${item.specs || ''})`.trim();
+      doc.text(desc, 15, currentY);
 
-      // Very subtle gray divider between items for readability
-      doc.setDrawColor(240, 240, 243);
-      doc.setLineWidth(0.2);
-      doc.line(15, currentY + 10, 195, currentY + 10);
-      currentY += 10;
+      doc.text(`Tk ${item.price.toLocaleString()}`, 125, currentY, { align: "right" });
+      doc.text(String(item.quantity), 155, currentY, { align: "right" });
+      
+      doc.text(`Tk ${item.total.toLocaleString()}`, 195, currentY, { align: "right" });
     });
 
-    // Solid Bottom line under items
-    doc.setDrawColor(26, 28, 29);
-    doc.setLineWidth(0.3);
+    currentY += 6;
+    // Bottom border under table rows
+    doc.setDrawColor(lightBorder[0], lightBorder[1], lightBorder[2]);
+    doc.setLineWidth(0.4);
     doc.line(15, currentY, 195, currentY);
 
-    // --- 5. Clean Monochromatic Totals Area ---
-    currentY += 8;
-    
-    // Subtotal Row
-    doc.setFont("Helvetica", "bold");
+    // --- 4. Totals Area ---
+    currentY += 10;
+    doc.setFont("helvetica", "normal");
     doc.setFontSize(9.5);
-    doc.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
-    doc.text("SUBTOTAL", 17, currentY);
-    doc.text(`Tk ${receipt.subtotal.toLocaleString()}`, 193, currentY, { align: "right" });
+    doc.setTextColor(68, 68, 68);
+    doc.text("Subtotal:", 135, currentY);
+    doc.text(`Tk ${receipt.subtotal.toLocaleString()}`, 195, currentY, { align: "right" });
 
-    // Discount Row (if any)
     if (receipt.discount > 0) {
       currentY += 6;
-      doc.setFont("Helvetica", "normal");
-      doc.setFontSize(9);
-      doc.setTextColor(greyColor[0], greyColor[1], greyColor[2]);
-      doc.text("DISCOUNT", 152, currentY, { align: "right" });
-      doc.setFont("Helvetica", "bold");
-      doc.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
-      doc.text(`-Tk ${receipt.discount.toLocaleString()}`, 193, currentY, { align: "right" });
+      doc.text("Discount:", 135, currentY);
+      doc.text(`-Tk ${receipt.discount.toLocaleString()}`, 195, currentY, { align: "right" });
     }
 
-    // Grand Total Row
-    currentY += 8;
-    doc.setFont("Helvetica", "bold");
-    doc.setFontSize(10.5);
+    currentY += 7;
+    doc.setFont("helvetica", "bold");
     doc.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
-    doc.text("TOTAL", 152, currentY, { align: "right" });
-    doc.setFont("Helvetica", "bold");
-    doc.text(`Tk ${receipt.total.toLocaleString()}`, 193, currentY, { align: "right" });
+    doc.text("Total Paid:", 135, currentY);
+    doc.text(`Tk ${receipt.total.toLocaleString()}`, 195, currentY, { align: "right" });
 
-    // --- 6. Aesthetic Authorized Signature Block ---
-    let signatureY = currentY + 24;
+    // --- 5. Clean Times-Italic Signature ---
+    let signatureY = 222;
+    const signName = receipt.shopName.split(' ')[0] || 'Zenvy';
     
-    doc.setFont("Helvetica-Oblique", "normal");
-    doc.setFontSize(15);
-    doc.setTextColor(greyColor[0], greyColor[1], greyColor[2]);
-    doc.text(`${receipt.shopName.split(' ')[0]} Authorized`, 193, signatureY - 4, { align: "right" });
+    doc.setFont("times", "italic");
+    doc.setFontSize(32);
+    doc.setTextColor(0, 0, 0);
+    doc.text(signName, 15, signatureY);
 
-    doc.setDrawColor(lightBorder[0], lightBorder[1], lightBorder[2]);
-    doc.setLineWidth(0.3);
-    doc.line(145, signatureY, 195, signatureY);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
+    doc.text("Authorized Representative", 15, signatureY + 8);
 
-    doc.setFont("Helvetica", "normal");
-    doc.setFontSize(8.5);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9.5);
     doc.setTextColor(greyColor[0], greyColor[1], greyColor[2]);
-    doc.text("Authorized Signature", 193, signatureY + 4.5, { align: "right" });
+    doc.text(`Founder, ${receipt.shopName}`, 15, signatureY + 13);
+
+    // --- 6. PAID Stamp Overlay (Slanted Indigo Ink Stamp) ---
+    doc.setTextColor(90, 82, 213); // #5a52d5 matching SmartCAF color
+    doc.setFont("times", "bold");
+    doc.setFontSize(44);
+    // Draw slanted text at x=142, y=signatureY + 2 with rotation angle 12 degrees
+    doc.text("PAID", 142, signatureY + 2, { angle: 12 });
 
     // --- 7. Clean Monochromatic Footer ---
     doc.setDrawColor(lightBorder[0], lightBorder[1], lightBorder[2]);
     doc.setLineWidth(0.3);
     doc.line(15, 262, 195, 262);
 
-    doc.setFont("Helvetica", "bold");
+    doc.setFont("helvetica", "bold");
     doc.setFontSize(9);
     doc.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
     doc.text("Thank you for your purchase!", 15, 268);
 
-    doc.setFont("Helvetica", "normal");
+    doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
     doc.setTextColor(greyColor[0], greyColor[1], greyColor[2]);
     doc.text("For support, warranties, or transaction inquiries, contact our customer helpdesk.", 15, 272);
 
     // Subtle powered by watermark
-    doc.setFont("Helvetica", "oblique");
+    doc.setFont("helvetica", "oblique");
     doc.setFontSize(7.5);
     doc.setTextColor(165, 165, 170);
-    doc.text("Powered by StockNet - Monochromatic Smartphone Terminal", 195, 268, { align: "right" });
+    doc.text("Powered by StockNet - Premium Smartphone Terminal", 195, 268, { align: "right" });
     doc.text("zenvy.com.bd/stocknet", 195, 272, { align: "right" });
 
     doc.save(`${receipt.invoiceNumber}_invoice.pdf`);
