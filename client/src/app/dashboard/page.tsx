@@ -52,13 +52,59 @@ function DashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState('Home');
+  const [notificationFilter, setNotificationFilter] = useState('All');
+  const [notifications, setNotifications] = useState([
+    {
+      id: 1,
+      type: 'inventory',
+      unread: true,
+      title: 'Low Stock Alert',
+      message: 'Samsung Galaxy A35 5G is running low (2 units left). Please review your replenishment settings.',
+      time: '2 mins ago',
+      actionText: 'Restock Now'
+    },
+    {
+      id: 2,
+      type: 'sales',
+      unread: false,
+      title: 'Sale Confirmed',
+      message: 'New order #8492 for 3x iPhone 15 Pro Max. Shipping label is ready for generation.',
+      time: '45 mins ago'
+    },
+    {
+      id: 3,
+      type: 'sales',
+      unread: false,
+      title: 'Product Published',
+      message: "'Minimalist Ceramic Vessel' is now live in your store and visible to all wholesale buyers.",
+      time: '3 hours ago'
+    },
+    {
+      id: 4,
+      type: 'account',
+      unread: true,
+      title: 'System Update',
+      message: 'Your monthly performance report for last month is ready to view. Your sales grew by 14%.',
+      time: 'Yesterday',
+      actionText: 'View Report'
+    },
+    {
+      id: 5,
+      type: 'inventory',
+      unread: false,
+      title: 'Inventory Restocked',
+      message: "Bulk shipment of 'Hand-blown Glass Carafe' has been received and added to your active inventory.",
+      time: 'Monday',
+      image: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=100&auto=format'
+    }
+  ]);
 
   // Sync activeTab with URL search parameters on mount / changes
   useEffect(() => {
     const tabParam = searchParams.get('tab');
     if (tabParam) {
       const formatted = tabParam.charAt(0).toUpperCase() + tabParam.slice(1).toLowerCase();
-      if (['Home', 'Products', 'Orders'].includes(formatted)) {
+      if (['Home', 'Products', 'Orders', 'Notifications'].includes(formatted)) {
         setActiveTab(formatted);
       }
     }
@@ -357,11 +403,20 @@ function DashboardContent() {
             <p className="px-6 text-[9px] uppercase tracking-[0.2em] text-[#5e5e5d] mb-2 opacity-50 font-bold">Management</p>
             <div className="space-y-1">
               <button 
-                onClick={() => {}}
-                className="w-full flex items-center gap-3 text-[#5e5e5d] hover:bg-[#f5f3f3]/50 py-3 px-6 transition-all text-left text-xs cursor-pointer font-semibold font-medium"
+                onClick={() => handleTabChange('Notifications')}
+                className={`w-full flex items-center gap-3 py-3 px-6 transition-all text-left cursor-pointer border-r-2 text-xs font-semibold ${
+                  activeTab === 'Notifications' 
+                    ? 'text-[#020302] font-bold bg-[#f5f3f3] border-[#020302]' 
+                    : 'text-[#5e5e5d] hover:bg-[#f5f3f3]/50 border-transparent font-medium'
+                }`}
               >
                 <Bell size={16} className="stroke-[2]" />
                 <span>Notifications</span>
+                {notifications.filter(n => n.unread).length > 0 && (
+                  <span className="ml-auto bg-[#ba1a1a] text-white text-[9px] px-1.5 py-0.5 rounded-full font-bold">
+                    {notifications.filter(n => n.unread).length}
+                  </span>
+                )}
               </button>
               <button 
                 onClick={() => {}}
@@ -557,9 +612,14 @@ function DashboardContent() {
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-2 animate-pulse"></span>
                     LIVE STORE
                   </div>
-                  <button className="p-2 hover:bg-[#f5f3f3]/50 rounded-sm transition-all relative cursor-pointer">
+                  <button 
+                    onClick={() => handleTabChange('Notifications')}
+                    className="p-2 hover:bg-[#f5f3f3]/50 rounded-sm transition-all relative cursor-pointer"
+                  >
                     <Bell size={18} className="text-[#020302] stroke-[2]" />
-                    <span className="absolute top-2.5 right-2.5 w-1.5 h-1.5 bg-[#ba1a1a] rounded-full"></span>
+                    {notifications.filter(n => n.unread).length > 0 && (
+                      <span className="absolute top-2.5 right-2.5 w-1.5 h-1.5 bg-[#ba1a1a] rounded-full"></span>
+                    )}
                   </button>
                   <div className="w-8 h-8 rounded-full border-2 border-purple-400 flex items-center justify-center font-bold text-md border border-[#efeded] select-none">
                     {storeName ? storeName.substring(0, 1).toUpperCase() : 'M'}
@@ -1004,7 +1064,160 @@ function DashboardContent() {
                           </motion.div>
                         ))}
                     </div>
+                  </div>
+                )}
 
+                {activeTab === 'Orders' && (
+                  <div className="space-y-8 text-left py-2">
+                    {/* Header */}
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8">
+                      <div>
+                        <h2 className="text-3xl md:text-5xl font-medium tracking-tight text-[#020302] mb-2">Orders</h2>
+                        <p className="text-sm text-[#5e5e5d] font-semibold leading-relaxed">View and track wholesale orders placed by your retail clients.</p>
+                      </div>
+                    </div>
+
+                    {/* Orders List */}
+                    <div className="space-y-4">
+                      {[
+                        { id: '#8492', client: 'Alex Merchant', items: '3x iPhone 15 Pro Max', total: '৳435,000', status: 'Processing', date: '45 mins ago' },
+                        { id: '#8491', client: 'Zenith Retail', items: '5x Galaxy A35 5G', total: '৳192,500', status: 'Shipped', date: '3 hours ago' },
+                        { id: '#8490', client: 'Dhaka Gadgets', items: '2x OnePlus 12', total: '৳158,000', status: 'Delivered', date: 'Yesterday' },
+                        { id: '#8489', client: 'Apex Mobile', items: '10x Redmi Note 13 Pro', total: '৳295,000', status: 'Delivered', date: '2 days ago' }
+                      ].map((order) => (
+                        <div key={order.id} className="bg-white border border-[#efeded] p-6 flex flex-col md:flex-row justify-between md:items-center gap-4 hover:border-black transition-all">
+                          <div>
+                            <div className="flex items-center gap-3 mb-1">
+                              <span className="text-xs font-bold uppercase tracking-wider text-[#020302]">{order.id}</span>
+                              <span className={`text-[9px] font-bold uppercase tracking-widest py-0.5 px-2 rounded-xs ${
+                                order.status === 'Processing' 
+                                  ? 'bg-amber-50 text-amber-700' 
+                                  : order.status === 'Shipped' 
+                                    ? 'bg-blue-50 text-blue-700' 
+                                    : 'bg-emerald-50 text-emerald-700'
+                              }`}>
+                                {order.status}
+                              </span>
+                            </div>
+                            <p className="text-sm font-medium text-[#020302]">{order.client}</p>
+                            <p className="text-xs text-[#5e5e5d] mt-1">{order.items}</p>
+                          </div>
+                          <div className="text-left md:text-right shrink-0">
+                            <p className="text-sm font-bold text-black">{order.total}</p>
+                            <p className="text-[10px] text-[#5e5e5d] opacity-60 mt-1 font-medium">{order.date}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === 'Notifications' && (
+                  <div className="space-y-8 text-left py-2">
+                    {/* Header */}
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8">
+                      <div>
+                        <h2 className="text-3xl md:text-5xl font-medium tracking-tight text-[#020302] mb-2">Notifications</h2>
+                        <p className="text-sm text-[#5e5e5d] font-semibold leading-relaxed">Manage your stock alerts, sales updates, and system messages.</p>
+                      </div>
+                      <button 
+                        onClick={() => {
+                          setNotifications(prev => prev.map(n => ({ ...n, unread: false })));
+                        }}
+                        className="px-6 py-2.5 border border-[#020302] text-[#020302] hover:bg-[#f5f3f3] transition-colors text-xs font-bold tracking-widest uppercase cursor-pointer"
+                      >
+                        Mark all as read
+                      </button>
+                    </div>
+
+                    {/* Category Tabs */}
+                    <div className="flex gap-8 mb-8 border-b border-[#efeded]">
+                      {['All', 'Inventory', 'Sales', 'Account'].map((cat) => {
+                        const isActive = notificationFilter === cat;
+                        return (
+                          <button
+                            key={cat}
+                            onClick={() => setNotificationFilter(cat)}
+                            className={`pb-4 text-[11px] font-bold uppercase tracking-widest transition-all relative cursor-pointer ${
+                              isActive 
+                                ? 'text-black border-b-2 border-black' 
+                                : 'text-[#5e5e5d] hover:text-[#020302]'
+                            }`}
+                          >
+                            {cat}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Notifications List */}
+                    <div className="space-y-4">
+                      {notifications.filter(n => {
+                        if (notificationFilter === 'All') return true;
+                        return n.type.toLowerCase() === notificationFilter.toLowerCase();
+                      }).length === 0 ? (
+                        <div className="bg-white border border-[#efeded] p-12 text-center text-sm text-[#5e5e5d]">
+                          No notifications found in this category.
+                        </div>
+                      ) : (
+                        notifications.filter(n => {
+                          if (notificationFilter === 'All') return true;
+                          return n.type.toLowerCase() === notificationFilter.toLowerCase();
+                        }).map((notif) => (
+                          <div 
+                            key={notif.id}
+                            className={`group p-6 border transition-all duration-300 flex gap-6 items-start ${
+                              notif.unread 
+                                ? 'bg-white border-[#c7c7bf] hover:border-[#020302]' 
+                                : 'bg-[#f5f3f3] border-transparent hover:bg-[#efeded]'
+                            }`}
+                          >
+                            {/* Left Status Icon */}
+                            <div className="flex-shrink-0 w-12 h-12 bg-white border border-[#c7c7bf] flex items-center justify-center">
+                              {notif.image ? (
+                                <img src={notif.image} className="w-full h-full object-cover" alt="Product thumbnail" />
+                              ) : notif.type === 'inventory' ? (
+                                <AlertTriangle size={18} className="text-[#ba1a1a]" />
+                              ) : notif.type === 'sales' ? (
+                                <Receipt size={18} className="text-[#020302]" />
+                              ) : (
+                                <Globe size={18} className="text-[#020302]" />
+                              )}
+                            </div>
+
+                            {/* Details */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                {notif.unread && <span className="w-1.5 h-1.5 bg-[#ba1a1a] rounded-full"></span>}
+                                <h3 className={`text-xs font-bold uppercase tracking-wider ${notif.unread ? 'text-[#020302]' : 'text-[#5e5e5d]'}`}>
+                                  {notif.title}
+                                </h3>
+                                <span className="text-[10px] text-[#5e5e5d] opacity-60 ml-auto font-medium">{notif.time}</span>
+                              </div>
+                              
+                              <p className={`text-sm leading-relaxed ${notif.actionText ? 'mb-4' : ''} ${notif.unread ? 'text-[#020302]' : 'text-[#5e5e5d]'}`}>
+                                {notif.message}
+                              </p>
+
+                              {notif.actionText && (
+                                <button 
+                                  onClick={() => {
+                                    if (notif.actionText === 'Restock Now') {
+                                      handleTabChange('Products');
+                                    } else {
+                                      alert('Performance Report is ready! Sales grew by 14% this month.');
+                                    }
+                                  }}
+                                  className="px-5 py-2.5 bg-[#020302] text-white hover:bg-neutral-900 transition-colors text-[10px] font-bold uppercase tracking-widest cursor-pointer"
+                                >
+                                  {notif.actionText}
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
