@@ -1192,7 +1192,239 @@ export default function DashboardPage() {
 
             {/* Modal 3: Complete Sale POS Checkout Drawer */}
             <AnimatePresence>
-              {posCheckoutOpen && (
+              {posCheckoutOpen && posStep === 1 && (
+                <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-[#020302]/20 backdrop-blur-sm">
+                  {/* Backdrop Close Click */}
+                  <div className="absolute inset-0" onClick={() => setPosCheckoutOpen(false)} />
+
+                  <motion.div 
+                    initial={{ opacity: 0, y: 100 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 100 }}
+                    transition={{ type: "spring", stiffness: 350, damping: 35 }}
+                    className="w-full max-w-2xl z-[210] flex flex-col font-sans text-on-surface"
+                  >
+                    {/* Step 1: Select Products */}
+                    <div className="bg-[#fbf9f9] w-full max-h-[85vh] sm:max-h-[90vh] md:max-h-[850px] flex flex-col rounded-t-2xl sm:rounded-xl border-t sm:border border-[#c7c7bf] shadow-2xl overflow-hidden">
+                      {/* Modal Header */}
+                      <div className="px-4 pt-5 pb-3 sm:px-8 sm:pt-8 sm:pb-4 flex justify-between items-center shrink-0">
+                        <h1 className="font-medium text-xl sm:text-2xl md:text-[32px] tracking-[0.01em] text-[#020302]">Select Products</h1>
+                        <button 
+                          type="button"
+                          onClick={() => setPosCheckoutOpen(false)} 
+                          className="p-1.5 sm:p-2 hover:bg-[#f5f3f3] rounded-full transition-all cursor-pointer"
+                        >
+                          <X size={20} className="text-[#464741] sm:hidden" />
+                          <X size={24} className="text-[#464741] hidden sm:block" />
+                        </button>
+                      </div>
+                      
+                      {/* Search Section */}
+                      <div className="px-4 pb-4 sm:px-8 sm:pb-6 border-b border-[#c7c7bf]/30 shrink-0">
+                        <div className="relative flex items-center">
+                          <Search size={18} className="absolute left-3.5 text-[#464741] sm:hidden" />
+                          <Search size={20} className="absolute left-4 text-[#464741] hidden sm:block" />
+                          <input
+                            type="text"
+                            value={posSearch}
+                            onChange={(e) => setPosSearch(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2.5 sm:pl-12 sm:pr-4 sm:py-3 bg-white border border-[#c7c7bf] rounded-lg text-sm sm:text-base font-light text-[#1b1c1c] focus:outline-none focus:border-[#020302] transition-colors placeholder:text-[#464741]/50"
+                            placeholder="Search mobile by name, brand..."
+                          />
+                          {posSearch && (
+                            <button 
+                              type="button"
+                              onClick={() => setPosSearch('')} 
+                              className="absolute right-4 text-[#464741] cursor-pointer"
+                            >
+                              <X size={16} />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Product List Area */}
+                      <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-8 sm:py-6 space-y-4 sm:space-y-6 bg-[#ffffff]">
+                        {(() => {
+                          const query = posSearch.toLowerCase().trim();
+                          const filtered = productList.filter(p => {
+                            if (p.stock === 0) return false;
+                            const matchProduct = p.name.toLowerCase().includes(query) || (p.brand || '').toLowerCase().includes(query);
+                            if (matchProduct) return true;
+                            const matchVariants = p.variants?.some(v => 
+                              (v.color || '').toLowerCase().includes(query) || 
+                              (v.storage || '').toLowerCase().includes(query) ||
+                              (v.ram || '').toLowerCase().includes(query)
+                            );
+                            return matchVariants;
+                          });
+
+                          if (filtered.length === 0) {
+                            return (
+                              <div className="text-center py-16 text-neutral-400">
+                                <AlertTriangle size={24} className="mx-auto mb-2 opacity-50 text-[#1b1c1c]" />
+                                <p className="text-[11px] font-medium uppercase tracking-wider text-[#5e5e5d]">No matching smartphone in stock</p>
+                              </div>
+                            );
+                          }
+
+                          return filtered.map(product => {
+                            const isExpanded = expandedProductId === product.id;
+                            const cartItemCount = posCart
+                              .filter(item => item.product.id === product.id)
+                              .reduce((sum, item) => sum + item.quantity, 0);
+
+                            if (isExpanded) {
+                              return (
+                                <section key={product.id} className="bg-white border border-[#020302] rounded-xl overflow-hidden transition-all duration-300 ring-1 ring-[#020302]/10">
+                                  <div 
+                                    onClick={() => setExpandedProductId(null)}
+                                    className="p-4 sm:p-6 flex items-start gap-4 sm:gap-6 cursor-pointer"
+                                  >
+                                    <div className="w-14 h-14 sm:w-20 sm:h-20 bg-[#fbf9f9] rounded-lg flex-shrink-0 border border-[#c7c7bf] overflow-hidden">
+                                      <img className="w-full h-full object-cover" src={product.image} alt={product.name} />
+                                    </div>
+                                    <div className="flex-grow min-w-0">
+                                      <div className="flex justify-between items-center gap-2">
+                                        <h2 className="text-lg sm:text-[24px] font-normal tracking-[0.01em] text-[#020302] truncate">{product.name}</h2>
+                                        <ChevronRight size={20} className="text-[#020302] transition-transform duration-200 rotate-90 shrink-0 sm:hidden" />
+                                        <ChevronRight size={24} className="text-[#020302] transition-transform duration-200 rotate-90 shrink-0 hidden sm:block" />
+                                      </div>
+                                      <p className="text-[10px] sm:text-[12px] text-[#c7c6c5] uppercase tracking-wider mt-1 truncate">{"Mobile & Tablets • " + product.brand}</p>
+                                    </div>
+                                  </div>
+
+                                  {/* Variant Selection */}
+                                  <div className="px-4 pb-4 sm:px-6 sm:pb-6 space-y-2 sm:space-y-3 bg-[#ffffff]">
+                                    {product.variants?.map(v => {
+                                      const cartItem = posCart.find(item => item.variant.id === v.id);
+                                      const itemQtyInCart = cartItem?.quantity || 0;
+                                      const isOutOfStock = v.quantity === 0;
+
+                                      if (isOutOfStock) {
+                                        return (
+                                          <div key={v.id} className="p-3 sm:p-4 bg-[#efeded] border border-[#c7c7bf] rounded-lg flex items-center justify-between opacity-50 cursor-not-allowed">
+                                            <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+                                              <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-[#c7c7bf] rounded-sm shrink-0"></div>
+                                              <div className="min-w-0">
+                                                <p className="text-sm sm:text-[16px] font-light text-[#1b1c1c] truncate">{v.color + " " + v.ram + "/" + v.storage}</p>
+                                                <p className="text-[11px] sm:text-[12px] text-[#ba1a1a]">0 Available</p>
+                                              </div>
+                                            </div>
+                                            <span className="text-xs sm:text-[14px] text-[#5e5e5d] font-medium shrink-0">{"Tk " + v.sellingPrice.toLocaleString()}</span>
+                                          </div>
+                                        );
+                                      }
+
+                                      if (itemQtyInCart > 0) {
+                                        return (
+                                          <div 
+                                            key={v.id} 
+                                            onClick={(e) => { e.stopPropagation(); handleRemoveFromCart(v.id); }} 
+                                            className="p-3 sm:p-4 bg-[#1d1d1b] border border-[#020302] rounded-lg flex items-center justify-between cursor-pointer transition-all"
+                                          >
+                                            <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+                                              <div className="w-4 h-4 sm:w-5 sm:h-5 bg-[#020302] rounded-sm flex items-center justify-center text-white shrink-0">
+                                                <Check size={12} strokeWidth={3} className="sm:hidden" />
+                                                <Check size={14} strokeWidth={3} className="hidden sm:block" />
+                                              </div>
+                                              <div className="min-w-0">
+                                                <p className="text-sm sm:text-[16px] font-light text-white truncate">{v.color + " " + v.ram + "/" + v.storage} <span className="ml-1 text-white/50 text-[9px] sm:text-[10px] uppercase">{"x" + itemQtyInCart}</span></p>
+                                                <p className="text-[11px] sm:text-[12px] text-[#868582]">{v.quantity + " Available"}</p>
+                                              </div>
+                                            </div>
+                                            <span className="text-xs sm:text-[14px] text-white font-medium shrink-0">{"Tk " + v.sellingPrice.toLocaleString()}</span>
+                                          </div>
+                                        );
+                                      }
+
+                                      return (
+                                        <div 
+                                          key={v.id} 
+                                          onClick={(e) => { e.stopPropagation(); handleAddToCart(product, v); }} 
+                                          className="p-3 sm:p-4 bg-[#fbf9f9] border border-[#c7c7bf] rounded-lg flex items-center justify-between hover:border-[#020302] cursor-pointer transition-all group"
+                                        >
+                                          <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+                                            <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-[#c7c7bf] rounded-sm flex items-center justify-center group-hover:border-[#020302] shrink-0"></div>
+                                            <div className="min-w-0">
+                                              <p className="text-sm sm:text-[16px] font-light text-[#1b1c1c] truncate">{v.color + " " + v.ram + "/" + v.storage}</p>
+                                              <p className="text-[11px] sm:text-[12px] text-[#5e5e5d]">{v.quantity + " Available"}</p>
+                                            </div>
+                                          </div>
+                                          <span className="text-xs sm:text-[14px] text-[#020302] font-medium shrink-0">{"Tk " + v.sellingPrice.toLocaleString()}</span>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </section>
+                              );
+                            }
+
+                            return (
+                              <div 
+                                key={product.id}
+                                onClick={() => setExpandedProductId(product.id)}
+                                className="p-4 sm:p-6 bg-white border border-[#c7c7bf] rounded-xl flex items-center gap-4 sm:gap-6 hover:bg-[#ffffff] hover:border-[#5e5e5d] transition-all cursor-pointer min-w-0"
+                              >
+                                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-[#fbf9f9] rounded-lg flex-shrink-0 border border-[#c7c7bf] overflow-hidden opacity-80">
+                                  <img className="w-full h-full object-cover" src={product.image} alt={product.name} />
+                                </div>
+                                <div className="flex-grow min-w-0">
+                                  <div className="flex justify-between items-center gap-2">
+                                    <h2 className="text-lg sm:text-[24px] font-normal tracking-[0.01em] text-[#020302] opacity-80 truncate">{product.name}</h2>
+                                    {cartItemCount > 0 && (
+                                      <span className="bg-[#020302] text-white text-[9px] sm:text-[10px] font-medium px-1.5 py-0.5 rounded uppercase tracking-wider shrink-0">
+                                        {cartItemCount + " added"}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className="text-[10px] sm:text-[12px] text-[#c7c6c5] uppercase tracking-wider truncate">{"Mobile & Tablets • " + product.brand}</p>
+                                </div>
+                                <ChevronRight className="text-[#5e5e5d] shrink-0" size={20} />
+                              </div>
+                            );
+                          });
+                        })()}
+                      </div>
+
+                      {/* Modal Footer (Stepper Actions) */}
+                      <div className="px-4 py-4 sm:px-8 sm:py-6 bg-[#fbf9f9] border-t border-[#c7c7bf] flex items-center justify-between shrink-0">
+                        <div className="flex items-center gap-3 sm:gap-4">
+                          <div className="flex gap-1.5 sm:gap-2">
+                            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-[#020302]"></div>
+                            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-[#e3e2e2]"></div>
+                            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-[#e3e2e2]"></div>
+                          </div>
+                          <span className="text-[11px] sm:text-[12px] text-[#5e5e5d]">Step 1 of 3</span>
+                        </div>
+                        <div className="flex gap-2 sm:gap-4">
+                          <button 
+                            type="button"
+                            onClick={() => setPosCheckoutOpen(false)} 
+                            className="px-4 py-2 sm:px-6 sm:py-2.5 rounded-lg border border-[#020302] text-[#020302] text-xs sm:text-[14px] font-medium hover:bg-[#f5f3f3] transition-all cursor-pointer"
+                          >
+                            Cancel
+                          </button>
+                          <button 
+                            type="button"
+                            disabled={posCart.length === 0}
+                            onClick={() => setPosStep(2)} 
+                            className={"px-4 py-2.5 sm:px-8 sm:py-2.5 rounded-lg text-xs sm:text-[14px] font-medium flex items-center gap-1 sm:gap-2 transition-all cursor-pointer " + (posCart.length === 0 ? "bg-[#c7c6c5] text-[#1b1c1c] cursor-not-allowed" : "bg-[#020302] text-white hover:opacity-90")}
+                          >
+                            Next: Customer Info
+                            <ArrowRight size={16} className="sm:hidden" />
+                            <ArrowRight size={18} className="hidden sm:block" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                </div>
+              )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+              {posCheckoutOpen && posStep !== 1 && (
                 <div className="fixed inset-0 bg-[#0c0d0f]/60 z-[200] flex justify-end backdrop-blur-sm">
                   {/* Backdrop Close Click */}
                   <div className="absolute inset-0" onClick={() => setPosCheckoutOpen(false)} />
@@ -1222,218 +1454,6 @@ export default function DashboardPage() {
                         </button>
                       </div>
                     </div>
-
-                    {/* Step 1: Product Selection */}
-                    {posStep === 1 && (
-                      <div className="flex-1 flex flex-col min-h-0 bg-[#fbfbfb]">
-                        {/* Search Block */}
-                        <div className="bg-white border-b border-neutral-100 p-4 flex-shrink-0">
-                          <div className="relative">
-                            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400">
-                              <Search size={15} />
-                            </span>
-                            <input
-                              type="text"
-                              autoFocus
-                              value={posSearch}
-                              onChange={(e) => setPosSearch(e.target.value)}
-                              placeholder="Search brand, model name, color swatch..."
-                              className="w-full bg-[#f6f6f7] py-3.5 pl-10 pr-10 rounded-xl text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-black focus:bg-white transition-all border border-transparent focus:border-black"
-                            />
-                            {posSearch && (
-                              <button 
-                                onClick={() => setPosSearch('')}
-                                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-900"
-                              >
-                                <X size={14} />
-                              </button>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* In-stock Products List */}
-                        <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                          {(() => {
-                            const query = posSearch.toLowerCase().trim();
-                            // Filter products: must be in stock and match search query
-                            const filtered = productList.filter(p => {
-                              if (p.stock === 0) return false;
-                              
-                              const matchProduct = p.name.toLowerCase().includes(query) || (p.brand || '').toLowerCase().includes(query);
-                              if (matchProduct) return true;
-
-                              // Also match variant descriptions (like "Black", "256GB")
-                              const matchVariants = p.variants?.some(v => 
-                                (v.color || '').toLowerCase().includes(query) || 
-                                (v.storage || '').toLowerCase().includes(query) ||
-                                (v.ram || '').toLowerCase().includes(query)
-                              );
-                              return matchVariants;
-                            });
-
-                            if (filtered.length === 0) {
-                              return (
-                                <div className="text-center py-16 text-neutral-400">
-                                  <AlertTriangle size={28} className="mx-auto mb-2 opacity-50 text-neutral-800" />
-                                  <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">No matching smartphone in stock</p>
-                                </div>
-                              );
-                            }
-
-                            return filtered.map(product => {
-                              const isExpanded = expandedProductId === product.id;
-                              // Count of variants of this product in the cart
-                              const cartItemCount = posCart
-                                .filter(item => item.product.id === product.id)
-                                .reduce((sum, item) => sum + item.quantity, 0);
-
-                              return (
-                                <div 
-                                  key={product.id}
-                                  className={`bg-white border transition-all duration-250 rounded-xl overflow-hidden shadow-xs
-                                    ${isExpanded ? 'border-neutral-800 ring-1 ring-neutral-800/5' : 'border-neutral-200/80 hover:border-neutral-300'}`}
-                                >
-                                  {/* Product Card Top bar */}
-                                  <div 
-                                    onClick={() => setExpandedProductId(isExpanded ? null : product.id)}
-                                    className="p-3.5 flex items-center justify-between cursor-pointer select-none"
-                                  >
-                                    <div className="flex items-center gap-3">
-                                      {/* Thumbnail */}
-                                      <div className="w-10 h-10 bg-[#fbfbfb] border border-neutral-100 rounded-lg overflow-hidden flex-shrink-0 flex items-center justify-center">
-                                        <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
-                                      </div>
-                                      <div>
-                                        <h4 className="text-xs font-bold text-neutral-900 tracking-tight leading-snug">{product.name}</h4>
-                                        <div className="flex items-center gap-2 mt-0.5">
-                                          <span className="text-[9px] text-neutral-400 font-bold uppercase tracking-wider">{product.brand}</span>
-                                          <span className="w-1.5 h-1.5 rounded-full bg-neutral-200"></span>
-                                          <span className="text-[10px] text-emerald-600 font-semibold uppercase tracking-wider">{product.stock} in stock</span>
-                                        </div>
-                                      </div>
-                                    </div>
-
-                                    {/* Action items indicators */}
-                                    <div className="flex items-center gap-3">
-                                      {cartItemCount > 0 && (
-                                        <span className="bg-neutral-950 text-white text-[8px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
-                                          {cartItemCount} added
-                                        </span>
-                                      )}
-                                      <ChevronRight 
-                                        size={14} 
-                                        className={`text-neutral-400 transition-transform duration-250 ${isExpanded ? 'rotate-90 text-neutral-900' : ''}`} 
-                                      />
-                                    </div>
-                                  </div>
-
-                                  {/* Product Card Inline Expandable Swatches */}
-                                  {isExpanded && (
-                                    <div className="border-t border-neutral-100 bg-[#fafafa] px-4 py-3.5 space-y-2">
-                                      <span className="text-[9px] font-bold text-neutral-400 uppercase tracking-widest block mb-1">Choose Color/Storage Variant</span>
-                                      <div className="space-y-1.5">
-                                        {product.variants?.map(v => {
-                                          const cartItem = posCart.find(item => item.variant.id === v.id);
-                                          const itemQtyInCart = cartItem?.quantity || 0;
-                                          const isOutOfStock = v.quantity === 0;
-
-                                          return (
-                                            <div
-                                              key={v.id}
-                                              className="relative"
-                                            >
-                                              <button
-                                                type="button"
-                                                disabled={isOutOfStock}
-                                                onClick={() => handleAddToCart(product, v)}
-                                                className={`w-full px-3.5 py-2.5 text-left border rounded-lg transition-all flex items-center justify-between cursor-pointer relative
-                                                  ${isOutOfStock 
-                                                    ? 'opacity-25 bg-neutral-50 border-neutral-200 cursor-not-allowed line-through' 
-                                                    : itemQtyInCart > 0 
-                                                      ? 'border-neutral-900 bg-neutral-950 text-white shadow-sm' 
-                                                      : 'border-neutral-200 bg-white hover:border-neutral-400 hover:shadow-xs'}`}
-                                              >
-                                                <div className="flex items-center gap-2.5 min-w-0">
-                                                  {/* Color Dot indicator */}
-                                                  <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 border border-white/20
-                                                    ${v.color.toLowerCase().includes('black') || v.color.toLowerCase().includes('titanium') ? 'bg-neutral-800' : 
-                                                      v.color.toLowerCase().includes('blue') ? 'bg-blue-500' : 
-                                                      v.color.toLowerCase().includes('white') ? 'bg-neutral-150' : 'bg-neutral-400'}`} 
-                                                  />
-                                                  <div className="min-w-0">
-                                                    <span className="text-xs font-semibold truncate block pr-6">{v.color}</span>
-                                                    <span className={`text-[9px] font-medium block mt-0.5 ${itemQtyInCart > 0 ? 'text-neutral-350' : 'text-neutral-450'}`}>
-                                                      {v.ram}/{v.storage} • {isOutOfStock ? '0 Available' : `${v.quantity} Available`}
-                                                    </span>
-                                                  </div>
-                                                </div>
-
-                                                <div className="text-right flex items-center gap-3">
-                                                  <span className="text-[11px] font-bold">
-                                                    Tk {v.sellingPrice.toLocaleString()}
-                                                  </span>
-                                                  
-                                                  {/* Qty count indicators on active swatches */}
-                                                  {itemQtyInCart > 0 && (
-                                                    <span className="w-5 h-5 bg-white text-neutral-950 border border-neutral-900 rounded-full flex items-center justify-center text-[9px] font-bold shadow-sm flex-shrink-0">
-                                                      x{itemQtyInCart}
-                                                    </span>
-                                                  )}
-                                                </div>
-                                              </button>
-
-                                              {/* Remove Badge Button */}
-                                              {itemQtyInCart > 0 && (
-                                                <button
-                                                  type="button"
-                                                  onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleRemoveFromCart(v.id);
-                                                  }}
-                                                  className="absolute -top-1 -left-1 w-4.5 h-4.5 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-colors shadow-sm cursor-pointer border border-white"
-                                                  title="Click to remove"
-                                                >
-                                                  <X size={10} strokeWidth={3} />
-                                                </button>
-                                              )}
-                                            </div>
-                                          );
-                                        })}
-                                      </div>
-                                    </div>
-                                  )}
-                                </div>
-                              );
-                            });
-                          })()}
-                        </div>
-
-                        {/* Cart running summary bar */}
-                        <div className="bg-white border-t border-neutral-100 p-5 flex-shrink-0 space-y-3">
-                          {posCart.length > 0 && (
-                            <div className="text-[10px] text-neutral-500 bg-[#f8f8f9] px-4 py-3 border border-neutral-150 rounded-xl font-medium leading-relaxed">
-                              <span className="font-bold text-neutral-900 uppercase tracking-wider block text-[9px] mb-1">Selected Cart Items:</span>
-                              <div className="truncate max-w-[450px]">
-                                {posCart.map(item => `${item.product.name} (${item.variant.color} x${item.quantity})`).join(', ')}
-                              </div>
-                            </div>
-                          )}
-
-                          <button
-                            type="button"
-                            disabled={posCart.length === 0}
-                            onClick={() => setPosStep(2)}
-                            className={`w-full py-4 rounded-xl text-xs font-bold uppercase tracking-wider text-center transition-all cursor-pointer shadow-sm flex items-center justify-center gap-2
-                              ${posCart.length === 0
-                                ? 'bg-neutral-100 text-neutral-450 cursor-not-allowed shadow-none'
-                                : 'bg-neutral-950 hover:bg-neutral-900 text-white shadow-md shadow-neutral-950/10'}`}
-                          >
-                            <span>Configure Sale Details</span>
-                            <ArrowRight size={14} />
-                          </button>
-                        </div>
-                      </div>
-                    )}
 
                     {/* Step 2: Sale Summary and Details */}
                     {posStep === 2 && (
