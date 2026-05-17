@@ -32,7 +32,6 @@ import {
 } from 'lucide-react';
 import { useZenvy } from '@/context/ZenvyContext';
 import { SidebarSection, SidebarItem, SidebarSubItem, NavItem } from '@/components/SidebarComponents';
-import NewProductScreen from '@/components/NewProductScreen';
 import ProductDetailsScreen from '@/components/ProductDetailsScreen';
 import { Product } from '@/types/zenvy';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
@@ -68,8 +67,6 @@ function DashboardContent() {
   };
   const [searchTerm, setSearchTerm] = useState('');
   const [activeProductFilter, setActiveProductFilter] = useState('All');
-  const [isCreatingProduct, setIsCreatingProduct] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [previewingProduct, setPreviewingProduct] = useState<Product | null>(null);
   const [showSuccessOverlay, setShowSuccessOverlay] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
@@ -201,7 +198,7 @@ function DashboardContent() {
   ]);
 
   const steps = [
-    { label: "Add your first product", completed: isCreatingProduct || productList.length > 6, onClick: () => setIsCreatingProduct(true) },
+    { label: "Add your first product", completed: productList.length > 5, onClick: () => router.push('/dashboard/products/new') },
     { label: "Add a custom domain", completed: false },
     { label: "Customize your online store", completed: false },
     { label: "Set your shipping rates", completed: false },
@@ -229,12 +226,6 @@ function DashboardContent() {
       localStorage.setItem('zenvy_productList', JSON.stringify(productList));
     }
   }, [productList]);
-
-  const handleProductAdded = (newProduct: Product) => {
-    setProductList([newProduct, ...productList]);
-    setShowSuccessOverlay(true);
-    setIsCreatingProduct(false);
-  };
 
   const handleMarkAsSoldClick = (product: Product) => {
     setActiveMarkSoldProduct(product);
@@ -282,7 +273,7 @@ function DashboardContent() {
         <nav className="flex-grow overflow-y-auto min-h-0">
           <div className="px-4 mb-6 flex-shrink-0">
             <button 
-              onClick={() => setIsCreatingProduct(true)}
+              onClick={() => router.push('/dashboard/products/new')}
               className="w-full bg-[#020302] hover:bg-neutral-900 text-white py-3 px-4 rounded-sm text-xs font-bold hover:opacity-90 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs active:scale-98"
             >
               <Plus size={14} className="stroke-[2.5]" />
@@ -409,31 +400,12 @@ function DashboardContent() {
       </aside>
 
       <div className="flex-1 flex flex-col min-w-0 relative h-full">
-        {isCreatingProduct || editingProduct ? (
-          <NewProductScreen 
-            onBack={() => {
-              setIsCreatingProduct(false);
-              setEditingProduct(null);
-            }} 
-            onSuccess={(updatedProduct) => {
-              if (editingProduct) {
-                setProductList(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p));
-                setEditingProduct(null);
-                if (previewingProduct && previewingProduct.id === updatedProduct.id) {
-                  setPreviewingProduct(updatedProduct);
-                }
-              } else {
-                handleProductAdded(updatedProduct);
-              }
-            }}
-            initialProduct={editingProduct || undefined}
-          />
-        ) : previewingProduct ? (
+        {previewingProduct ? (
           <ProductDetailsScreen 
             product={previewingProduct}
             onBack={() => setPreviewingProduct(null)}
             onEdit={(prod) => {
-              setEditingProduct(prod);
+              router.push(`/dashboard/products/edit?id=${prod.id}`);
             }}
             onUpdateStock={(productId, variantId, newQty, historyLogText, logType) => {
               // 1. Update quantities in product list state
@@ -506,7 +478,7 @@ function DashboardContent() {
                       <button 
                         onClick={() => {
                           setShowSuccessOverlay(false);
-                          setIsCreatingProduct(true);
+                          router.push('/dashboard/products/new');
                         }}
                         className="w-full text-sm py-4 bg-[#5438ff] text-white font-bold transition-all hover:opacity-90 active:scale-[0.98]"
                       >
@@ -758,7 +730,7 @@ function DashboardContent() {
                               </span>
                               <button 
                                 onClick={() => {
-                                  setEditingProduct(alertProduct);
+                                  router.push(`/dashboard/products/edit?id=${alertProduct.id}`);
                                 }}
                                 className="bg-[#eab308] hover:bg-[#ca8a04] text-white py-1.5 px-4 rounded-sm text-xs font-bold transition-colors shadow-2xs cursor-pointer active:scale-98"
                               >
@@ -867,7 +839,7 @@ function DashboardContent() {
                         </p>
                       </div>
                       <button 
-                        onClick={() => setIsCreatingProduct(true)}
+                        onClick={() => router.push('/dashboard/products/new')}
                         className="bg-[#020302] text-white px-8 py-3 rounded-sm text-xs font-bold uppercase tracking-widest hover:opacity-90 transition-all flex items-center gap-2 cursor-pointer shadow-xs active:scale-98"
                       >
                         <Plus size={14} className="stroke-[3]" /> 
@@ -1024,7 +996,7 @@ function DashboardContent() {
                                   Preview
                                 </button>
                                 <button 
-                                  onClick={() => setEditingProduct(product)}
+                                  onClick={() => router.push(`/dashboard/products/edit?id=${product.id}`)}
                                   className="text-[9px] font-bold uppercase tracking-widest border border-[#efeded] px-4 py-2 hover:bg-black hover:text-white hover:border-black transition-all cursor-pointer rounded-sm text-center"
                                 >
                                   Modify Specs
@@ -1077,7 +1049,7 @@ function DashboardContent() {
               <div className="relative -mt-6 flex items-center gap-2 flex-shrink-0">
                 {/* Floating Plus Button (Add Product) */}
                 <button 
-                  onClick={() => setIsCreatingProduct(true)}
+                  onClick={() => router.push('/dashboard/products/new')}
                   className="w-11 h-11 bg-[#020302] hover:bg-neutral-900 text-white rounded-full flex items-center justify-center shadow-lg shadow-black/10 hover:scale-[1.08] active:scale-[0.95] transition-all border-[3px] border-white cursor-pointer"
                   aria-label="Add Product"
                 >
