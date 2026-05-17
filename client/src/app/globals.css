@@ -59,10 +59,10 @@
   --color-light-blue-400: #b0b9d4;
   --color-light-blue-500: #888faa;
 
-  --color-neon-500: #cf0;
+  --color-neon-500: #ccff00;
   --color-neon-600: #bded00;
 
-  --color-peridot-500: #0f0;
+  --color-peridot-500: #00ff00;
   --color-peridot-600: #20e052;
 
   --color-warning-50: #fdf6e8;
@@ -94,19 +94,15 @@
   --radius-2xl: 32px;
   --radius-full: 999px;
 
-  /* Custom Spacing */
-  --spacing-4xs: 2px;
-  --spacing-3xs: 4px;
-  --spacing-2xs: 8px;
-  --spacing-xs: 12px;
-  --spacing-sm: 16px;
-  --spacing-md-alt: 20px;
-  --spacing-md: 24px;
-  --spacing-lg: 32px;
-  --spacing-xl: 40px;
-  --spacing-2xl: 48px;
-  --spacing-3xl: 64px;
-  --spacing-4xl: 80px;
+  /*
+    Tailwind v4 spacing: --spacing is the BASE UNIT multiplier.
+    Setting --spacing: 4px means:
+      p-1 = 4px, p-2 = 8px, p-3 = 12px, p-4 = 16px, p-5 = 20px,
+      p-6 = 24px, p-8 = 32px, gap-2.5 = 10px, py-0.5 = 2px, etc.
+    All numeric AND fractional classes auto-generate from this single value.
+    Do NOT define individual --spacing-N keys — that replaces the scale.
+  */
+  --spacing: 4px;
 
   /* Custom Z-Indices */
   --z-1: 100;
@@ -138,19 +134,22 @@
 
 @layer base {
   body {
-    @apply bg-white text-[#333333] font-sans m-0 p-0;
+    @apply bg-white font-sans m-0 p-0;
+    color: #333333;
   }
-  h1, h2, h3, h4, .font-serif {
-    @apply font-serif;
+  /* Do NOT force serif on all headings — dashboard uses sans-serif headings */
+  .font-serif {
+    font-family: "Lora", serif;
   }
 }
 
 @layer utilities {
-  .max-w-xs { max-width: 320px; }
-  .max-w-sm { max-width: 384px; }
-  .max-w-md { max-width: 448px; }
-  .max-w-lg { max-width: 512px; }
-  .max-w-xl { max-width: 576px; }
+  /* Max-width scale */
+  .max-w-xs  { max-width: 320px; }
+  .max-w-sm  { max-width: 384px; }
+  .max-w-md  { max-width: 448px; }
+  .max-w-lg  { max-width: 512px; }
+  .max-w-xl  { max-width: 576px; }
   .max-w-2xl { max-width: 672px; }
   .max-w-5xl { max-width: 1024px; }
 }

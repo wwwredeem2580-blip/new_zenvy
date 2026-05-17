@@ -5,11 +5,7 @@ const nextConfig: NextConfig = {
   compress: true,
   poweredByHeader: false,
 
-  turbopack: {
-    resolveAlias: {
-      tailwindcss: path.resolve(__dirname, "node_modules/tailwindcss"),
-    },
-  },
+
 
   images: {
     domains: ['images.unsplash.com', 'picsum.photos', 'lh3.googleusercontent.com'],

@@ -18,7 +18,8 @@ import {
   Filter,
   ArrowRight,
   ArrowUpRight,
-  ArrowDownRight
+  ArrowDownRight,
+  AlertTriangle
 } from 'lucide-react';
 import { useZenvy } from '@/context/ZenvyContext';
 import { SidebarSection, SidebarItem, SidebarSubItem, NavItem } from '@/components/SidebarComponents';
@@ -289,9 +290,44 @@ export default function DashboardPage() {
                       </div>
                     </div>
 
+                    {/* Running Low Warning Section */}
+                    <div className="bg-brand-card p-6 border border-brand-divider rounded-3xl flex flex-col gap-5 relative overflow-hidden">
+                      {/* Top Header */}
+                      <div className="flex items-center gap-2">
+                        <AlertTriangle size={15} className="text-primary-500 stroke-[2.5]" />
+                        <h4 className="text-[12px] font-bold text-brand-700 uppercase tracking-wider font-sans">Running Low</h4>
+                      </div>
+                      
+                      {/* Middle Section: Image + Text */}
+                      <div className="flex items-start md:items-center gap-4">
+                        {/* Product Image */}
+                        <div className="w-12 h-12 rounded-xl border border-brand-divider overflow-hidden flex-shrink-0 bg-white">
+                          <img 
+                            src="https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=120&auto=format&fit=crop&q=80" 
+                            alt="CozyCotton Hoodie" 
+                            className="w-full h-full object-cover" 
+                          />
+                        </div>
+                        
+                        <p className="text-neutral-700 text-[13px] md:text-[14px] leading-relaxed">
+                          Our <span className="text-neutral-900 font-bold hover:underline cursor-pointer">CozyCotton Hoodie</span> is <span className="text-warning-700 font-medium">running low on stock</span>. Reorder soon to avoid stockouts, with only <span className="whitespace-nowrap inline-block bg-warning-50 text-warning-800 px-2 py-0.5 rounded-lg font-bold text-[11px] border border-warning-200">4 units left</span>.
+                        </p>
+                      </div>
+                      
+                      {/* Bottom Action Buttons */}
+                      <div className="flex items-center gap-2.5">
+                        <button className="px-4 py-2.5 bg-primary-500 hover:bg-primary-600 text-neutral-0 rounded-md text-[12px] font-bold transition-all hover:scale-[1.01] active:scale-[0.99] shadow-sm">
+                          Restock Product
+                        </button>
+                        <button className="px-4 py-2.5 bg-white border border-neutral-200 hover:bg-neutral-50 text-neutral-600 rounded-md text-[12px] font-bold transition-all hover:scale-[1.01] active:scale-[0.99]">
+                          Ignore
+                        </button>
+                      </div>
+                    </div>
+
                     <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
-                      <div className="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-[0_4px_24px_rgba(0,0,0,0.03)]">
-                        <div className="p-8 pb-4">
+                      <div className="bg-brand-card p-0 border border-brand-divider rounded-3xl flex flex-col gap-5 relative overflow-hidden">
+                        <div className="p-8 pb-0">
                           <div className="flex items-baseline justify-between mb-2">
                             <h3 className="font-sans font-bold text-[#1a1c1d] text-xl md:text-2xl">Get ready to sell</h3>
                             <button className="text-[10px] md:text-xs font-bold text-gray-400 hover:text-[#1a1c1d] transition-colors uppercase tracking-widest">Hide guide</button>
