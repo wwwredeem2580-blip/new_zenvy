@@ -19,13 +19,19 @@ import {
   ArrowRight,
   ArrowUpRight,
   ArrowDownRight,
-  AlertTriangle
+  AlertTriangle,
+  Receipt,
+  Share2,
+  Minus,
+  X
 } from 'lucide-react';
 import { useZenvy } from '@/context/ZenvyContext';
 import { SidebarSection, SidebarItem, SidebarSubItem, NavItem } from '@/components/SidebarComponents';
 import NewProductScreen from '@/components/NewProductScreen';
 import ProductDetailsScreen from '@/components/ProductDetailsScreen';
 import { Product } from '@/types/zenvy';
+import { jsPDF } from 'jspdf';
+import confetti from 'canvas-confetti';
 
 export default function DashboardPage() {
   const { storeName } = useZenvy();
@@ -36,6 +42,13 @@ export default function DashboardPage() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [previewingProduct, setPreviewingProduct] = useState<Product | null>(null);
   const [showSuccessOverlay, setShowSuccessOverlay] = useState(false);
+
+  // Mark as Sold & Invoice Generator State Variables
+  const [activeMarkSoldProduct, setActiveMarkSoldProduct] = useState<Product | null>(null);
+  const [selectedMarkSoldVariant, setSelectedMarkSoldVariant] = useState<any | null>(null);
+  const [soldQty, setSoldQty] = useState<number>(1);
+  const [buyerName, setBuyerName] = useState<string>('');
+  const [invoiceSaleData, setInvoiceSaleData] = useState<any | null>(null);
   const [recentActivities, setRecentActivities] = useState([
     { type: 'added',  text: 'Added 5 units',   product: 'Samsung A35 Blue 8/256',        time: '2 min ago'  },
     { type: 'sold',   text: 'Marked sold',     product: 'iPhone 15 Black 128GB',          time: '18 min ago' },
@@ -157,6 +170,177 @@ export default function DashboardPage() {
     setProductList([newProduct, ...productList]);
     setShowSuccessOverlay(true);
     setIsCreatingProduct(false);
+  };
+
+  const handleMarkAsSoldClick = (product: Product) => {
+    setActiveMarkSoldProduct(product);
+    // Find the first variant with stock > 0, otherwise default to first variant
+    const firstInStock = product.variants?.find(v => v.quantity > 0) || product.variants?.[0] || null;
+    setSelectedMarkSoldVariant(firstInStock);
+    setSoldQty(1);
+    setBuyerName('');
+    setInvoiceSaleData(null);
+  };
+
+  const handleConfirmSale = () => {
+    if (!activeMarkSoldProduct || !selectedMarkSoldVariant) return;
+
+    const qtyToDeduct = soldQty;
+    const pId = activeMarkSoldProduct.id;
+    const vId = selectedMarkSoldVariant.id;
+    const customer = buyerName.trim() || 'Walk-in Customer';
+
+    // 1. Mutate state productList: decrement variant quantity
+    setProductList(prevList => prevList.map(p => {
+      if (p.id === pId) {
+        const updatedVariants = p.variants?.map(v => 
+          v.id === vId ? { ...v, quantity: Math.max(0, v.quantity - qtyToDeduct) } : v
+        ) || [];
+        const newTotalStock = updatedVariants.reduce((sum, v) => sum + v.quantity, 0);
+        
+        const dateStr = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        const logText = `Sold ${qtyToDeduct} unit${qtyToDeduct > 1 ? 's' : ''} to ${customer} — ${selectedMarkSoldVariant.color} ${selectedMarkSoldVariant.ram}/${selectedMarkSoldVariant.storage} — ${dateStr}`;
+
+        return {
+          ...p,
+          variants: updatedVariants,
+          stock: newTotalStock,
+          history: [
+            { text: logText, type: 'sell' },
+            ...(p.history || [])
+          ]
+        };
+      }
+      return p;
+    }));
+
+    // 2. Add dynamic entry to dashboard bottom activity feed
+    const activityText = `Marked sold`;
+    const productDetail = `${activeMarkSoldProduct.brand} ${activeMarkSoldProduct.name} ${selectedMarkSoldVariant.color} ${selectedMarkSoldVariant.ram}/${selectedMarkSoldVariant.storage} (Qty: ${qtyToDeduct})`;
+    setRecentActivities(prev => [
+      { 
+        type: 'sold', 
+        text: activityText, 
+        product: productDetail, 
+        time: 'Just now' 
+      },
+      ...prev
+    ].slice(0, 10));
+
+    // 3. Set invoice sale data for receipt modal
+    const finalInvoice = {
+      shopName: storeName || 'Zenvy Store',
+      invoiceNumber: `ZN-${Date.now().toString().slice(-6)}`,
+      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      buyerName: customer,
+      productName: activeMarkSoldProduct.name,
+      brandName: activeMarkSoldProduct.brand || 'Generic',
+      variantColor: selectedMarkSoldVariant.color,
+      variantSpecs: `${selectedMarkSoldVariant.ram}/${selectedMarkSoldVariant.storage}`,
+      price: selectedMarkSoldVariant.sellingPrice,
+      qty: qtyToDeduct,
+      total: selectedMarkSoldVariant.sellingPrice * qtyToDeduct
+    };
+    setInvoiceSaleData(finalInvoice);
+
+    // 4. Trigger confetti explosion for wow moment!
+    confetti({
+      particleCount: 120,
+      spread: 70,
+      origin: { y: 0.6 }
+    });
+
+    // 5. Close mark sold modal
+    setActiveMarkSoldProduct(null);
+  };
+
+  const handleDownloadPDF = (data: any) => {
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: [80, 180] // Terminal slip format: 80mm width
+    });
+
+    // 1. Header
+    doc.setFont("Helvetica", "bold");
+    doc.setFontSize(14);
+    doc.text(data.shopName.toUpperCase(), 40, 15, { align: "center" });
+
+    doc.setFont("Helvetica", "normal");
+    doc.setFontSize(8);
+    doc.text("Premium Smartphone Terminal", 40, 20, { align: "center" });
+    doc.text("Contact: 01712 345678 | Dhaka, BD", 40, 24, { align: "center" });
+
+    // Dotted separator
+    doc.setLineDashPattern([1, 1], 0);
+    doc.line(5, 28, 75, 28);
+
+    // 2. Info Block
+    doc.setFont("Helvetica", "bold");
+    doc.text("INVOICE RECEIPT", 5, 34);
+    doc.setFont("Helvetica", "normal");
+    doc.setFontSize(7.5);
+    doc.text(`Invoice: ${data.invoiceNumber}`, 5, 39);
+    doc.text(`Date: ${data.date}`, 5, 43);
+    doc.text(`Customer: ${data.buyerName}`, 5, 47);
+
+    // Dotted separator
+    doc.line(5, 51, 75, 51);
+
+    // 3. Purchase Item Header
+    doc.setFont("Helvetica", "bold");
+    doc.text("Item / Description", 5, 56);
+    doc.text("Qty", 52, 56, { align: "right" });
+    doc.text("Price", 62, 56, { align: "right" });
+    doc.text("Total", 75, 56, { align: "right" });
+
+    doc.line(5, 58, 75, 58);
+
+    // 4. Purchase Item Details
+    doc.setFont("Helvetica", "normal");
+    const itemTitle = `${data.brandName} ${data.productName}`;
+    const itemSub = `${data.variantColor} (${data.variantSpecs})`;
+    
+    doc.text(itemTitle, 5, 63);
+    doc.setFontSize(6.5);
+    doc.text(itemSub, 5, 67);
+
+    doc.setFontSize(7.5);
+    doc.text(String(data.qty), 52, 63, { align: "right" });
+    doc.text(`Tk ${data.price.toLocaleString()}`, 62, 63, { align: "right" });
+    doc.text(`Tk ${data.total.toLocaleString()}`, 75, 63, { align: "right" });
+
+    // Dotted separator
+    doc.line(5, 73, 75, 73);
+
+    // 5. Total
+    doc.setFont("Helvetica", "bold");
+    doc.setFontSize(9);
+    doc.text("GRAND TOTAL:", 5, 80);
+    doc.text(`Tk ${data.total.toLocaleString()}`, 75, 80, { align: "right" });
+
+    doc.setFont("Helvetica", "normal");
+    doc.setFontSize(7.5);
+    doc.text("Paid via Cash / MFS", 75, 85, { align: "right" });
+
+    // Dotted separator
+    doc.line(5, 91, 75, 91);
+
+    // 6. Footer
+    doc.setFont("Helvetica", "oblique");
+    doc.setFontSize(7);
+    doc.text("Thank you for shopping with us!", 40, 97, { align: "center" });
+    doc.text("Warranty claims require original invoice receipt.", 40, 101, { align: "center" });
+    doc.text("System generated by Zenvy.com.bd", 40, 105, { align: "center" });
+
+    // Save PDF
+    doc.save(`${data.invoiceNumber}_receipt.pdf`);
+  };
+
+  const handleShareWhatsApp = (data: any) => {
+    const textMessage = `Hello ${data.buyerName},\n\nThank you for purchasing at ${data.shopName}!\nHere is your receipt details:\n\n*Invoice No:* ${data.invoiceNumber}\n*Date:* ${data.date}\n*Device:* ${data.brandName} ${data.productName} - ${data.variantColor} (${data.variantSpecs})\n*Quantity:* ${data.qty}\n*Price:* Tk ${data.price.toLocaleString()}\n*Total Amount:* *Tk ${data.total.toLocaleString()}*\n\nThank you for shopping with us! Have a wonderful day! 🌟`;
+    const encodedText = encodeURIComponent(textMessage);
+    window.open(`https://api.whatsapp.com/send?text=${encodedText}`, '_blank');
   };
 
   return (
@@ -340,6 +524,246 @@ export default function DashboardPage() {
                     </div>
                   </motion.div>
                 </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Modal 1: Mark as Sold Dialog */}
+            <AnimatePresence>
+              {activeMarkSoldProduct && (
+                <div className="fixed inset-0 bg-black/60 z-[200] flex items-center justify-center p-4 backdrop-blur-xs">
+                  <motion.div 
+                    initial={{ scale: 0.95, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.95, opacity: 0 }}
+                    className="bg-white max-w-md w-full border border-gray-300 shadow-2xl p-6 relative text-left"
+                  >
+                    {/* Header */}
+                    <div className="flex items-center justify-between border-b border-gray-150 pb-3.5 mb-5">
+                      <h3 className="text-[13px] font-sans font-bold text-neutral-900 uppercase tracking-widest">Record Smartphone Sale</h3>
+                      <button 
+                        onClick={() => setActiveMarkSoldProduct(null)} 
+                        className="text-gray-400 hover:text-neutral-900 transition-colors cursor-pointer"
+                      >
+                        <X size={18} />
+                      </button>
+                    </div>
+
+                    {/* Product Specs Showcase */}
+                    <div className="flex gap-3 bg-neutral-50 border border-gray-200 p-3 mb-5 rounded-sm">
+                      <div className="w-12 h-12 bg-white border border-gray-200 overflow-hidden flex-shrink-0">
+                        <img 
+                          src={activeMarkSoldProduct.image} 
+                          alt={activeMarkSoldProduct.name} 
+                          className="w-full h-full object-cover" 
+                        />
+                      </div>
+                      <div className="min-w-0">
+                        <h4 className="text-xs font-bold text-neutral-900 leading-snug">{activeMarkSoldProduct.name}</h4>
+                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mt-0.5">{activeMarkSoldProduct.brand}</p>
+                      </div>
+                    </div>
+
+                    {/* Select Variant */}
+                    <div className="space-y-2 mb-5">
+                      <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block">Select Sold Variant</label>
+                      <div className="grid grid-cols-2 gap-2 max-h-[160px] overflow-y-auto pr-1">
+                        {activeMarkSoldProduct.variants?.map((v) => {
+                          const isSelected = selectedMarkSoldVariant?.id === v.id;
+                          const isOutOfStock = v.quantity === 0;
+                          return (
+                            <button
+                              key={v.id}
+                              type="button"
+                              disabled={isOutOfStock}
+                              onClick={() => {
+                                setSelectedMarkSoldVariant(v);
+                                setSoldQty(1); // reset qty limits
+                              }}
+                              className={`p-3 text-left border transition-all flex flex-col justify-between rounded-sm relative cursor-pointer
+                                ${isOutOfStock 
+                                  ? 'opacity-40 bg-neutral-50 border-neutral-200 cursor-not-allowed' 
+                                  : isSelected 
+                                    ? 'border-neutral-950 bg-neutral-950 text-white' 
+                                    : 'border-gray-300 bg-white hover:border-gray-400'}`}
+                            >
+                              <span className="text-xs font-bold truncate block w-full">{v.color}</span>
+                              <span className="text-[10px] opacity-75 font-semibold mt-1 block">
+                                {v.ram}/{v.storage} • {isOutOfStock ? '0 Stock' : `${v.quantity} Stock`}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Quantity and Buyer Fields */}
+                    {selectedMarkSoldVariant && (
+                      <div className="grid grid-cols-2 gap-4 mb-6">
+                        {/* Stepper */}
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block">Quantity</label>
+                          <div className="flex items-center border border-gray-300 h-[42px] rounded-sm">
+                            <button
+                              type="button"
+                              onClick={() => setSoldQty(q => Math.max(1, q - 1))}
+                              className="w-10 h-full flex items-center justify-center hover:bg-neutral-50 text-neutral-800 transition-colors cursor-pointer"
+                            >
+                              <Minus size={12} strokeWidth={2.5} />
+                            </button>
+                            <span className="flex-1 text-center font-bold text-sm text-neutral-950">{soldQty}</span>
+                            <button
+                              type="button"
+                              onClick={() => setSoldQty(q => Math.min(selectedMarkSoldVariant.quantity, q + 1))}
+                              className="w-10 h-full flex items-center justify-center hover:bg-neutral-50 text-neutral-800 transition-colors cursor-pointer"
+                            >
+                              <Plus size={12} strokeWidth={2.5} />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Buyer Name */}
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block">Buyer (Optional)</label>
+                          <input
+                            type="text"
+                            value={buyerName}
+                            onChange={(e) => setBuyerName(e.target.value)}
+                            placeholder="e.g. John Doe"
+                            className="w-full border border-gray-300 px-3 h-[42px] text-xs font-semibold focus:outline-none focus:border-neutral-900 rounded-sm"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Footer Actions */}
+                    <div className="flex gap-3.5 border-t border-gray-150 pt-4 mt-6">
+                      <button
+                        type="button"
+                        onClick={() => setActiveMarkSoldProduct(null)}
+                        className="flex-1 py-3 text-xs border border-gray-350 hover:bg-gray-50 text-neutral-850 font-bold uppercase tracking-wider rounded-sm transition-all cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        disabled={!selectedMarkSoldVariant || selectedMarkSoldVariant.quantity === 0}
+                        onClick={handleConfirmSale}
+                        className={`flex-1 py-3 text-xs text-white font-bold uppercase tracking-wider rounded-sm transition-all cursor-pointer shadow-md shadow-brand-100/10
+                          ${(!selectedMarkSoldVariant || selectedMarkSoldVariant.quantity === 0)
+                            ? 'bg-neutral-350 cursor-not-allowed opacity-50 shadow-none'
+                            : 'bg-[#5438ff] hover:bg-[#4324ff]'}`}
+                      >
+                        Confirm Sale
+                      </button>
+                    </div>
+
+                  </motion.div>
+                </div>
+              )}
+            </AnimatePresence>
+
+            {/* Modal 2: Invoice Receipt Success Panel */}
+            <AnimatePresence>
+              {invoiceSaleData && (
+                <div className="fixed inset-0 bg-black/60 z-[200] flex items-center justify-center p-4 backdrop-blur-xs">
+                  <motion.div 
+                    initial={{ scale: 0.95, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.95, opacity: 0 }}
+                    className="bg-white max-w-sm w-full border border-gray-300 shadow-2xl p-6 relative text-left rounded-sm"
+                  >
+                    {/* Visual Green Badge */}
+                    <div className="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-3 text-green-600">
+                      <CheckCircle2 size={28} />
+                    </div>
+
+                    <h3 className="text-base font-sans font-bold text-neutral-900 text-center uppercase tracking-wider">Sale Recorded!</h3>
+                    <p className="text-[11px] text-neutral-500 text-center mt-1 font-light leading-relaxed">
+                      Inventory has been adjusted. Print or share a digital receipt.
+                    </p>
+
+                    {/* Receipt Mock Paper Preview */}
+                    <div className="my-5 p-4 border border-dashed border-gray-300 bg-neutral-50 font-mono text-[10px] text-neutral-800 space-y-3 shadow-inner relative overflow-hidden">
+                      
+                      {/* Receipt Header */}
+                      <div className="text-center border-b border-dashed border-gray-300 pb-2">
+                        <p className="font-bold text-xs uppercase tracking-widest text-neutral-900">{invoiceSaleData.shopName}</p>
+                        <p className="text-[8px] text-gray-500 font-sans mt-0.5 uppercase tracking-wider">Smartphone Merchant Terminal</p>
+                      </div>
+
+                      {/* Info Block */}
+                      <div className="space-y-0.5 text-neutral-600">
+                        <p className="flex justify-between">
+                          <span>Invoice No:</span>
+                          <strong className="text-neutral-900 font-bold">{invoiceSaleData.invoiceNumber}</strong>
+                        </p>
+                        <p className="flex justify-between">
+                          <span>Date:</span>
+                          <span className="text-neutral-800">{invoiceSaleData.date}</span>
+                        </p>
+                        <p className="flex justify-between">
+                          <span>Customer:</span>
+                          <span className="text-neutral-800 truncate max-w-[150px]">{invoiceSaleData.buyerName}</span>
+                        </p>
+                      </div>
+
+                      {/* Items block */}
+                      <div className="border-t border-b border-dashed border-gray-300 py-2">
+                        <div className="flex justify-between font-bold text-neutral-900 mb-1 text-[9px] uppercase tracking-wider">
+                          <span>Item / Description</span>
+                          <span>Qty / Total</span>
+                        </div>
+                        <div className="flex justify-between leading-snug">
+                          <div className="truncate pr-3 max-w-[180px]">
+                            <p className="font-bold text-neutral-950 text-[10px] truncate">{invoiceSaleData.brandName} {invoiceSaleData.productName}</p>
+                            <p className="text-[8px] text-gray-400 italic">{invoiceSaleData.variantColor} • {invoiceSaleData.variantSpecs}</p>
+                          </div>
+                          <div className="text-right flex-shrink-0">
+                            <p className="text-neutral-950 font-bold">{invoiceSaleData.qty} x Tk {invoiceSaleData.price.toLocaleString()}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Grand Total */}
+                      <div className="flex justify-between items-baseline font-bold text-xs text-neutral-950 pt-1">
+                        <span>GRAND TOTAL:</span>
+                        <span className="text-sm text-neutral-900 font-bold">Tk {invoiceSaleData.total.toLocaleString()}</span>
+                      </div>
+
+                      {/* Footer Message */}
+                      <div className="text-center text-[8px] text-gray-400 pt-2 border-t border-dashed border-gray-200 italic">
+                        Thank you for shopping with us!
+                      </div>
+                    </div>
+
+                    {/* Actions Grid */}
+                    <div className="space-y-2">
+                      <button
+                        onClick={() => handleDownloadPDF(invoiceSaleData)}
+                        className="w-full py-3 bg-neutral-950 hover:bg-black text-white font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5 rounded-sm transition-all cursor-pointer shadow-md"
+                      >
+                        <Receipt size={13} />
+                        <span>Download PDF Receipt</span>
+                      </button>
+                      
+                      <button
+                        onClick={() => handleShareWhatsApp(invoiceSaleData)}
+                        className="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5 rounded-sm transition-all cursor-pointer shadow-md shadow-green-600/10"
+                      >
+                        <Share2 size={13} />
+                        <span>Share via WhatsApp</span>
+                      </button>
+
+                      <button
+                        onClick={() => setInvoiceSaleData(null)}
+                        className="w-full py-2.5 bg-gray-50 text-gray-500 border border-gray-300 hover:bg-gray-100 text-[10px] font-bold uppercase tracking-wider transition-all rounded-sm cursor-pointer"
+                      >
+                        Done / Close
+                      </button>
+                    </div>
+
+                  </motion.div>
+                </div>
               )}
             </AnimatePresence>
 
@@ -779,14 +1203,28 @@ export default function DashboardPage() {
                               </div>
 
                               {/* 3rd Line: Preview Action & Status Indicator */}
-                              <div className="flex items-center justify-between mt-4 pt-1">
-                                <button 
-                                  onClick={() => setPreviewingProduct(product)}
-                                  className="flex items-center gap-1.5 text-[10px] text-primary-500 hover:text-primary-600 font-bold uppercase tracking-widest transition-colors"
-                                >
-                                  <ExternalLink size={12} className="stroke-[2.5]" />
-                                  <span>Preview</span>
-                                </button>
+                              <div className="flex items-center justify-between mt-4 pt-1.5 border-t border-gray-100">
+                                <div className="flex items-center gap-3">
+                                  <button 
+                                    onClick={() => setPreviewingProduct(product)}
+                                    className="flex items-center gap-1 text-[10px] text-primary-500 hover:text-primary-600 font-bold uppercase tracking-widest transition-colors"
+                                  >
+                                    <ExternalLink size={12} className="stroke-[2.5]" />
+                                    <span>Preview</span>
+                                  </button>
+
+                                  <button 
+                                    onClick={() => handleMarkAsSoldClick(product)}
+                                    disabled={product.stock === 0}
+                                    className={`flex items-center gap-1 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider transition-colors rounded-sm shadow-xs
+                                      ${product.stock === 0 
+                                        ? 'bg-neutral-100 text-neutral-400 border border-neutral-200 cursor-not-allowed line-through' 
+                                        : 'bg-[#5438ff] text-white hover:bg-[#4324ff]'}`}
+                                  >
+                                    <Plus size={10} className="stroke-[3]" />
+                                    <span>Mark Sold</span>
+                                  </button>
+                                </div>
 
                                 <span className={`px-2 py-0.5 rounded text-[9px] font-bold tracking-wider uppercase ${
                                   product.status === 'Published' 
