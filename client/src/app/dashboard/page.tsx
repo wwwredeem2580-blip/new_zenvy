@@ -679,66 +679,149 @@ export default function DashboardPage() {
     <motion.div 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="flex h-screen bg-[#f6f6f7] font-sans overflow-hidden"
+      className="flex h-screen bg-[#fbf9f9] text-[#1b1c1c] font-sans overflow-hidden"
     >
-      {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex flex-col w-72 bg-white border-r border-gray-100 h-full p-6 pb-0 shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-20">
-        <div className="flex items-center gap-3 mb-10 pl-2">
-          <div className="w-9 h-9 bg-shopify-green rounded-xl flex items-center justify-center shadow-lg shadow-shopify-green/20">
-            <span className="font-bold text-white text-xs">
-               {storeName ? storeName.substring(0, 2).toUpperCase() : 'ZN'}
-            </span>
-          </div>
-          <h2 className="text-lg font-sans font-bold text-[#1a1c1d] tracking-tight">{storeName ? storeName : 'My Store'}</h2>
-        </div>
-
-        {/* Desktop Search Bar */}
-        <div className="relative mb-8 pt-2">
-          <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">
-            <Search size={16} strokeWidth={2.5} />
-          </div>
-          <input 
-            type="text" 
-            placeholder="Search" 
-            className="w-full bg-[#f6f6f7] py-2.5 pl-10 pr-10 rounded-xl text-[13px] font-medium focus:outline-none focus:ring-1 focus:ring-gray-200 transition-all border-none"
-          />
-          <div className="absolute right-3 top-1/2 -translate-y-1/2 px-1.5 py-0.5 border border-gray-200 rounded text-[9px] font-bold text-gray-400 bg-white">
-            ⌘ K
+      {/* Desktop Sidebar Navigation */}
+      <aside className="hidden lg:flex flex-col w-64 bg-white border-r border-[#efeded] h-full z-20 flex-shrink-0">
+        <div className="pt-10 px-6 mb-8 flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-[#020302] flex items-center justify-center text-white font-bold text-sm flex-shrink-0 shadow-sm">
+              {storeName ? storeName.substring(0, 2).toUpperCase() : 'HW'}
+            </div>
+            <div className="min-w-0">
+              <h1 className="text-[14px] font-bold leading-tight text-[#020302] truncate">Inventory Manager</h1>
+              <p className="text-[9px] uppercase tracking-widest text-[#5e5e5d] opacity-60 font-bold mt-0.5">SS26 Collection</p>
+            </div>
           </div>
         </div>
 
-        <nav className="flex-1 space-y-1 overflow-y-auto -mx-2 px-2">
-          <SidebarSection title="General">
-            <SidebarItem icon={Home} label="Home" active={activeTab === 'Home'} onClick={() => setActiveTab('Home')} />
-            <SidebarItem icon={TagIcon} label="Products" active={activeTab === 'Products'} onClick={() => setActiveTab('Products')} hasMore />
-            <SidebarItem icon={Package} label="Orders" active={activeTab === 'Orders'} onClick={() => setActiveTab('Orders')} badge="12" />
-            <SidebarItem icon={ShoppingBag} label="Complete Sale (POS)" active={false} onClick={handleOpenCheckout} badge="POS" />
-          </SidebarSection>
+        <nav className="flex-grow overflow-y-auto min-h-0">
+          <div className="px-4 mb-6 flex-shrink-0">
+            <button 
+              onClick={() => setIsCreatingProduct(true)}
+              className="w-full bg-[#020302] hover:bg-neutral-900 text-white py-3 px-4 rounded-sm text-xs font-bold hover:opacity-90 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs active:scale-98"
+            >
+              <Plus size={14} className="stroke-[2.5]" />
+              <span>Add New Product</span>
+            </button>
+          </div>
 
-          <SidebarSection title="Favorites" collapsible defaultOpen>
-            <SidebarSubItem label="Sales analytics" />
-            <SidebarSubItem label="Inventory reports" />
-          </SidebarSection>
+          <div className="space-y-1">
+            <p className="px-6 text-[9px] uppercase tracking-[0.2em] text-[#5e5e5d] mb-2 opacity-50 font-bold">General</p>
+            <button 
+              onClick={() => setActiveTab('Home')}
+              className={`w-full flex items-center gap-3 py-3 px-6 transition-all text-left cursor-pointer border-r-2 text-xs font-semibold ${
+                activeTab === 'Home' 
+                  ? 'text-[#020302] font-bold bg-[#f5f3f3] border-[#020302]' 
+                  : 'text-[#5e5e5d] hover:bg-[#f5f3f3]/50 border-transparent font-medium'
+              }`}
+            >
+              <Home size={16} className="stroke-[2]" />
+              <span>Home</span>
+            </button>
 
-          <SidebarSection title="Management">
-            <SidebarItem icon={Bell} label="Notifications" onClick={() => {}} />
-            <SidebarItem icon={Search} label="Analytics" onClick={() => {}} hasMore />
-            <SidebarItem icon={MoreHorizontal} label="Settings" onClick={() => {}} />
-          </SidebarSection>
+            <button 
+              onClick={() => setActiveTab('Products')}
+              className={`w-full flex items-center gap-3 py-3 px-6 transition-all text-left cursor-pointer border-r-2 text-xs font-semibold ${
+                activeTab === 'Products' 
+                  ? 'text-[#020302] font-bold bg-[#f5f3f3] border-[#020302]' 
+                  : 'text-[#5e5e5d] hover:bg-[#f5f3f3]/50 border-transparent font-medium'
+              }`}
+            >
+              <Package size={16} className="stroke-[2]" />
+              <span>Products</span>
+            </button>
+
+            <button 
+              onClick={() => setActiveTab('Orders')}
+              className={`w-full flex items-center gap-3 py-3 px-6 transition-all text-left cursor-pointer border-r-2 text-xs font-semibold ${
+                activeTab === 'Orders' 
+                  ? 'text-[#020302] font-bold bg-[#f5f3f3] border-[#020302]' 
+                  : 'text-[#5e5e5d] hover:bg-[#f5f3f3]/50 border-transparent font-medium'
+              }`}
+            >
+              <ShoppingBag size={16} className="stroke-[2]" />
+              <span>Orders</span>
+              <span className="ml-auto bg-blue-50 text-blue-600 text-[10px] px-2 py-0.5 rounded-full font-bold">12</span>
+            </button>
+
+            <button 
+              onClick={handleOpenCheckout}
+              className="w-full flex items-center gap-3 py-3 px-6 text-[#5e5e5d] hover:bg-[#f5f3f3]/50 border-transparent transition-all text-left cursor-pointer border-r-2 text-xs font-semibold font-medium"
+            >
+              <ShoppingBag size={16} className="stroke-[2] text-emerald-600" />
+              <span>POS Checkout</span>
+              <span className="ml-auto bg-emerald-50 text-emerald-600 text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">POS</span>
+            </button>
+          </div>
+
+          <div className="mt-6">
+            <p className="px-6 text-[9px] uppercase tracking-[0.2em] text-[#5e5e5d] mb-2 opacity-50 font-bold">Favorites</p>
+            <div className="space-y-1">
+              <button 
+                onClick={() => {}}
+                className="w-full text-left font-semibold text-[#5e5e5d] hover:text-[#020302] py-2 px-6 transition-colors text-xs cursor-pointer block font-medium"
+              >
+                Sales analytics
+              </button>
+              <button 
+                onClick={() => {}}
+                className="w-full text-left font-semibold text-[#5e5e5d] hover:text-[#020302] py-2 px-6 transition-colors text-xs cursor-pointer block font-medium"
+              >
+                Inventory reports
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-6">
+            <p className="px-6 text-[9px] uppercase tracking-[0.2em] text-[#5e5e5d] mb-2 opacity-50 font-bold">Management</p>
+            <div className="space-y-1">
+              <button 
+                onClick={() => {}}
+                className="w-full flex items-center gap-3 text-[#5e5e5d] hover:bg-[#f5f3f3]/50 py-3 px-6 transition-all text-left text-xs cursor-pointer font-semibold font-medium"
+              >
+                <Bell size={16} className="stroke-[2]" />
+                <span>Notifications</span>
+              </button>
+              <button 
+                onClick={() => {}}
+                className="w-full flex items-center gap-3 text-[#5e5e5d] hover:bg-[#f5f3f3]/50 py-3 px-6 transition-all text-left text-xs cursor-pointer font-semibold font-medium"
+              >
+                <Layers size={16} className="stroke-[2]" />
+                <span>Analytics</span>
+              </button>
+              <button 
+                onClick={() => {}}
+                className="w-full flex items-center gap-3 text-[#5e5e5d] hover:bg-[#f5f3f3]/50 py-3 px-6 transition-all text-left text-xs cursor-pointer font-semibold font-medium"
+              >
+                <MoreHorizontal size={16} className="stroke-[2]" />
+                <span>Settings</span>
+              </button>
+            </div>
+          </div>
         </nav>
 
-        {/* User Profile Mini */}
-        <div className="py-6 border-t border-gray-50 -mx-6 px-6 mt-auto">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gray-100 border border-gray-50 flex items-center justify-center text-gray-400">
-              <Plus size={20} />
+        <footer className="mt-auto border-t border-[#efeded] p-6 bg-white flex-shrink-0">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-8 h-8 rounded bg-[#020302] text-white flex items-center justify-center font-bold text-xs">
+              {storeName ? storeName.substring(0, 2).toUpperCase() : 'HW'}
             </div>
-            <div className="flex-1 overflow-hidden">
-               <p className="text-sm font-bold text-[#1a1c1d] truncate">{storeName || 'My Store'}</p>
-               <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Premium Plan</p>
+            <div className="min-w-0">
+              <p className="text-xs text-[#020302] leading-none font-bold truncate">{storeName || 'My Store'}</p>
+              <p className="text-[9px] text-[#5e5e5d] opacity-60 uppercase tracking-tighter mt-1 font-semibold">Premium Plan</p>
             </div>
           </div>
-        </div>
+          <div className="flex flex-col gap-3">
+            <button className="flex items-center gap-3 text-[#5e5e5d] hover:text-[#020302] transition-colors text-left text-xs cursor-pointer font-semibold font-medium">
+              <svg className="w-4 h-4 stroke-[2] text-[#5e5e5d]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <span>Support</span>
+            </button>
+            <button className="flex items-center gap-3 text-[#5e5e5d] hover:text-[#020302] transition-colors text-left text-xs cursor-pointer font-semibold font-medium">
+              <svg className="w-4 h-4 stroke-[2] text-[#5e5e5d]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              <span>Account</span>
+            </button>
+          </div>
+        </footer>
       </aside>
 
       <div className="flex-1 flex flex-col min-w-0 relative h-full">
@@ -1106,47 +1189,47 @@ export default function DashboardPage() {
               )}
             </AnimatePresence>
 
-            {/* Modal 3: Complete Sale POS Checkout Bottom Sheet */}
+            {/* Modal 3: Complete Sale POS Checkout Drawer */}
             <AnimatePresence>
               {posCheckoutOpen && (
-                <div className="fixed inset-0 bg-black/60 z-[200] flex items-end md:items-center justify-center p-0 md:p-4 backdrop-blur-sm">
+                <div className="fixed inset-0 bg-[#0c0d0f]/60 z-[200] flex justify-end backdrop-blur-sm">
                   {/* Backdrop Close Click */}
                   <div className="absolute inset-0" onClick={() => setPosCheckoutOpen(false)} />
 
                   <motion.div 
-                    initial={{ y: "100%", opacity: 0.5 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    exit={{ y: "100%", opacity: 0.5 }}
-                    transition={{ type: "spring", damping: 25, stiffness: 220 }}
-                    className="bg-white w-full h-[92vh] md:h-[85vh] md:max-w-2xl border-t md:border border-gray-100 shadow-2xl relative text-left md:rounded-2xl overflow-hidden flex flex-col z-[210]"
+                    initial={{ x: "100%", opacity: 0.95 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    exit={{ x: "100%", opacity: 0.95 }}
+                    transition={{ type: "tween", ease: [0.16, 1, 0.3, 1], duration: 0.4 }}
+                    className="bg-white w-full h-full md:max-w-lg lg:max-w-xl border-l border-neutral-100 shadow-3xl relative text-left overflow-hidden flex flex-col z-[210]"
                   >
                     {/* Header */}
-                    <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4 flex-shrink-0 bg-white">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 bg-neutral-100 rounded-xl flex items-center justify-center text-neutral-900 shadow-xs">
-                          <ShoppingBag size={15} />
-                        </div>
-                        <div>
-                          <h3 className="text-sm font-sans font-semibold text-[#1a1c1d] tracking-tight">Zenvy POS Terminal</h3>
-                          <p className="text-[11px] text-gray-400 font-light mt-0.5">Step {posStep} of 3: {posStep === 1 ? 'Build Customer Cart' : posStep === 2 ? 'Sale Details & Negotiations' : 'Receipt Invoice Generation'}</p>
-                        </div>
+                    <div className="flex items-center justify-between border-b border-neutral-100 px-6 py-5 flex-shrink-0 bg-white">
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-[9px] font-bold text-neutral-400 uppercase tracking-[0.2em] block">Zenvy Terminal</span>
+                        <h3 className="text-base font-sans font-semibold text-neutral-900 tracking-tight">Complete Customer Sale</h3>
                       </div>
-                      <button 
-                        onClick={() => setPosCheckoutOpen(false)} 
-                        className="text-gray-400 hover:text-neutral-900 transition-colors p-1.5 hover:bg-neutral-50 rounded-full cursor-pointer"
-                      >
-                        <X size={18} />
-                      </button>
+                      <div className="flex items-center gap-3">
+                        <span className="text-[9px] font-bold text-neutral-500 uppercase tracking-widest bg-neutral-100 px-2.5 py-1 rounded-full border border-neutral-200">
+                          Step 0{posStep} / 03
+                        </span>
+                        <button 
+                          onClick={() => setPosCheckoutOpen(false)} 
+                          className="text-neutral-400 hover:text-neutral-900 transition-colors p-1.5 hover:bg-neutral-50 rounded-full cursor-pointer"
+                        >
+                          <X size={18} />
+                        </button>
+                      </div>
                     </div>
 
                     {/* Step 1: Product Selection */}
                     {posStep === 1 && (
                       <div className="flex-1 flex flex-col min-h-0 bg-[#fbfbfb]">
                         {/* Search Block */}
-                        <div className="bg-white border-b border-gray-100 p-4 flex-shrink-0">
+                        <div className="bg-white border-b border-neutral-100 p-4 flex-shrink-0">
                           <div className="relative">
-                            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">
-                              <Search size={16} />
+                            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400">
+                              <Search size={15} />
                             </span>
                             <input
                               type="text"
@@ -1154,12 +1237,12 @@ export default function DashboardPage() {
                               value={posSearch}
                               onChange={(e) => setPosSearch(e.target.value)}
                               placeholder="Search brand, model name, color swatch..."
-                              className="w-full bg-[#f6f6f7] py-3 pl-10 pr-10 rounded-xl text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-black focus:bg-white transition-all border border-transparent focus:border-black"
+                              className="w-full bg-[#f6f6f7] py-3.5 pl-10 pr-10 rounded-xl text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-black focus:bg-white transition-all border border-transparent focus:border-black"
                             />
                             {posSearch && (
                               <button 
                                 onClick={() => setPosSearch('')}
-                                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-neutral-900"
+                                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-900"
                               >
                                 <X size={14} />
                               </button>
@@ -1168,7 +1251,7 @@ export default function DashboardPage() {
                         </div>
 
                         {/* In-stock Products List */}
-                        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                        <div className="flex-1 overflow-y-auto p-4 space-y-3">
                           {(() => {
                             const query = posSearch.toLowerCase().trim();
                             // Filter products: must be in stock and match search query
@@ -1189,9 +1272,9 @@ export default function DashboardPage() {
 
                             if (filtered.length === 0) {
                               return (
-                                <div className="text-center py-12 text-gray-400">
-                                  <AlertTriangle size={32} className="mx-auto mb-2 opacity-55 text-neutral-800" />
-                                  <p className="text-[11px] font-bold uppercase tracking-wider">No matching smartphone in stock</p>
+                                <div className="text-center py-16 text-neutral-400">
+                                  <AlertTriangle size={28} className="mx-auto mb-2 opacity-50 text-neutral-800" />
+                                  <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">No matching smartphone in stock</p>
                                 </div>
                               );
                             }
@@ -1206,8 +1289,8 @@ export default function DashboardPage() {
                               return (
                                 <div 
                                   key={product.id}
-                                  className={`bg-white border transition-all duration-200 rounded-2xl overflow-hidden shadow-xs
-                                    ${isExpanded ? 'border-neutral-800 ring-1 ring-neutral-800/5' : 'border-gray-200 hover:border-gray-300'}`}
+                                  className={`bg-white border transition-all duration-250 rounded-xl overflow-hidden shadow-xs
+                                    ${isExpanded ? 'border-neutral-800 ring-1 ring-neutral-800/5' : 'border-neutral-200/80 hover:border-neutral-300'}`}
                                 >
                                   {/* Product Card Top bar */}
                                   <div 
@@ -1216,15 +1299,15 @@ export default function DashboardPage() {
                                   >
                                     <div className="flex items-center gap-3">
                                       {/* Thumbnail */}
-                                      <div className="w-10 h-10 bg-white border border-gray-150 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center">
+                                      <div className="w-10 h-10 bg-[#fbfbfb] border border-neutral-100 rounded-lg overflow-hidden flex-shrink-0 flex items-center justify-center">
                                         <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
                                       </div>
                                       <div>
-                                        <h4 className="text-sm font-semibold text-neutral-900 leading-snug">{product.name}</h4>
+                                        <h4 className="text-xs font-bold text-neutral-900 tracking-tight leading-snug">{product.name}</h4>
                                         <div className="flex items-center gap-2 mt-0.5">
-                                          <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{product.brand}</span>
-                                          <span className="w-1 h-1 rounded-full bg-gray-200"></span>
-                                          <span className="text-[11px] text-emerald-600 font-semibold uppercase tracking-wider">{product.stock} in stock</span>
+                                          <span className="text-[9px] text-neutral-400 font-bold uppercase tracking-wider">{product.brand}</span>
+                                          <span className="w-1.5 h-1.5 rounded-full bg-neutral-200"></span>
+                                          <span className="text-[10px] text-emerald-600 font-semibold uppercase tracking-wider">{product.stock} in stock</span>
                                         </div>
                                       </div>
                                     </div>
@@ -1232,22 +1315,22 @@ export default function DashboardPage() {
                                     {/* Action items indicators */}
                                     <div className="flex items-center gap-3">
                                       {cartItemCount > 0 && (
-                                        <span className="bg-black text-white text-[9px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider shadow-xs">
-                                          {cartItemCount} selected
+                                        <span className="bg-neutral-950 text-white text-[8px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
+                                          {cartItemCount} added
                                         </span>
                                       )}
                                       <ChevronRight 
-                                        size={16} 
-                                        className={`text-gray-400 transition-transform duration-200 ${isExpanded ? 'rotate-90 text-neutral-850' : ''}`} 
+                                        size={14} 
+                                        className={`text-neutral-400 transition-transform duration-250 ${isExpanded ? 'rotate-90 text-neutral-900' : ''}`} 
                                       />
                                     </div>
                                   </div>
 
                                   {/* Product Card Inline Expandable Swatches */}
                                   {isExpanded && (
-                                    <div className="border-t border-gray-100 bg-[#fbfbfb] px-4 py-3.5 space-y-3">
-                                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Choose Color/Storage Variant</span>
-                                      <div className="grid grid-cols-2 gap-2">
+                                    <div className="border-t border-neutral-100 bg-[#fafafa] px-4 py-3.5 space-y-2">
+                                      <span className="text-[9px] font-bold text-neutral-400 uppercase tracking-widest block mb-1">Choose Color/Storage Variant</span>
+                                      <div className="space-y-1.5">
                                         {product.variants?.map(v => {
                                           const cartItem = posCart.find(item => item.variant.id === v.id);
                                           const itemQtyInCart = cartItem?.quantity || 0;
@@ -1262,24 +1345,40 @@ export default function DashboardPage() {
                                                 type="button"
                                                 disabled={isOutOfStock}
                                                 onClick={() => handleAddToCart(product, v)}
-                                                className={`w-full p-2.5 text-left border rounded-xl transition-all flex flex-col justify-between cursor-pointer relative h-[68px]
+                                                className={`w-full px-3.5 py-2.5 text-left border rounded-lg transition-all flex items-center justify-between cursor-pointer relative
                                                   ${isOutOfStock 
-                                                    ? 'opacity-30 bg-[#f6f6f7] border-gray-100 cursor-not-allowed line-through' 
+                                                    ? 'opacity-25 bg-neutral-50 border-neutral-200 cursor-not-allowed line-through' 
                                                     : itemQtyInCart > 0 
-                                                      ? 'border-black bg-black text-white shadow-sm' 
-                                                      : 'border-gray-200 bg-white hover:border-gray-400 hover:shadow-xs'}`}
+                                                      ? 'border-neutral-900 bg-neutral-950 text-white shadow-sm' 
+                                                      : 'border-neutral-200 bg-white hover:border-neutral-400 hover:shadow-xs'}`}
                                               >
-                                                <span className="text-xs font-bold truncate block pr-8">{v.color}</span>
-                                                <span className={`text-[10px] font-semibold mt-0.5 block ${itemQtyInCart > 0 ? 'text-gray-300' : 'text-gray-500'}`}>
-                                                  {v.ram}/{v.storage} • {isOutOfStock ? '0 Stock' : `${v.quantity} Stock`}
-                                                </span>
+                                                <div className="flex items-center gap-2.5 min-w-0">
+                                                  {/* Color Dot indicator */}
+                                                  <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 border border-white/20
+                                                    ${v.color.toLowerCase().includes('black') || v.color.toLowerCase().includes('titanium') ? 'bg-neutral-800' : 
+                                                      v.color.toLowerCase().includes('blue') ? 'bg-blue-500' : 
+                                                      v.color.toLowerCase().includes('white') ? 'bg-neutral-150' : 'bg-neutral-400'}`} 
+                                                  />
+                                                  <div className="min-w-0">
+                                                    <span className="text-xs font-semibold truncate block pr-6">{v.color}</span>
+                                                    <span className={`text-[9px] font-medium block mt-0.5 ${itemQtyInCart > 0 ? 'text-neutral-350' : 'text-neutral-450'}`}>
+                                                      {v.ram}/{v.storage} • {isOutOfStock ? '0 Available' : `${v.quantity} Available`}
+                                                    </span>
+                                                  </div>
+                                                </div>
 
-                                                {/* Qty count indicators on active swatches */}
-                                                {itemQtyInCart > 0 && (
-                                                  <span className="absolute top-1.5 right-1.5 w-5 h-5 bg-white text-black border border-neutral-800 rounded-full flex items-center justify-center text-[9px] font-bold shadow-sm">
-                                                    x{itemQtyInCart}
+                                                <div className="text-right flex items-center gap-3">
+                                                  <span className="text-[11px] font-bold">
+                                                    Tk {v.sellingPrice.toLocaleString()}
                                                   </span>
-                                                )}
+                                                  
+                                                  {/* Qty count indicators on active swatches */}
+                                                  {itemQtyInCart > 0 && (
+                                                    <span className="w-5 h-5 bg-white text-neutral-950 border border-neutral-900 rounded-full flex items-center justify-center text-[9px] font-bold shadow-sm flex-shrink-0">
+                                                      x{itemQtyInCart}
+                                                    </span>
+                                                  )}
+                                                </div>
                                               </button>
 
                                               {/* Remove Badge Button */}
@@ -1290,7 +1389,7 @@ export default function DashboardPage() {
                                                     e.stopPropagation();
                                                     handleRemoveFromCart(v.id);
                                                   }}
-                                                  className="absolute -top-1 -left-1 w-4.5 h-4.5 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-650 transition-colors shadow-sm cursor-pointer border border-white"
+                                                  className="absolute -top-1 -left-1 w-4.5 h-4.5 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-colors shadow-sm cursor-pointer border border-white"
                                                   title="Click to remove"
                                                 >
                                                   <X size={10} strokeWidth={3} />
@@ -1300,7 +1399,6 @@ export default function DashboardPage() {
                                           );
                                         })}
                                       </div>
-                                      <p className="text-[9px] text-gray-400 italic">Tip: Tap swatches again to increase sold counts. Press red (x) button to remove variant.</p>
                                     </div>
                                   )}
                                 </div>
@@ -1310,11 +1408,11 @@ export default function DashboardPage() {
                         </div>
 
                         {/* Cart running summary bar */}
-                        <div className="bg-white border-t border-gray-100 p-5 flex-shrink-0 space-y-3">
+                        <div className="bg-white border-t border-neutral-100 p-5 flex-shrink-0 space-y-3">
                           {posCart.length > 0 && (
-                            <div className="text-[10px] text-gray-500 bg-[#f6f6f7] px-4 py-3 border border-gray-100 rounded-xl font-medium leading-relaxed">
-                              <span className="font-bold text-neutral-900 uppercase tracking-wider block text-[9px] mb-1.5">Selected Cart Items:</span>
-                              <div className="truncate max-w-[500px]">
+                            <div className="text-[10px] text-neutral-500 bg-[#f8f8f9] px-4 py-3 border border-neutral-150 rounded-xl font-medium leading-relaxed">
+                              <span className="font-bold text-neutral-900 uppercase tracking-wider block text-[9px] mb-1">Selected Cart Items:</span>
+                              <div className="truncate max-w-[450px]">
                                 {posCart.map(item => `${item.product.name} (${item.variant.color} x${item.quantity})`).join(', ')}
                               </div>
                             </div>
@@ -1324,12 +1422,13 @@ export default function DashboardPage() {
                             type="button"
                             disabled={posCart.length === 0}
                             onClick={() => setPosStep(2)}
-                            className={`w-full py-3.5 rounded-xl text-xs font-bold uppercase tracking-wider text-center transition-all cursor-pointer shadow-sm
+                            className={`w-full py-4 rounded-xl text-xs font-bold uppercase tracking-wider text-center transition-all cursor-pointer shadow-sm flex items-center justify-center gap-2
                               ${posCart.length === 0
-                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none'
-                                : 'bg-black hover:bg-neutral-900 text-white'}`}
+                                ? 'bg-neutral-100 text-neutral-450 cursor-not-allowed shadow-none'
+                                : 'bg-neutral-950 hover:bg-neutral-900 text-white shadow-md shadow-neutral-950/10'}`}
                           >
-                            Done — {posCart.reduce((sum, item) => sum + item.quantity, 0)} Items Selected
+                            <span>Configure Sale Details</span>
+                            <ArrowRight size={14} />
                           </button>
                         </div>
                       </div>
@@ -1340,49 +1439,53 @@ export default function DashboardPage() {
                       <div className="flex-1 flex flex-col min-h-0 bg-[#fbfbfb]">
                         {/* Cart List */}
                         <div className="flex-1 overflow-y-auto p-4 space-y-3.5">
-                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Configure Negotiation & Overrides</span>
+                          <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest block mb-1">Configure Negotiation & Overrides</span>
                           
                           {posCart.map((item, idx) => (
                             <div 
                               key={`${item.variant.id}-${idx}`}
-                              className="bg-white border border-gray-200 hover:border-gray-250 p-3.5 flex items-center justify-between rounded-xl shadow-xs"
+                              className="bg-white border border-neutral-200/80 hover:border-neutral-250 p-4 flex items-center justify-between rounded-xl shadow-xs"
                             >
                               <div className="min-w-0 pr-4 flex-1">
-                                <h4 className="text-sm font-semibold text-neutral-900 truncate leading-snug">{item.product.name}</h4>
-                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-0.5">{item.product.brand} • {item.variant.color} ({item.variant.ram}/{item.variant.storage})</p>
+                                <h4 className="text-xs font-bold text-neutral-900 truncate leading-snug">{item.product.name}</h4>
+                                <p className="text-[9px] text-neutral-400 font-bold uppercase tracking-wider mt-0.5">
+                                  {item.product.brand} • {item.variant.color} ({item.variant.ram}/{item.variant.storage})
+                                </p>
                                 
                                 {/* Inline Editable Price Toggle */}
-                                <div className="mt-2.5 flex items-center gap-1.5">
-                                  <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Unit Price:</span>
-                                  <div className="relative flex items-center">
-                                    <span className="text-xs font-bold text-neutral-900 mr-1">Tk</span>
+                                <div className="mt-3 flex items-center gap-1.5">
+                                  <span className="text-[9px] text-neutral-400 font-bold uppercase tracking-wider">Unit Price:</span>
+                                  <div className="relative flex items-center bg-[#f6f6f7] border border-neutral-150 focus-within:border-neutral-800 rounded-lg px-2 py-1">
+                                    <span className="text-[10px] font-bold text-neutral-900 mr-0.5">Tk</span>
                                     <input
                                       type="number"
                                       value={item.overridePrice}
                                       onChange={(e) => handleUpdateCartItemPrice(item.variant.id, Number(e.target.value))}
-                                      className="border-b border-gray-200 focus:border-black w-24 text-xs font-bold text-neutral-950 focus:outline-none bg-transparent py-0.5 px-1"
+                                      className="w-20 text-[11px] font-bold text-neutral-955 focus:outline-none bg-transparent py-0 px-1 border-none"
                                       title="Negotiated custom price overrides"
                                     />
                                   </div>
+                                  <span className="text-[9px] text-neutral-400 font-medium italic block">
+                                    MSRP Tk {item.variant.sellingPrice.toLocaleString()}
+                                  </span>
                                 </div>
-                                <span className="text-[9px] bg-[#f6f6f7] text-gray-400 px-2 py-0.5 rounded-md font-semibold uppercase tracking-wider ml-1 border border-gray-100 inline-block mt-1">MSRP Tk {item.variant.sellingPrice.toLocaleString()}</span>
                               </div>
 
                               {/* Stepper Quantity control */}
                               <div className="flex flex-col items-end gap-2 flex-shrink-0">
-                                <div className="flex items-center border border-gray-200 h-[34px] rounded-xl overflow-hidden bg-white">
+                                <div className="flex items-center border border-neutral-200 h-[32px] rounded-xl overflow-hidden bg-white p-0.5">
                                   <button
                                     type="button"
                                     onClick={() => handleDecrementFromCart(item.variant.id)}
-                                    className="w-8 h-full flex items-center justify-center hover:bg-neutral-50 text-neutral-800 transition-colors cursor-pointer"
+                                    className="w-7 h-7 flex items-center justify-center hover:bg-neutral-50 text-neutral-800 transition-colors cursor-pointer rounded-lg"
                                   >
                                     <Minus size={11} strokeWidth={2.5} />
                                   </button>
-                                  <span className="w-8 text-center font-bold text-xs text-neutral-950">{item.quantity}</span>
+                                  <span className="w-7 text-center font-bold text-xs text-neutral-950">{item.quantity}</span>
                                   <button
                                     type="button"
                                     onClick={() => handleAddToCart(item.product, item.variant)}
-                                    className="w-8 h-full flex items-center justify-center hover:bg-neutral-50 text-neutral-800 transition-colors cursor-pointer"
+                                    className="w-7 h-7 flex items-center justify-center hover:bg-neutral-50 text-neutral-800 transition-colors cursor-pointer rounded-lg"
                                   >
                                     <Plus size={11} strokeWidth={2.5} />
                                   </button>
@@ -1391,9 +1494,9 @@ export default function DashboardPage() {
                                 <button
                                   type="button"
                                   onClick={() => handleRemoveFromCart(item.variant.id)}
-                                  className="text-[9px] text-red-500 hover:text-red-650 font-bold uppercase tracking-wider"
+                                  className="text-[9px] text-red-500 hover:text-red-650 font-bold uppercase tracking-wider cursor-pointer"
                                 >
-                                  Remove
+                                  Remove Item
                                 </button>
                               </div>
                             </div>
@@ -1401,35 +1504,35 @@ export default function DashboardPage() {
                         </div>
 
                         {/* Sale Details Inputs */}
-                        <div className="bg-white border-t border-gray-100 p-5 space-y-4 flex-shrink-0">
+                        <div className="bg-white border-t border-neutral-100 p-5 space-y-4 flex-shrink-0">
                           {/* Buyer Name & Discount */}
                           <div className="grid grid-cols-2 gap-4">
                             {/* Buyer Name */}
                             <div className="space-y-1.5">
-                              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Customer Name</label>
+                              <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest block">Customer Name</label>
                               <input
                                 type="text"
                                 value={posBuyerName}
                                 onChange={(e) => setPosBuyerName(e.target.value)}
-                                placeholder="Customer name (optional)"
-                                className="w-full border border-gray-200 px-3.5 h-[42px] text-xs font-semibold focus:outline-none focus:border-black focus:ring-1 focus:ring-black/5 rounded-xl transition-all"
+                                placeholder="Walk-in Customer"
+                                className="w-full border border-neutral-200 px-3.5 h-[42px] text-xs font-semibold focus:outline-none focus:border-black focus:ring-1 focus:ring-black/5 rounded-xl transition-all"
                               />
                             </div>
 
                             {/* Discount Picker */}
                             <div className="space-y-1.5">
                               <div className="flex items-center justify-between">
-                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Discount</label>
+                                <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest block">Discount</label>
                                 {/* Toggle buttons flat vs % */}
-                                <div className="flex bg-[#f6f6f7] rounded-lg p-0.5 border border-gray-100">
+                                <div className="flex bg-[#f6f6f7] rounded-lg p-0.5 border border-neutral-150">
                                   <button
                                     type="button"
                                     onClick={() => {
                                       setPosDiscountType('flat');
                                       setPosDiscountValue(0);
                                     }}
-                                    className={`px-3 py-0.5 text-[11px] font-bold rounded-md uppercase tracking-wider cursor-pointer transition-all
-                                      ${posDiscountType === 'flat' ? 'bg-white text-neutral-900 shadow-sm border border-gray-150' : 'text-gray-400 hover:text-neutral-900'}`}
+                                    className={`px-3 py-0.5 text-[10px] font-bold rounded-md uppercase tracking-wider cursor-pointer transition-all
+                                      ${posDiscountType === 'flat' ? 'bg-white text-neutral-900 shadow-sm border border-neutral-200' : 'text-neutral-400 hover:text-neutral-950'}`}
                                   >
                                     Tk
                                   </button>
@@ -1439,8 +1542,8 @@ export default function DashboardPage() {
                                       setPosDiscountType('percent');
                                       setPosDiscountValue(0);
                                     }}
-                                    className={`px-3 py-0.5 text-[11px] font-bold rounded-md uppercase tracking-wider cursor-pointer transition-all
-                                      ${posDiscountType === 'percent' ? 'bg-white text-neutral-900 shadow-sm border border-gray-150' : 'text-gray-400 hover:text-neutral-900'}`}
+                                    className={`px-3 py-0.5 text-[10px] font-bold rounded-md uppercase tracking-wider cursor-pointer transition-all
+                                      ${posDiscountType === 'percent' ? 'bg-white text-neutral-900 shadow-sm border border-neutral-200' : 'text-neutral-400 hover:text-neutral-950'}`}
                                   >
                                     %
                                   </button>
@@ -1452,10 +1555,10 @@ export default function DashboardPage() {
                                   type="number"
                                   value={posDiscountValue || ''}
                                   onChange={(e) => setPosDiscountValue(Number(e.target.value))}
-                                  placeholder={posDiscountType === 'flat' ? 'BDT flat discount' : 'Percentage %'}
-                                  className="w-full border border-gray-200 pl-3.5 pr-8 h-[42px] text-xs font-semibold focus:outline-none focus:border-black focus:ring-1 focus:ring-black/5 rounded-xl transition-all"
+                                  placeholder={posDiscountType === 'flat' ? 'Flat BDT amount' : 'Percent %'}
+                                  className="w-full border border-neutral-200 pl-3.5 pr-8 h-[42px] text-xs font-semibold focus:outline-none focus:border-black focus:ring-1 focus:ring-black/5 rounded-xl transition-all"
                                 />
-                                <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-xs">
+                                <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-400 font-bold text-xs">
                                   {posDiscountType === 'flat' ? 'Tk' : '%'}
                                 </span>
                               </div>
@@ -1463,7 +1566,7 @@ export default function DashboardPage() {
                           </div>
 
                           {/* Calculations breakdown block */}
-                          <div className="bg-[#f8f8f9] border border-gray-150 p-4 rounded-xl space-y-2">
+                          <div className="bg-[#f8f8f9] border border-neutral-150 p-4.5 rounded-xl space-y-2">
                             {(() => {
                               const subtotal = posCart.reduce((sum, item) => sum + (item.overridePrice * item.quantity), 0);
                               let discount = 0;
@@ -1476,19 +1579,19 @@ export default function DashboardPage() {
 
                               return (
                                 <>
-                                  <div className="flex justify-between text-xs font-medium text-gray-500">
+                                  <div className="flex justify-between text-xs font-medium text-[#767676]">
                                     <span>Subtotal:</span>
                                     <span className="font-bold text-neutral-900">Tk {subtotal.toLocaleString()}</span>
                                   </div>
                                   {discount > 0 && (
                                     <div className="flex justify-between text-xs font-medium text-red-500">
-                                      <span>Discount:</span>
+                                      <span>Applied Discount:</span>
                                       <span className="font-bold">-Tk {discount.toLocaleString()}</span>
                                     </div>
                                   )}
-                                  <div className="border-t border-gray-200 pt-2 flex justify-between items-baseline">
-                                    <span className="text-xs font-bold text-neutral-900 uppercase tracking-wider">GRAND TOTAL:</span>
-                                    <span className="text-lg font-bold text-black tracking-tight">Tk {grandTotal.toLocaleString()}</span>
+                                  <div className="border-t border-neutral-200 pt-2.5 flex justify-between items-baseline">
+                                    <span className="text-xs font-bold text-neutral-900 uppercase tracking-widest">GRAND TOTAL:</span>
+                                    <span className="text-xl font-bold text-neutral-955 tracking-tight">Tk {grandTotal.toLocaleString()}</span>
                                   </div>
                                 </>
                               );
@@ -1496,20 +1599,20 @@ export default function DashboardPage() {
                           </div>
 
                           {/* Actions */}
-                          <div className="flex gap-3.5 pt-1">
+                          <div className="flex gap-3 pt-1">
                             <button
                               type="button"
                               onClick={() => setPosStep(1)}
-                              className="flex-1 py-3 text-xs bg-gray-50 hover:bg-gray-100 text-gray-700 font-bold uppercase tracking-wider rounded-xl transition-all cursor-pointer text-center"
+                              className="flex-1 py-3.5 text-xs bg-gray-50 hover:bg-gray-100 text-neutral-700 font-bold uppercase tracking-wider rounded-xl transition-all cursor-pointer text-center"
                             >
                               Go Back
                             </button>
                             <button
                               type="button"
                               onClick={handleConfirmPOSSale}
-                              className="flex-1 py-3 text-xs text-white bg-black hover:bg-neutral-900 font-bold uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-sm text-center"
+                              className="flex-1 py-3.5 text-xs text-white bg-neutral-950 hover:bg-neutral-900 font-bold uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-md shadow-neutral-950/10 text-center"
                             >
-                              Confirm Sale
+                              Record Sale & Print
                             </button>
                           </div>
                         </div>
@@ -1518,85 +1621,91 @@ export default function DashboardPage() {
 
                     {/* Step 3: Success Confirmation and Invoice exports */}
                     {posStep === 3 && posSuccessData && (
-                      <div className="flex-1 flex flex-col justify-center items-center p-6 bg-white overflow-y-auto">
-                        {/* Success Animated Checkmark */}
-                        <div className="w-16 h-16 mt-20 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-600 mb-4 shadow-inner">
-                          <CheckCircle2 size={38} className="stroke-[2.5]" />
-                        </div>
-
-                        <h3 className="text-lg font-sans font-semibold text-neutral-900 text-center tracking-tight">Sale Recorded Successfully!</h3>
-                        <p className="text-xs text-gray-500 text-center mt-1.5 font-light max-w-sm">
-                          Smartphone stock quantities have been adjusted. A branded premium invoice slip is ready.
-                        </p>
-
-                        {/* Invoice Summary Box */}
-                        <div className="my-6 p-5 bg-[#f8f8f9] rounded-2xl border border-gray-150 font-mono text-[10px] text-neutral-800 space-y-4 max-w-sm w-full relative overflow-hidden shadow-xs">
-                          <div className="text-center border-b border-dashed border-gray-200 pb-2.5">
-                            <p className="font-bold text-xs uppercase tracking-widest text-neutral-900">{posSuccessData.shopName}</p>
-                            <p className="text-[8px] text-gray-400 font-sans mt-0.5 uppercase tracking-wider">STOCKNET TERMINAL SALE</p>
+                      <div className="flex-1 flex flex-col justify-between p-6 bg-white overflow-y-auto">
+                        <div className="flex flex-col items-center">
+                          {/* Success Animated Checkmark */}
+                          <div className="w-16 h-16 mt-8 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-600 mb-4 shadow-sm">
+                            <CheckCircle2 size={34} className="stroke-[2.5]" />
                           </div>
 
-                          <div className="space-y-1 text-neutral-600">
-                            <p className="flex justify-between">
-                              <span>Invoice No:</span>
-                              <strong className="text-neutral-900 font-bold">{posSuccessData.invoiceNumber}</strong>
-                            </p>
-                            <p className="flex justify-between">
-                              <span>Date/Time:</span>
-                              <span className="text-neutral-900 font-semibold">{posSuccessData.date} {posSuccessData.time}</span>
-                            </p>
-                            <p className="flex justify-between">
-                              <span>Customer:</span>
-                              <span className="text-neutral-900 font-semibold truncate max-w-[170px]">{posSuccessData.buyerName}</span>
-                            </p>
-                          </div>
+                          <h3 className="text-base font-sans font-bold text-neutral-900 text-center uppercase tracking-widest">Sale Recorded Successfully!</h3>
+                          <p className="text-xs text-neutral-400 text-center mt-1 font-light max-w-xs">
+                            Smartphone stocks have been adjusted live. Branded designer invoice is prepared.
+                          </p>
 
-                          <div className="border-t border-b border-dashed border-gray-250 py-3 space-y-2">
-                            <div className="flex justify-between font-bold text-neutral-950 text-[9px] uppercase tracking-wider">
-                              <span>Item description</span>
-                              <span>Qty / Total</span>
-                            </div>
+                          {/* Invoice Summary Box: Styled like a physical luxury designer boutique receipt ticket */}
+                          <div className="my-6 p-6 bg-[#fafafa] rounded-2xl border border-neutral-200/80 font-mono text-[10px] text-neutral-800 space-y-4 max-w-sm w-full relative overflow-hidden shadow-xs">
                             
-                            {posSuccessData.items.map((item: any, i: number) => (
-                              <div key={i} className="flex justify-between leading-snug">
-                                <div className="truncate pr-3 max-w-[190px]">
-                                  <p className="font-bold text-neutral-900 text-[10px] truncate">{item.brand} {item.name}</p>
-                                  <p className="text-[8px] text-gray-400 italic">{item.color} • {item.specs}</p>
-                                </div>
-                                <div className="text-right flex-shrink-0 text-neutral-950 font-bold">
-                                  <p>{item.quantity} x Tk {item.price.toLocaleString()}</p>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
+                            {/* Decorative Top cutouts */}
+                            <div className="absolute top-0 inset-x-0 h-1 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-neutral-200 via-transparent to-transparent opacity-40" />
 
-                          <div className="space-y-1 pt-1">
-                            <div className="flex justify-between text-xs font-semibold text-neutral-600">
-                              <span>Subtotal:</span>
-                              <span>Tk {posSuccessData.subtotal.toLocaleString()}</span>
+                            <div className="text-center border-b border-dashed border-neutral-300 pb-3">
+                              <p className="font-serif font-black text-sm uppercase tracking-widest text-neutral-900">{posSuccessData.shopName}</p>
+                              <p className="text-[8px] text-neutral-400 font-sans mt-1 uppercase tracking-[0.2em]">STOCKNET POS TICKET</p>
                             </div>
-                            {posSuccessData.discount > 0 && (
-                              <div className="flex justify-between text-xs font-semibold text-red-500">
-                                <span>Discount:</span>
-                                <span>-Tk {posSuccessData.discount.toLocaleString()}</span>
+
+                            <div className="space-y-1 text-neutral-500">
+                              <p className="flex justify-between">
+                                <span>Invoice No:</span>
+                                <strong className="text-neutral-900 font-bold">{posSuccessData.invoiceNumber}</strong>
+                              </p>
+                              <p className="flex justify-between">
+                                <span>Date/Time:</span>
+                                <span className="text-neutral-950 font-semibold">{posSuccessData.date} {posSuccessData.time}</span>
+                              </p>
+                              <p className="flex justify-between">
+                                <span>Buyer Name:</span>
+                                <span className="text-neutral-950 font-semibold truncate max-w-[150px]">{posSuccessData.buyerName}</span>
+                              </p>
+                            </div>
+
+                            <div className="border-t border-b border-dashed border-neutral-300 py-3.5 space-y-2.5">
+                              <div className="flex justify-between font-bold text-neutral-950 text-[9px] uppercase tracking-wider">
+                                <span>Smartphone details</span>
+                                <span>Total Price</span>
                               </div>
-                            )}
-                            <div className="flex justify-between items-baseline font-bold text-xs text-neutral-950 pt-1.5 border-t border-dashed border-gray-250">
-                              <span>GRAND TOTAL:</span>
-                              <span className="text-sm text-neutral-900 font-bold">Tk {posSuccessData.total.toLocaleString()}</span>
+                              
+                              {posSuccessData.items.map((item: any, i: number) => (
+                                <div key={i} className="flex justify-between leading-snug">
+                                  <div className="truncate pr-3 max-w-[170px]">
+                                    <p className="font-bold text-neutral-900 text-[10px] truncate">{item.brand} {item.name}</p>
+                                    <p className="text-[8px] text-gray-400 italic mt-0.5">{item.color} • {item.specs}</p>
+                                  </div>
+                                  <div className="text-right flex-shrink-0 text-neutral-900 font-bold">
+                                    <p>{item.quantity} x Tk {item.price.toLocaleString()}</p>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+
+                            <div className="space-y-1 pt-1">
+                              <div className="flex justify-between text-xs font-semibold text-[#767676]">
+                                <span>Subtotal:</span>
+                                <span>Tk {posSuccessData.subtotal.toLocaleString()}</span>
+                              </div>
+                              {posSuccessData.discount > 0 && (
+                                <div className="flex justify-between text-xs font-semibold text-red-500">
+                                  <span>Applied Discount:</span>
+                                  <span>-Tk {posSuccessData.discount.toLocaleString()}</span>
+                                </div>
+                              )}
+                              <div className="flex justify-between items-baseline font-bold text-xs text-neutral-950 pt-2 border-t border-dashed border-neutral-300">
+                                <span>TOTAL VALUE PAID:</span>
+                                <span className="text-sm text-neutral-950 font-bold">Tk {posSuccessData.total.toLocaleString()}</span>
+                              </div>
                             </div>
                           </div>
                         </div>
 
                         {/* Actions block */}
-                        <div className="space-y-2 max-w-sm w-full">
+                        <div className="space-y-2 w-full mt-auto">
                           <div className="grid grid-cols-2 gap-3">
                             <button
                               onClick={() => generateBrandedInvoicePDF(posSuccessData)}
-                              className="py-3 bg-black hover:bg-neutral-900 text-white font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5 rounded-xl transition-all cursor-pointer shadow-sm"
+                              className="py-3.5 bg-neutral-950 hover:bg-neutral-900 text-white font-bold text-[9px] uppercase tracking-widest flex items-center justify-center gap-1.5 rounded-xl transition-all cursor-pointer shadow-sm text-center"
                             >
                               <Receipt size={13} />
-                              <span>Generate Invoice</span>
+                              <span>Print Invoice PDF</span>
                             </button>
                             
                             <button
@@ -1608,18 +1717,18 @@ export default function DashboardPage() {
                                 const encodedText = encodeURIComponent(textMessage);
                                 window.open(`https://api.whatsapp.com/send?text=${encodedText}`, '_blank');
                               }}
-                              className="py-3 bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5 rounded-xl transition-all cursor-pointer shadow-sm shadow-[#25D366]/10"
+                              className="py-3.5 bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold text-[9px] uppercase tracking-widest flex items-center justify-center gap-1.5 rounded-xl transition-all cursor-pointer shadow-sm shadow-[#25D366]/10 text-center"
                             >
                               <Share2 size={13} />
-                              <span>Share on WhatsApp</span>
+                              <span>WhatsApp Receipt</span>
                             </button>
                           </div>
 
                           <button
                             onClick={() => setPosCheckoutOpen(false)}
-                            className="w-full py-2.5 bg-gray-50 hover:bg-gray-100 text-gray-500 hover:text-gray-700 text-[10px] font-bold uppercase tracking-wider transition-all rounded-xl cursor-pointer text-center"
+                            className="w-full py-3 bg-[#f8f8f9] hover:bg-[#f3f3f4] text-neutral-600 text-[10px] font-bold uppercase tracking-wider transition-all rounded-xl cursor-pointer text-center"
                           >
-                            Done, go back to dashboard
+                            Return to Merchant Dashboard
                           </button>
                         </div>
                       </div>
@@ -1631,22 +1740,43 @@ export default function DashboardPage() {
             </AnimatePresence>
 
             {/* Header */}
-            <header className="bg-white px-4 md:px-8 pt-12 md:pt-8 pb-4 flex items-center justify-between sticky top-0 z-10 border-b lg:border-none border-gray-100">
-              <div className="lg:hidden w-8 h-8 bg-shopify-green rounded-lg flex items-center justify-center font-bold text-white text-[12px]">
-                {storeName ? storeName.substring(0, 2).toUpperCase() : 'MS'}
-              </div>
-              <h1 className="text-lg md:text-xl font-sans font-semibold text-[#1a1c1d] md:font-serif md:text-2xl lg:text-3xl">
-                {activeTab}
-              </h1>
+            <header className="bg-white px-6 py-4 flex items-center justify-between sticky top-0 z-10 border-b border-[#efeded]">
               <div className="flex items-center gap-3">
-                <div className="hidden md:flex items-center bg-[#f6f6f7] px-3 py-1.5 rounded-full text-xs font-bold text-gray-500 border border-gray-100">
-                  <span className="w-1.5 h-1.5 rounded-full bg-shopify-green mr-2 animate-pulse"></span>
-                  LIVE STORE
+                <div className="lg:hidden w-8 h-8 rounded-full bg-[#020302] flex items-center justify-center text-white font-bold text-xs">
+                  {storeName ? storeName.substring(0, 2).toUpperCase() : 'HW'}
                 </div>
-                <button className="p-2 hover:bg-gray-50 rounded-full transition-colors relative">
-                   <Bell size={22} className="text-[#1a1c1d] stroke-[1.5]" />
-                   <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
-                </button>
+                <h1 className="text-base font-bold text-[#020302]">
+                  {activeTab}
+                </h1>
+              </div>
+
+              <div className="flex items-center gap-6">
+                {/* Search box in header */}
+                <div className="hidden md:flex items-center relative w-64">
+                  <Search size={14} className="absolute left-3 text-[#5e5e5d] opacity-60" />
+                  <input 
+                    type="text" 
+                    placeholder="Search" 
+                    className="w-full bg-[#f5f3f3] border-none rounded-sm py-1.5 pl-9 pr-12 text-xs font-semibold text-[#020302] placeholder-[#5e5e5d]/60 focus:outline-none focus:ring-1 focus:ring-[#efeded]"
+                  />
+                  <div className="absolute right-2 px-1.5 py-0.5 border border-[#c7c7bf]/30 rounded-sm text-[8px] font-bold text-[#5e5e5d]/60 bg-white shadow-2xs pointer-events-none select-none">
+                    ⌘ K
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="hidden sm:flex items-center bg-[#f5f3f3] px-3 py-1.5 rounded-sm text-[10px] font-bold text-[#5e5e5d]">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-2 animate-pulse"></span>
+                    LIVE STORE
+                  </div>
+                  <button className="p-2 hover:bg-[#f5f3f3]/50 rounded-sm transition-all relative cursor-pointer">
+                    <Bell size={18} className="text-[#020302] stroke-[2]" />
+                    <span className="absolute top-2.5 right-2.5 w-1.5 h-1.5 bg-[#ba1a1a] rounded-full"></span>
+                  </button>
+                  <div className="w-8 h-8 rounded-full bg-[#020302] flex items-center justify-center text-white font-bold text-xs border border-[#efeded] select-none">
+                    {storeName ? storeName.substring(0, 1).toUpperCase() : 'M'}
+                  </div>
+                </div>
               </div>
             </header>
 
@@ -1657,16 +1787,16 @@ export default function DashboardPage() {
                     
                     {/* Welcome Greeting Header */}
                     <div className="flex flex-col gap-1 pb-1">
-                      <h2 className="text-xl md:text-2xl font-medium text-[#1a1c1d] tracking-tight">
+                      <h2 className="text-xl md:text-2xl font-bold text-[#020302] tracking-tight font-sans">
                         {(() => {
                           const hour = new Date().getHours();
                           if (hour < 12) return 'Good morning';
                           if (hour < 17) return 'Good afternoon';
                           return 'Good evening';
-                        })()}, {storeName || 'Merchant'}
+                        })()}, Merchant
                       </h2>
-                      <p className="text-xs text-gray-500 font-light leading-relaxed">
-                        Here is a live performance snapshot for your smartphone storefront today.
+                      <p className="text-xs text-[#5e5e5d] font-semibold leading-relaxed">
+                        Here is a live performance snapshot for your storefront today.
                       </p>
                     </div>
 
@@ -1674,18 +1804,18 @@ export default function DashboardPage() {
                     <motion.div 
                       whileHover={{ y: -1.5 }}
                       onClick={handleShareShopCard}
-                      className="bg-gradient-to-br from-[#0c0d0f] via-[#16171a] to-[#0a0a0c] p-6 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-5 cursor-pointer shadow-lg shadow-black/5 border border-white/5 relative overflow-hidden group"
+                      className="bg-[#020302] p-6 rounded-sm flex flex-col md:flex-row md:items-center justify-between gap-5 cursor-pointer shadow-lg shadow-black/5 relative overflow-hidden group border border-[#efeded]/10"
                     >
-                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-shopify-green/10 via-transparent to-transparent pointer-events-none"></div>
+                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.06),transparent)] pointer-events-none"></div>
                       
                       <div className="flex items-start gap-4 relative z-10">
                         {/* Curved Mini Seal Logo Overlay */}
-                        <div className="w-14 h-14 rounded-full bg-white/5 border border-white/10 flex items-center justify-center relative select-none flex-shrink-0">
+                        <div className="w-14 h-14 rounded-full bg-white/10 border border-white/15 flex items-center justify-center relative select-none flex-shrink-0">
                           <svg viewBox="0 0 100 100" className="w-full h-full p-0.5 animate-[spin_35s_linear_infinite]">
                             <path id="miniPath" d="M 20,50 a 30,30 0 1,1 60,0 a 30,30 0 1,1 -60,0" fill="none" />
                             <text className="text-[9px] font-bold fill-white/60 tracking-[0.16em] uppercase">
                               <textPath href="#miniPath" startOffset="50%" textAnchor="middle">
-                                {storeName ? storeName.substring(0, 8) : 'ZENVY'} · CATALOG ·
+                                {storeName ? storeName.substring(0, 8) : 'HW'} · CATALOG ·
                               </textPath>
                             </text>
                           </svg>
@@ -1695,13 +1825,13 @@ export default function DashboardPage() {
                         </div>
                         
                         <div className="space-y-1">
-                          <p className="text-[15px] font-medium text-white tracking-tight flex items-center gap-2">
+                          <p className="text-[15px] font-bold text-white tracking-tight flex items-center gap-2">
                             Live Storefront is Active 
-                            <span className="bg-[#ccff00] text-black text-[9px] font-bold uppercase tracking-wider py-0.5 px-2.5 rounded-sm">
+                            <span className="bg-white text-black text-[9px] font-bold uppercase tracking-wider py-0.5 px-2 rounded-sm">
                               ONLINE
                             </span>
                           </p>
-                          <p className="text-xs text-gray-400 font-light leading-relaxed max-w-md">
+                          <p className="text-xs text-gray-300 font-medium leading-relaxed max-w-md">
                             Anyone visiting your storefront can view live catalog quantities & inquire instantly via WhatsApp. Zero downloads or logins required.
                           </p>
                         </div>
@@ -1712,7 +1842,7 @@ export default function DashboardPage() {
                           e.stopPropagation();
                           handleShareShopCard();
                         }}
-                        className="bg-white hover:bg-gray-50 text-black py-3 px-5 text-xs font-semibold uppercase tracking-wider rounded-lg flex items-center justify-center gap-2 self-start md:self-auto shadow-md transition-all active:scale-98 relative z-10"
+                        className="bg-white hover:bg-neutral-50 text-black py-3 px-5 text-xs font-bold uppercase tracking-wider rounded-sm flex items-center justify-center gap-2 self-start md:self-auto shadow-md transition-all active:scale-98 relative z-10 cursor-pointer"
                       >
                         <Share2 size={13} className="stroke-[2.5]" />
                         Get Share Link
@@ -1722,13 +1852,13 @@ export default function DashboardPage() {
                     {/* Summary Stats Grid (Polaris-Style Flat Visuals) */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       {/* Stat 1: Products in Stock */}
-                      <div className="bg-white p-5 border border-gray-100 rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.015)] text-left hover:shadow-md transition-shadow">
-                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Products in stock</p>
+                      <div className="bg-white p-5 border border-[#efeded] rounded-sm shadow-2xs text-left hover:shadow-xs hover:border-[#dbdad9] transition-all">
+                        <p className="text-[10px] font-bold text-[#5e5e5d] uppercase tracking-widest mb-1.5">Products in stock</p>
                         <div className="flex items-baseline justify-between">
-                          <span className="text-xl md:text-2xl font-medium text-[#1a1c1d]">
+                          <span className="text-xl md:text-2xl font-bold text-[#020302]">
                             {productList.reduce((sum, p) => sum + p.stock, 0)}
                           </span>
-                          <span className="flex items-center text-[10px] font-bold text-green-500 gap-0.5">
+                          <span className="flex items-center text-[10px] font-bold text-emerald-600 gap-0.5">
                             <ArrowUpRight size={11} className="stroke-[2.5]" />
                             <span>+4.2%</span>
                           </span>
@@ -1736,14 +1866,14 @@ export default function DashboardPage() {
                       </div>
 
                       {/* Stat 2: Total Stock Value */}
-                      <div className="bg-white p-5 border border-gray-100 rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.015)] text-left hover:shadow-md transition-shadow">
-                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Asset Stock Value</p>
+                      <div className="bg-white p-5 border border-[#efeded] rounded-sm shadow-2xs text-left hover:shadow-xs hover:border-[#dbdad9] transition-all">
+                        <p className="text-[10px] font-bold text-[#5e5e5d] uppercase tracking-widest mb-1.5">Asset Stock Value</p>
                         <div className="flex items-baseline justify-between">
-                          <span className="text-xl md:text-2xl font-medium text-[#1a1c1d] truncate max-w-full">
-                            <span className="text-[13px] text-gray-400 font-light mr-0.5">৳</span>
+                          <span className="text-xl md:text-2xl font-bold text-[#020302] truncate max-w-full">
+                            <span className="text-[13px] text-[#5e5e5d] font-semibold mr-0.5">৳</span>
                             {productList.reduce((sum, p) => sum + (p.variants?.reduce((vSum, v) => vSum + (v.sellingPrice * v.quantity), 0) || 0), 0).toLocaleString()}
                           </span>
-                          <span className="flex items-center text-[10px] font-bold text-green-500 gap-0.5">
+                          <span className="flex items-center text-[10px] font-bold text-emerald-600 gap-0.5">
                             <ArrowUpRight size={11} className="stroke-[2.5]" />
                             <span>+8.1%</span>
                           </span>
@@ -1751,13 +1881,13 @@ export default function DashboardPage() {
                       </div>
 
                       {/* Stat 3: Units Sold */}
-                      <div className="bg-white p-5 border border-gray-100 rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.015)] text-left hover:shadow-md transition-shadow">
-                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Units Sold (May)</p>
+                      <div className="bg-white p-5 border border-[#efeded] rounded-sm shadow-2xs text-left hover:shadow-xs hover:border-[#dbdad9] transition-all">
+                        <p className="text-[10px] font-bold text-[#5e5e5d] uppercase tracking-widest mb-1.5">Units Sold (May)</p>
                         <div className="flex items-baseline justify-between">
-                          <span className="text-xl md:text-2xl font-medium text-[#1a1c1d]">
+                          <span className="text-xl md:text-2xl font-bold text-[#020302]">
                             {recentActivities.filter(a => a.type === 'sold').length + 8}
                           </span>
-                          <span className="flex items-center text-[10px] font-bold text-green-500 gap-0.5">
+                          <span className="flex items-center text-[10px] font-bold text-emerald-600 gap-0.5">
                             <ArrowUpRight size={11} className="stroke-[2.5]" />
                             <span>+15.2%</span>
                           </span>
@@ -1765,14 +1895,14 @@ export default function DashboardPage() {
                       </div>
 
                       {/* Stat 4: Revenue */}
-                      <div className="bg-white p-5 border border-gray-100 rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.015)] text-left hover:shadow-md transition-shadow">
-                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Estimated Revenue</p>
+                      <div className="bg-white p-5 border border-[#efeded] rounded-sm shadow-2xs text-left hover:shadow-xs hover:border-[#dbdad9] transition-all">
+                        <p className="text-[10px] font-bold text-[#5e5e5d] uppercase tracking-widest mb-1.5">Estimated Revenue</p>
                         <div className="flex items-baseline justify-between">
-                          <span className="text-xl md:text-2xl font-medium text-[#1a1c1d] truncate max-w-full">
-                            <span className="text-[13px] text-gray-400 font-light mr-0.5">৳</span>
+                          <span className="text-xl md:text-2xl font-bold text-[#020302] truncate max-w-full">
+                            <span className="text-[13px] text-[#5e5e5d] font-semibold mr-0.5">৳</span>
                             {((recentActivities.filter(a => a.type === 'sold').length + 8) * 35000).toLocaleString()}
                           </span>
-                          <span className="flex items-center text-[10px] font-bold text-green-500 gap-0.5">
+                          <span className="flex items-center text-[10px] font-bold text-emerald-600 gap-0.5">
                             <ArrowUpRight size={11} className="stroke-[2.5]" />
                             <span>+19.8%</span>
                           </span>
@@ -1782,16 +1912,15 @@ export default function DashboardPage() {
 
                     {/* Dynamic Intelligent Stock Alert Panel */}
                     {(() => {
-                      // Dynamically scan productList for items below threshold
                       const lowStockProducts = productList.filter(p => p.stock > 0 && p.stock <= (p.lowStockThreshold || 4));
                       const alertProduct = lowStockProducts[0] || null;
 
                       if (alertProduct) {
                         return (
-                          <div className="bg-[#fdf6e8] p-5 border border-[#ffeec8] rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 text-left">
+                          <div className="bg-[#FFF9EB] p-5 border border-[#FBEAC1] rounded-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4 text-left">
                             <div className="flex items-start gap-4">
                               {/* Thumbnail */}
-                              <div className="w-12 h-12 rounded-xl border border-[#ffe399] overflow-hidden flex-shrink-0 bg-white shadow-xs">
+                              <div className="w-12 h-12 rounded-sm border border-[#FBEAC1] overflow-hidden flex-shrink-0 bg-white shadow-2xs">
                                 <img 
                                   src={alertProduct.image || "https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?q=80&w=120&auto=format"} 
                                   alt={alertProduct.name} 
@@ -1800,24 +1929,24 @@ export default function DashboardPage() {
                               </div>
                               <div className="space-y-1">
                                 <div className="flex items-center gap-1.5">
-                                  <AlertTriangle size={14} className="text-warning-500 stroke-[2.5]" />
-                                  <h4 className="text-[11px] font-bold text-warning-700 uppercase tracking-widest">Inventory Running Low</h4>
+                                  <AlertTriangle size={14} className="text-[#b45309] stroke-[2.5]" />
+                                  <h4 className="text-[10px] font-bold text-[#b45309] uppercase tracking-widest">Inventory Running Low</h4>
                                 </div>
                                 <p className="text-gray-700 text-[13px] font-light leading-relaxed max-w-lg">
-                                  Your smartphone model <span className="font-medium text-black">{alertProduct.brand} {alertProduct.name}</span> is low on stock. Restock soon to prevent catalog shortages.
+                                  Your smartphone model <span className="font-semibold text-black">{alertProduct.brand} {alertProduct.name}</span> is low on stock. Restock soon to prevent catalog shortages.
                                 </p>
                               </div>
                             </div>
                             
                             <div className="flex items-center gap-2 flex-shrink-0 self-start md:self-auto">
-                              <span className="bg-white border border-[#ffe399] text-warning-700 text-xs font-bold py-1.5 px-3 rounded-md shadow-xs">
+                              <span className="bg-white border border-[#FBEAC1] text-[#b45309] text-xs font-bold py-1.5 px-3 rounded-sm shadow-2xs">
                                 {alertProduct.stock} left
                               </span>
                               <button 
                                 onClick={() => {
                                   setEditingProduct(alertProduct);
                                 }}
-                                className="bg-[#e69800] hover:bg-[#c46c00] text-white py-1.5 px-4 rounded-md text-xs font-medium transition-colors shadow-xs"
+                                className="bg-[#eab308] hover:bg-[#ca8a04] text-white py-1.5 px-4 rounded-sm text-xs font-bold transition-colors shadow-2xs cursor-pointer active:scale-98"
                               >
                                 Restock
                               </button>
@@ -1827,7 +1956,7 @@ export default function DashboardPage() {
                       } else {
                         // All stock fully healthy! Show gorgeous verified safe banner
                         return (
-                          <div className="bg-[#f4fcf7] p-5 border border-[#cbf5da] rounded-2xl flex items-center justify-between gap-4 text-left">
+                          <div className="bg-[#f4fcf7] p-5 border border-[#cbf5da] rounded-sm flex items-center justify-between gap-4 text-left">
                             <div className="flex items-center gap-3">
                               <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center text-green-600 flex-shrink-0">
                                 <Check size={18} className="stroke-[3]" />
@@ -1839,7 +1968,7 @@ export default function DashboardPage() {
                                 </p>
                               </div>
                             </div>
-                            <span className="bg-white border border-green-200 text-green-700 text-[10px] font-bold py-1 px-2.5 rounded-full uppercase tracking-wider shadow-xs">
+                            <span className="bg-white border border-green-250 text-green-700 text-[10px] font-bold py-1 px-2.5 rounded-sm uppercase tracking-wider shadow-2xs">
                               All Swatches Good
                             </span>
                           </div>
@@ -1848,35 +1977,35 @@ export default function DashboardPage() {
                     })()}
 
                     {/* Recent Activity Feed - Elegant Timeline layout */}
-                    <div className="bg-white border border-gray-100 rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.01)] overflow-hidden text-left">
+                    <div className="bg-white border border-[#efeded] rounded-sm shadow-2xs overflow-hidden text-left">
                       {/* Header */}
-                      <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+                      <div className="flex items-center justify-between px-6 py-5 border-b border-[#efeded]">
                         <div>
-                          <h3 className="font-medium text-[#1a1c1d] text-[15px]">Recent Log Activity</h3>
-                          <p className="text-[11px] text-gray-400 mt-0.5 font-light">Real-time chronicle of stock operations</p>
+                          <h3 className="font-bold text-[#020302] text-[14px]">Recent Log Activity</h3>
+                          <p className="text-[11px] text-[#5e5e5d] opacity-60 mt-0.5 font-semibold">Real-time chronicle of stock operations</p>
                         </div>
                         <button 
                           onClick={() => setActiveTab('Products')}
-                          className="text-[10px] font-bold text-gray-400 hover:text-black uppercase tracking-widest transition-colors"
+                          className="text-[10px] font-bold text-[#5e5e5d] hover:text-black uppercase tracking-widest transition-colors cursor-pointer"
                         >
                           View products
                         </button>
                       </div>
 
                       {/* Timeline log feed */}
-                      <div className="divide-y divide-gray-50">
+                      <div className="divide-y divide-[#efeded]">
                         {recentActivities.slice(0, 5).map((item, i) => (
-                          <div key={i} className="flex items-center justify-between px-6 py-4 hover:bg-neutral-50/50 transition-colors">
+                          <div key={i} className="flex items-center justify-between px-6 py-4 hover:bg-[#f5f3f3]/50 transition-colors">
                             <div className="flex items-center gap-3.5 min-w-0">
                               {/* Status dot indicator */}
                               <span className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                                item.type === 'sold' ? 'bg-[#5438ff]' :
-                                item.type === 'added' ? 'bg-green-500' : 'bg-gray-400'
+                                item.type === 'sold' ? 'bg-blue-500' :
+                                item.type === 'added' ? 'bg-emerald-500' : 'bg-[#c7c7bf]'
                               }`} />
                               
                               <div className="min-w-0">
                                 <p className="text-[13px] font-light text-gray-800 leading-snug truncate">
-                                  <span className="font-medium text-black">{item.text}</span>
+                                  <span className="font-semibold text-black">{item.text}</span>
                                   <span className="text-gray-300 mx-2">|</span>
                                   <span className="text-gray-500">{item.product}</span>
                                 </p>
@@ -1885,8 +2014,8 @@ export default function DashboardPage() {
                             
                             <div className="flex items-center gap-3 flex-shrink-0 ml-4">
                               <span className={`hidden sm:inline-block text-[9px] font-bold px-2 py-0.5 rounded-sm uppercase tracking-wider ${
-                                item.type === 'sold' ? 'bg-blue-50 text-[#5438ff]' :
-                                item.type === 'added' ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-600'
+                                item.type === 'sold' ? 'bg-blue-50 text-blue-600' :
+                                item.type === 'added' ? 'bg-emerald-50 text-emerald-600' : 'bg-[#f5f3f3] text-gray-600'
                               }`}>
                                 {item.type === 'sold' ? 'Sale' : item.type === 'added' ? 'Supply' : 'Update'}
                               </span>
@@ -1896,6 +2025,16 @@ export default function DashboardPage() {
                         ))}
                       </div>
                     </div>
+
+                    {/* Global Footer */}
+                    <footer className="mt-8 pt-6 border-t border-[#efeded] flex flex-col sm:flex-row items-center justify-between gap-4 text-[#5e5e5d] opacity-80 text-[11px] font-semibold">
+                      <p>© 2026 Heritage Wholesale. All rights reserved.</p>
+                      <div className="flex items-center gap-6">
+                        <button className="hover:text-[#020302] transition-colors cursor-pointer bg-transparent border-none p-0">Privacy Policy</button>
+                        <button className="hover:text-[#020302] transition-colors cursor-pointer bg-transparent border-none p-0">Terms of Service</button>
+                        <button className="hover:text-[#020302] transition-colors cursor-pointer bg-transparent border-none p-0">Carbon Neutral Storefront</button>
+                      </div>
+                    </footer>
 
                   </div>
                 )}
@@ -2124,16 +2263,34 @@ export default function DashboardPage() {
             </main>
 
             {/* Mobile Footer Navigation */}
-            <div className="lg:hidden bg-white border-t border-gray-100 px-4 py-2 flex items-center justify-between sticky bottom-0 w-full z-10 gap-1.5">
-              <NavItem icon={Home} label="Home" active={activeTab === 'Home'} onClick={() => setActiveTab('Home')} />
-              <NavItem icon={Package} label="Orders" active={activeTab === 'Orders'} onClick={() => setActiveTab('Orders')} />
+            <div className="lg:hidden bg-white border-t border-[#efeded] px-6 py-3 flex items-center justify-between sticky bottom-0 w-full z-10 shadow-[0_-4px_24px_rgba(0,0,0,0.02)]">
+              <button 
+                onClick={() => setActiveTab('Home')}
+                className={`flex flex-col items-center gap-1 transition-all cursor-pointer ${
+                  activeTab === 'Home' ? 'text-[#020302] font-bold' : 'text-[#5e5e5d] opacity-60 font-semibold'
+                }`}
+              >
+                <Home size={18} className="stroke-[2.2]" />
+                <span className="text-[10px]">Home</span>
+              </button>
+
+              <button 
+                onClick={() => setActiveTab('Orders')}
+                className={`flex flex-col items-center gap-1 transition-all cursor-pointer relative ${
+                  activeTab === 'Orders' ? 'text-[#020302] font-bold' : 'text-[#5e5e5d] opacity-60 font-semibold'
+                }`}
+              >
+                <ShoppingBag size={18} className="stroke-[2.2]" />
+                <span className="text-[10px]">Orders</span>
+                <span className="absolute -top-1 -right-2 bg-blue-50 text-blue-600 text-[8px] px-1 rounded-full font-bold">12</span>
+              </button>
               
               {/* Central Floating Navigation Twin Buttons */}
               <div className="relative -mt-6 flex items-center gap-2 flex-shrink-0">
                 {/* Floating Plus Button (Add Product) */}
                 <button 
                   onClick={() => setIsCreatingProduct(true)}
-                  className="w-11 h-11 bg-primary-500 hover:bg-primary-600 text-white rounded-full flex items-center justify-center shadow-md shadow-primary-500/20 hover:scale-[1.08] active:scale-[0.95] transition-all border-[3px] border-white cursor-pointer"
+                  className="w-11 h-11 bg-[#020302] hover:bg-neutral-900 text-white rounded-full flex items-center justify-center shadow-lg shadow-black/10 hover:scale-[1.08] active:scale-[0.95] transition-all border-[3px] border-white cursor-pointer"
                   aria-label="Add Product"
                 >
                   <Plus size={18} className="stroke-[3]" />
@@ -2142,15 +2299,32 @@ export default function DashboardPage() {
                 {/* Floating Shopping Bag Button (Complete Sale / Checkout) */}
                 <button 
                   onClick={handleOpenCheckout}
-                  className="w-11 h-11 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full flex items-center justify-center shadow-md shadow-emerald-600/20 hover:scale-[1.08] active:scale-[0.95] transition-all border-[3px] border-white cursor-pointer"
+                  className="w-11 h-11 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full flex items-center justify-center shadow-lg shadow-emerald-600/10 hover:scale-[1.08] active:scale-[0.95] transition-all border-[3px] border-white cursor-pointer"
                   aria-label="Complete Sale (POS)"
                 >
                   <ShoppingBag size={16} className="stroke-[2.5]" />
                 </button>
               </div>
               
-              <NavItem icon={TagIcon} label="Products" active={activeTab === 'Products'} onClick={() => setActiveTab('Products')} />
-              <NavItem icon={MoreHorizontal} label="More" active={activeTab === 'More'} onClick={() => setActiveTab('More')} />
+              <button 
+                onClick={() => setActiveTab('Products')}
+                className={`flex flex-col items-center gap-1 transition-all cursor-pointer ${
+                  activeTab === 'Products' ? 'text-[#020302] font-bold' : 'text-[#5e5e5d] opacity-60 font-semibold'
+                }`}
+              >
+                <Package size={18} className="stroke-[2.2]" />
+                <span className="text-[10px]">Products</span>
+              </button>
+
+              <button 
+                onClick={() => setActiveTab('More')}
+                className={`flex flex-col items-center gap-1 transition-all cursor-pointer ${
+                  activeTab === 'More' ? 'text-[#020302] font-bold' : 'text-[#5e5e5d] opacity-60 font-semibold'
+                }`}
+              >
+                <MoreHorizontal size={18} className="stroke-[2.2]" />
+                <span className="text-[10px]">More</span>
+              </button>
             </div>
           </>
         )}
