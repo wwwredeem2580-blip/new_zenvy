@@ -1647,153 +1647,147 @@ export default function DashboardPage() {
             </AnimatePresence>
 
             <AnimatePresence>
-              {posCheckoutOpen && posStep === 3 && (
-                <div className="fixed inset-0 bg-[#0c0d0f]/60 z-[200] flex justify-end backdrop-blur-sm">
+              {posCheckoutOpen && posStep === 3 && posSuccessData && (
+                <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-[#020302]/20 backdrop-blur-sm">
                   {/* Backdrop Close Click */}
                   <div className="absolute inset-0" onClick={() => setPosCheckoutOpen(false)} />
 
                   <motion.div 
-                    initial={{ x: "100%", opacity: 0.95 }}
-                    animate={{ x: 0, opacity: 1 }}
-                    exit={{ x: "100%", opacity: 0.95 }}
-                    transition={{ type: "tween", ease: [0.16, 1, 0.3, 1], duration: 0.4 }}
-                    className="bg-white w-full h-full md:max-w-lg lg:max-w-xl border-l border-neutral-100 shadow-3xl relative text-left overflow-hidden flex flex-col z-[210]"
+                    initial={{ opacity: 0, y: 100 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 100 }}
+                    transition={{ type: "spring", stiffness: 350, damping: 35 }}
+                    className="w-full max-w-2xl z-[210] flex flex-col font-sans text-on-surface"
                   >
-                    {/* Header */}
-                    <div className="flex items-center justify-between border-b border-neutral-100 px-6 py-5 flex-shrink-0 bg-white">
-                      <div className="flex flex-col gap-0.5">
-                        <span className="text-[9px] font-bold text-neutral-400 uppercase tracking-[0.2em] block">Zenvy Terminal</span>
-                        <h3 className="text-base font-sans font-semibold text-neutral-900 tracking-tight">Complete Customer Sale</h3>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className="text-[9px] font-bold text-neutral-500 uppercase tracking-widest bg-neutral-100 px-2.5 py-1 rounded-full border border-neutral-200">
-                          Step 0{posStep} / 03
-                        </span>
-                        <button 
-                          onClick={() => setPosCheckoutOpen(false)} 
-                          className="text-neutral-400 hover:text-neutral-900 transition-colors p-1.5 hover:bg-neutral-50 rounded-full cursor-pointer"
-                        >
-                          <X size={18} />
-                        </button>
-                      </div>
-                    </div>
+                    <div className="bg-[#fbf9f9] w-full max-h-[85vh] sm:max-h-[90vh] md:max-h-[850px] flex flex-col rounded-t-2xl sm:rounded-xl border-t sm:border border-[#c7c7bf] shadow-2xl overflow-hidden">
+                      
+                      {/* Scrollable Container */}
+                      <div className="flex-1 overflow-y-auto p-6 sm:p-12 flex flex-col items-center text-center">
+                        {/* Success Icon */}
+                        <div className="mb-6 w-16 h-16 rounded-full bg-[#efeded] flex items-center justify-center text-[#020302] shrink-0">
+                          <CheckCircle2 size={32} className="stroke-[2.5]" />
+                        </div>
 
-                    {/* Step 3: Success Confirmation and Invoice exports */}
-                    {/* Step 3: Success Confirmation and Invoice exports */}
-                    {posStep === 3 && posSuccessData && (
-                      <div className="flex-1 flex flex-col justify-between p-6 bg-white overflow-y-auto">
-                        <div className="flex flex-col items-center">
-                          {/* Success Animated Checkmark */}
-                          <div className="w-16 h-16 mt-8 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-600 mb-4 shadow-sm">
-                            <CheckCircle2 size={34} className="stroke-[2.5]" />
-                          </div>
-
-                          <h3 className="text-base font-sans font-bold text-neutral-900 text-center uppercase tracking-widest">Sale Recorded Successfully!</h3>
-                          <p className="text-xs text-neutral-400 text-center mt-1 font-light max-w-xs">
+                        {/* Header Content */}
+                        <div className="mb-8 space-y-2 shrink-0">
+                          <h1 className="text-xl sm:text-[32px] font-medium tracking-tight text-[#020302]">Sale Recorded Successfully!</h1>
+                          <p className="text-xs sm:text-sm text-[#5e5e5d] max-w-md mx-auto">
                             Smartphone stocks have been adjusted live. Branded designer invoice is prepared.
                           </p>
+                        </div>
 
-                          {/* Invoice Summary Box: Styled like a physical luxury designer boutique receipt ticket */}
-                          <div className="my-6 p-6 bg-[#fafafa] rounded-2xl border border-neutral-200/80 font-mono text-[10px] text-neutral-800 space-y-4 max-w-sm w-full relative overflow-hidden shadow-xs">
-                            
-                            {/* Decorative Top cutouts */}
-                            <div className="absolute top-0 inset-x-0 h-1 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-neutral-200 via-transparent to-transparent opacity-40" />
-
-                            <div className="text-center border-b border-dashed border-neutral-300 pb-3">
-                              <p className="font-serif font-black text-sm uppercase tracking-widest text-neutral-900">{posSuccessData.shopName}</p>
-                              <p className="text-[8px] text-neutral-400 font-sans mt-1 uppercase tracking-[0.2em]">STOCKNET POS TICKET</p>
+                        {/* Digital Ticket Section */}
+                        <div className="w-full max-w-md bg-white border border-[#c7c7bf] p-6 sm:p-8 mb-8 relative overflow-hidden text-left shadow-[0_4px_24px_rgba(0,0,0,0.04)] rounded-lg">
+                          {/* Branding */}
+                          <div className="flex justify-between items-start mb-6">
+                            <div className="space-y-0.5">
+                              <h2 className="text-xs sm:text-[14px] font-bold text-[#020302] uppercase tracking-widest">{posSuccessData.shopName || "Zenvy Store"}</h2>
+                              <p className="text-[10px] sm:text-xs text-[#5e5e5d]">STOCKNET POS TICKET</p>
                             </div>
-
-                            <div className="space-y-1 text-neutral-500">
-                              <p className="flex justify-between">
-                                <span>Invoice No:</span>
-                                <strong className="text-neutral-900 font-bold">{posSuccessData.invoiceNumber}</strong>
-                              </p>
-                              <p className="flex justify-between">
-                                <span>Date/Time:</span>
-                                <span className="text-neutral-950 font-semibold">{posSuccessData.date} {posSuccessData.time}</span>
-                              </p>
-                              <p className="flex justify-between">
-                                <span>Buyer Name:</span>
-                                <span className="text-neutral-950 font-semibold truncate max-w-[150px]">{posSuccessData.buyerName}</span>
-                              </p>
+                            <div className="text-right">
+                              <p className="text-[10px] sm:text-xs text-[#5e5e5d]">Invoice No</p>
+                              <p className="text-xs sm:text-[14px] font-medium text-[#020302]">{posSuccessData.invoiceNumber}</p>
                             </div>
+                          </div>
 
-                            <div className="border-t border-b border-dashed border-neutral-300 py-3.5 space-y-2.5">
-                              <div className="flex justify-between font-bold text-neutral-950 text-[9px] uppercase tracking-wider">
-                                <span>Smartphone details</span>
-                                <span>Total Price</span>
-                              </div>
-                              
-                              {posSuccessData.items.map((item: any, i: number) => (
-                                <div key={i} className="flex justify-between leading-snug">
-                                  <div className="truncate pr-3 max-w-[170px]">
-                                    <p className="font-bold text-neutral-900 text-[10px] truncate">{item.brand} {item.name}</p>
-                                    <p className="text-[8px] text-gray-400 italic mt-0.5">{item.color} • {item.specs}</p>
-                                  </div>
-                                  <div className="text-right flex-shrink-0 text-neutral-900 font-bold">
-                                    <p>{item.quantity} x Tk {item.price.toLocaleString()}</p>
-                                  </div>
+                          {/* Meta Details */}
+                          <div className="grid grid-cols-2 gap-4 mb-6 pb-4 border-b border-[#c7c7bf]/30">
+                            <div>
+                              <p className="text-[10px] sm:text-xs text-[#5e5e5d]">Date/Time</p>
+                              <p className="text-xs sm:text-sm text-[#020302]">{posSuccessData.date} {posSuccessData.time}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-[10px] sm:text-xs text-[#5e5e5d]">Buyer Name</p>
+                              <p className="text-xs sm:text-sm text-[#020302] truncate max-w-[150px] ml-auto">{posSuccessData.buyerName}</p>
+                            </div>
+                          </div>
+
+                          {/* Items */}
+                          <div className="space-y-4 mb-6">
+                            {posSuccessData.items.map((item: any, i: number) => (
+                              <div key={i} className="flex justify-between items-start leading-snug">
+                                <div className="flex-1 pr-4 min-w-0">
+                                  <p className="text-xs sm:text-sm font-medium text-[#020302] truncate">{item.brand} {item.name}</p>
+                                  <p className="text-[10px] sm:text-xs text-[#5e5e5d]">{item.color} • {item.specs}</p>
                                 </div>
-                              ))}
-                            </div>
-
-                            <div className="space-y-1 pt-1">
-                              <div className="flex justify-between text-xs font-semibold text-[#767676]">
-                                <span>Subtotal:</span>
-                                <span>Tk {posSuccessData.subtotal.toLocaleString()}</span>
-                              </div>
-                              {posSuccessData.discount > 0 && (
-                                <div className="flex justify-between text-xs font-semibold text-red-500">
-                                  <span>Applied Discount:</span>
-                                  <span>-Tk {posSuccessData.discount.toLocaleString()}</span>
+                                <div className="text-right shrink-0">
+                                  <p className="text-xs sm:text-sm text-[#020302] font-medium">{item.quantity} x Tk {item.price.toLocaleString()}</p>
                                 </div>
-                              )}
-                              <div className="flex justify-between items-baseline font-bold text-xs text-neutral-950 pt-2 border-t border-dashed border-neutral-300">
-                                <span>TOTAL VALUE PAID:</span>
-                                <span className="text-sm text-neutral-950 font-bold">Tk {posSuccessData.total.toLocaleString()}</span>
                               </div>
+                            ))}
+                          </div>
+
+                          {/* Financial Summary */}
+                          <div className="space-y-2 pt-4 border-t border-dashed border-[#c7c7bf]">
+                            <div className="flex justify-between items-center text-[#5e5e5d]">
+                              <p className="text-xs sm:text-[14px]">Subtotal</p>
+                              <p className="text-xs sm:text-sm font-medium text-[#020302]">Tk {posSuccessData.subtotal.toLocaleString()}</p>
                             </div>
+                            {posSuccessData.discount > 0 && (
+                              <div className="flex justify-between items-center text-red-500">
+                                <p className="text-xs sm:text-[14px]">Applied Discount</p>
+                                <p className="text-xs sm:text-sm font-medium">-Tk {posSuccessData.discount.toLocaleString()}</p>
+                              </div>
+                            )}
+                            <div className="flex justify-between items-center text-[#020302] pt-2 border-t border-[#c7c7bf]/10">
+                              <p className="text-xs sm:text-[14px] font-bold uppercase tracking-wider">TOTAL VALUE PAID</p>
+                              <p className="text-lg sm:text-[24px] font-bold">Tk {posSuccessData.total.toLocaleString()}</p>
+                            </div>
+                          </div>
+
+                          {/* Decorative Bottom Circle Cuts */}
+                          <div className="absolute bottom-0 left-0 right-0 h-1 flex justify-between px-1" style={{ transform: "translateY(50%)" }}>
+                            <div className="w-3 h-3 rounded-full bg-[#fbf9f9] -mt-1.5"></div>
+                            <div className="w-3 h-3 rounded-full bg-[#fbf9f9] -mt-1.5"></div>
+                            <div className="w-3 h-3 rounded-full bg-[#fbf9f9] -mt-1.5"></div>
+                            <div className="w-3 h-3 rounded-full bg-[#fbf9f9] -mt-1.5"></div>
+                            <div className="w-3 h-3 rounded-full bg-[#fbf9f9] -mt-1.5"></div>
+                            <div className="w-3 h-3 rounded-full bg-[#fbf9f9] -mt-1.5"></div>
+                            <div className="w-3 h-3 rounded-full bg-[#fbf9f9] -mt-1.5"></div>
+                            <div className="w-3 h-3 rounded-full bg-[#fbf9f9] -mt-1.5"></div>
+                            <div className="w-3 h-3 rounded-full bg-[#fbf9f9] -mt-1.5"></div>
+                            <div className="w-3 h-3 rounded-full bg-[#fbf9f9] -mt-1.5"></div>
                           </div>
                         </div>
 
-                        {/* Actions block */}
-                        <div className="space-y-2 w-full mt-auto">
-                          <div className="grid grid-cols-2 gap-3">
-                            <button
-                              onClick={() => generateBrandedInvoicePDF(posSuccessData)}
-                              className="py-3.5 bg-neutral-950 hover:bg-neutral-900 text-white font-bold text-[9px] uppercase tracking-widest flex items-center justify-center gap-1.5 rounded-xl transition-all cursor-pointer shadow-sm text-center"
-                            >
-                              <Receipt size={13} />
-                              <span>Print Invoice PDF</span>
-                            </button>
-                            
-                            <button
-                              onClick={() => {
-                                // Background PDF compilation and WhatsApp link share
-                                generateBrandedInvoicePDF(posSuccessData);
-                                
-                                const textMessage = `Hello ${posSuccessData.buyerName},\n\nThank you for purchasing at ${posSuccessData.shopName}!\nHere is your receipt details:\n\n*Invoice No:* ${posSuccessData.invoiceNumber}\n*Date:* ${posSuccessData.date} ${posSuccessData.time}\n\n*Items Purchased:* \n${posSuccessData.items.map((item: any) => `- *${item.brand} ${item.name}* (${item.color} ${item.specs}) x ${item.quantity} units @ Tk ${item.price.toLocaleString()}`).join('\n')}\n\n*Subtotal:* Tk ${posSuccessData.subtotal.toLocaleString()}\n*Discount Applied:* -Tk ${posSuccessData.discount.toLocaleString()}\n*Grand Total:* *Tk ${posSuccessData.total.toLocaleString()}*\n\nYour digital A4 Invoice PDF has been generated offline. Thank you for shopping with us! 🌟`;
-                                const encodedText = encodeURIComponent(textMessage);
-                                window.open(`https://api.whatsapp.com/send?text=${encodedText}`, '_blank');
-                              }}
-                              className="py-3.5 bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold text-[9px] uppercase tracking-widest flex items-center justify-center gap-1.5 rounded-xl transition-all cursor-pointer shadow-sm shadow-[#25D366]/10 text-center"
-                            >
-                              <Share2 size={13} />
-                              <span>WhatsApp Receipt</span>
-                            </button>
-                          </div>
-
-                          <button
+                        {/* Actions */}
+                        <div className="w-full flex flex-col gap-3 sm:gap-4 max-w-md shrink-0">
+                          <button 
+                            type="button"
                             onClick={() => setPosCheckoutOpen(false)}
-                            className="w-full py-3 bg-[#f8f8f9] hover:bg-[#f3f3f4] text-neutral-600 text-[10px] font-bold uppercase tracking-wider transition-all rounded-xl cursor-pointer text-center"
+                            className="w-full bg-[#020302] text-white py-3 px-6 rounded-lg text-xs sm:text-sm font-bold hover:bg-[#868582] transition-colors duration-200 uppercase tracking-wider cursor-pointer"
                           >
                             Return to Merchant Dashboard
                           </button>
+                          
+                          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                            <button 
+                              type="button"
+                              onClick={() => generateBrandedInvoicePDF(posSuccessData)}
+                              className="flex-1 flex items-center justify-center gap-2 border border-[#020302] bg-white text-[#020302] py-2.5 sm:py-3 px-4 rounded-lg text-xs sm:text-sm font-bold hover:bg-[#efeded] transition-colors duration-200 uppercase cursor-pointer"
+                            >
+                              <Receipt size={16} />
+                              <span>Print Invoice PDF</span>
+                            </button>
+                            
+                            <button 
+                              type="button"
+                              onClick={() => {
+                                generateBrandedInvoicePDF(posSuccessData);
+                                const textMessage = `Hello ${posSuccessData.buyerName},\n\nThank you for purchasing at ${posSuccessData.shopName || 'Zenvy Store'}!\nHere is your receipt details:\n\n*Invoice No:* ${posSuccessData.invoiceNumber}\n*Date:* ${posSuccessData.date} ${posSuccessData.time}\n\n*Items Purchased:* \n${posSuccessData.items.map((item: any) => `- *${item.brand} ${item.name}* (${item.color} ${item.specs}) x ${item.quantity} units @ Tk ${item.price.toLocaleString()}`).join('\n')}\n\n*Subtotal:* Tk ${posSuccessData.subtotal.toLocaleString()}\n*Discount Applied:* -Tk ${posSuccessData.discount.toLocaleString()}\n*Grand Total:* *Tk ${posSuccessData.total.toLocaleString()}*\n\nYour digital A4 Invoice PDF has been generated offline. Thank you for shopping with us! 🌟`;
+                                const encodedText = encodeURIComponent(textMessage);
+                                window.open(`https://api.whatsapp.com/send?text=${encodedText}`, '_blank');
+                              }}
+                              className="flex-1 flex items-center justify-center gap-2 border border-[#020302] bg-white text-[#020302] py-2.5 sm:py-3 px-4 rounded-lg text-xs sm:text-sm font-bold hover:bg-[#efeded] transition-colors duration-200 uppercase cursor-pointer"
+                            >
+                              <MessageCircle size={16} />
+                              <span>WhatsApp Receipt</span>
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                    )}
 
+                      </div>
+                    </div>
                   </motion.div>
                 </div>
               )}
