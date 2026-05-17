@@ -9,7 +9,9 @@ export interface ProductVariant {
   buyingPrice: number;
   sellingPrice: number;
   image?: string;
+  sku?: string;
 }
+
 
 export interface ProductFormData {
   name: string;
