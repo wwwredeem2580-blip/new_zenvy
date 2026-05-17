@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Product, ProductVariant } from '@/types/zenvy';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, ChevronRight, Edit2, Share2, Trash2, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
 
 const getColorHex = (colorName: string): string => {
   const name = colorName.toLowerCase();
@@ -98,18 +98,18 @@ export default function ProductDetailsScreen({
           {/* Breadcrumb */}
           <nav className="flex items-center space-x-2 text-[12px] leading-[1.4] font-normal text-[#5e5e5d] mb-8 font-sans">
             <button onClick={onBack} className="hover:text-[#020302] transition-colors cursor-pointer bg-transparent border-none p-0 text-[12px]">Inventory</button>
-            <span className="material-symbols-outlined text-[14px]" style={{fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24"}}>chevron_right</span>
+            <ChevronRight size={14} />
             <span className="text-[#020302] font-bold">{product.name}</span>
           </nav>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-[24px]">
             
             {/* Product Gallery (Bento Layout) */}
-            <div className="lg:col-span-7">
-              <div className="grid grid-cols-4 grid-rows-[repeat(2,250px)] gap-[16px]">
+            <div className="lg:col-span-7 -mx-4 md:mx-0">
+              <div className="flex md:grid md:grid-cols-4 md:grid-rows-[repeat(2,250px)] gap-[16px] overflow-x-auto snap-x snap-mandatory px-4 md:px-0 pb-4 md:pb-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                 
                 {/* Bento Item Large */}
-                <div className="col-span-2 row-span-2 relative overflow-hidden rounded-xl border border-[#c7c7bf] bg-white">
+                <div className="flex-none w-[85vw] md:w-auto snap-center md:col-span-2 md:row-span-2 relative overflow-hidden rounded-[32px] border border-[#c7c7bf] bg-white aspect-[4/5] md:aspect-auto">
                   <img 
                     className="w-full h-full object-cover transition-transform duration-500 hover:scale-105" 
                     src={getBentoImage(0)} 
@@ -120,19 +120,19 @@ export default function ProductDetailsScreen({
                   </div>
                 </div>
 
-                <div className="col-span-1 row-span-1 relative overflow-hidden rounded-xl border border-[#c7c7bf] bg-white">
+                <div className="flex-none w-[65vw] md:w-auto snap-center md:col-span-1 md:row-span-1 relative overflow-hidden rounded-[32px] border border-[#c7c7bf] bg-white aspect-[4/5] md:aspect-auto">
                   <img className="w-full h-full object-cover" src={getBentoImage(1)} alt="Gallery 1" />
                 </div>
                 
-                <div className="col-span-1 row-span-1 relative overflow-hidden rounded-xl border border-[#c7c7bf] bg-white">
+                <div className="flex-none w-[65vw] md:w-auto snap-center md:col-span-1 md:row-span-1 relative overflow-hidden rounded-[32px] border border-[#c7c7bf] bg-white aspect-[4/5] md:aspect-auto">
                   <img className="w-full h-full object-cover" src={getBentoImage(2)} alt="Gallery 2" />
                 </div>
                 
-                <div className="col-span-1 row-span-1 relative overflow-hidden rounded-xl border border-[#c7c7bf] bg-white">
+                <div className="flex-none w-[65vw] md:w-auto snap-center md:col-span-1 md:row-span-1 relative overflow-hidden rounded-[32px] border border-[#c7c7bf] bg-white aspect-[4/5] md:aspect-auto">
                   <img className="w-full h-full object-cover" src={getBentoImage(3)} alt="Gallery 3" />
                 </div>
                 
-                <div className="col-span-1 row-span-1 relative overflow-hidden rounded-xl border border-[#c7c7bf] bg-white">
+                <div className="flex-none w-[65vw] md:w-auto snap-center md:col-span-1 md:row-span-1 relative overflow-hidden rounded-[32px] border border-[#c7c7bf] bg-white aspect-[4/5] md:aspect-auto">
                   <img className="w-full h-full object-cover" src={getBentoImage(4)} alt="Gallery 4" />
                 </div>
 
@@ -203,7 +203,7 @@ export default function ProductDetailsScreen({
                   onClick={() => onEdit(product)}
                   className="flex-1 h-12 bg-[#020302] text-[#ffffff] font-bold text-[14px] leading-[1.4] tracking-[0.04em] rounded-lg flex items-center justify-center space-x-2 hover:opacity-90 active:scale-[0.98] transition-all font-sans cursor-pointer"
                 >
-                  <span className="material-symbols-outlined" style={{fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24"}}>edit</span>
+                  <Edit2 size={16} />
                   <span>Edit Listing</span>
                 </button>
                 <button 
@@ -213,14 +213,14 @@ export default function ProductDetailsScreen({
                   }}
                   className="w-12 h-12 border border-[#c7c7bf] rounded-lg flex items-center justify-center text-[#020302] hover:bg-[#f5f3f3] transition-all cursor-pointer"
                 >
-                  <span className="material-symbols-outlined" style={{fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24"}}>share</span>
+                  <Share2 size={18} />
                 </button>
                 <button 
                   onClick={() => setConfirmDeleteOpen(true)}
                   className="w-12 h-12 border border-[#ba1a1a] rounded-lg flex items-center justify-center text-[#ba1a1a] hover:bg-red-50 transition-all cursor-pointer"
                   title="Delete Product"
                 >
-                  <span className="material-symbols-outlined" style={{fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24"}}>delete</span>
+                  <Trash2 size={18} />
                 </button>
               </div>
             </div>
@@ -364,11 +364,11 @@ export default function ProductDetailsScreen({
                           <td className="px-6 py-4 font-bold text-[14px] leading-[1.4] tracking-[0.04em] font-sans">
                             {isSell ? (
                               <span className="text-[#ba1a1a] flex items-center">
-                                <span className="material-symbols-outlined text-sm mr-2" style={{fontVariationSettings: "'FILL' 0, 'wght' 600, 'GRAD' 0, 'opsz' 24"}}>north_east</span> Sold
+                                <ArrowUpRight size={16} className="mr-2" strokeWidth={3} /> Sold
                               </span>
                             ) : (
                               <span className="text-green-600 flex items-center">
-                                <span className="material-symbols-outlined text-sm mr-2" style={{fontVariationSettings: "'FILL' 0, 'wght' 600, 'GRAD' 0, 'opsz' 24"}}>south_west</span> Added
+                                <ArrowDownLeft size={16} className="mr-2" strokeWidth={3} /> Added
                               </span>
                             )}
                           </td>
