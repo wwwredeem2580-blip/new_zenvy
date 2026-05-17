@@ -25,7 +25,8 @@ import {
   Minus,
   X,
   ShoppingBag,
-  MessageCircle
+  MessageCircle,
+  Check
 } from 'lucide-react';
 import { useZenvy } from '@/context/ZenvyContext';
 import { SidebarSection, SidebarItem, SidebarSubItem, NavItem } from '@/components/SidebarComponents';
@@ -1646,55 +1647,56 @@ export default function DashboardPage() {
             <main className="flex-1 overflow-y-auto px-4 md:px-10 py-6 scroll-smooth">
               <div className="w-full max-w-5xl mx-auto">
                 {activeTab === 'Home' && (
-                  <div className="space-y-6">
-                    <div className="lg:hidden relative">
-                      <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 stroke-[2]" />
-                      <input 
-                        type="text" 
-                        placeholder="Go to..." 
-                        className="w-full bg-[#eeeeef] py-3.5 pl-12 pr-4 rounded-xl text-[15px] border-none outline-none text-gray-500 font-medium"
-                      />
+                  <div className="space-y-6 text-left">
+                    
+                    {/* Welcome Greeting Header */}
+                    <div className="flex flex-col gap-1 pb-1">
+                      <h2 className="text-xl md:text-2xl font-medium text-[#1a1c1d] tracking-tight">
+                        {(() => {
+                          const hour = new Date().getHours();
+                          if (hour < 12) return 'Good morning';
+                          if (hour < 17) return 'Good afternoon';
+                          return 'Good evening';
+                        })()}, {storeName || 'Merchant'}
+                      </h2>
+                      <p className="text-xs text-gray-500 font-light leading-relaxed">
+                        Here is a live performance snapshot for your smartphone storefront today.
+                      </p>
                     </div>
 
+                    {/* Share Shop Card Hero Banner - Elegant Marketing card */}
                     <motion.div 
-                      whileHover={{ y: -2 }}
-                      className="bg-white p-4 md:p-6  border border-gray-100 flex items-center justify-between cursor-pointer"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="flex -space-x-1">
-                           <div className="w-8 h-8 rounded-full border-2 border-white bg-shopify-green flex items-center justify-center">
-                              <Sparkles size={14} className="text-white fill-white" />
-                           </div>
-                        </div>
-                        <div>
-                           <p className="text-[14px] md:text-base font-bold text-[#1a1c1d]">Special promotion active</p>
-                           <p className="text-[12px] md:text-sm text-gray-400 font-medium">Select a plan to get your first month for $1.</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                         <span className="hidden md:inline text-xs font-bold text-[#1a1c1d] hover:underline uppercase tracking-wider">Details</span>
-                         <ChevronRight size={18} className="text-gray-400" />
-                      </div>
-                    </motion.div>
-
-                    {/* Share Shop Card Hero Banner */}
-                    <motion.div 
-                      whileHover={{ y: -2 }}
+                      whileHover={{ y: -1.5 }}
                       onClick={handleShareShopCard}
-                      className="bg-gradient-to-r from-gray-900 via-gray-800 to-black p-6 rounded-3xl flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer shadow-lg shadow-black/5 border border-white/5 relative overflow-hidden"
+                      className="bg-gradient-to-br from-[#0c0d0f] via-[#16171a] to-[#0a0a0c] p-6 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-5 cursor-pointer shadow-lg shadow-black/5 border border-white/5 relative overflow-hidden group"
                     >
-                      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-white/10 via-transparent to-transparent pointer-events-none"></div>
+                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-shopify-green/10 via-transparent to-transparent pointer-events-none"></div>
+                      
                       <div className="flex items-start gap-4 relative z-10">
-                        <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center border border-white/15 shadow-inner">
-                          <Share2 size={20} className="text-white" />
+                        {/* Curved Mini Seal Logo Overlay */}
+                        <div className="w-14 h-14 rounded-full bg-white/5 border border-white/10 flex items-center justify-center relative select-none flex-shrink-0">
+                          <svg viewBox="0 0 100 100" className="w-full h-full p-0.5 animate-[spin_35s_linear_infinite]">
+                            <path id="miniPath" d="M 20,50 a 30,30 0 1,1 60,0 a 30,30 0 1,1 -60,0" fill="none" />
+                            <text className="text-[9px] font-bold fill-white/60 tracking-[0.16em] uppercase">
+                              <textPath href="#miniPath" startOffset="50%" textAnchor="middle">
+                                {storeName ? storeName.substring(0, 8) : 'ZENVY'} · CATALOG ·
+                              </textPath>
+                            </text>
+                          </svg>
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <Sparkles size={16} className="text-white fill-white/10" />
+                          </div>
                         </div>
-                        <div className="text-left">
-                          <p className="text-[15px] font-bold text-white tracking-tight flex items-center gap-1.5">
-                            Shareable Shop Card 
-                            <span className="bg-shopify-green text-white text-[9px] font-bold uppercase tracking-wider py-0.5 px-2 rounded-full">New</span>
+                        
+                        <div className="space-y-1">
+                          <p className="text-[15px] font-medium text-white tracking-tight flex items-center gap-2">
+                            Live Storefront is Active 
+                            <span className="bg-[#ccff00] text-black text-[9px] font-bold uppercase tracking-wider py-0.5 px-2.5 rounded-sm">
+                              ONLINE
+                            </span>
                           </p>
-                          <p className="text-xs text-gray-400 font-medium mt-1 leading-relaxed max-w-md">
-                            Generate a mobile-optimized public page showing your live inventory & WhatsApp contact details to share with customers. No downloads required!
+                          <p className="text-xs text-gray-400 font-light leading-relaxed max-w-md">
+                            Anyone visiting your storefront can view live catalog quantities & inquire instantly via WhatsApp. Zero downloads or logins required.
                           </p>
                         </div>
                       </div>
@@ -1704,220 +1706,191 @@ export default function DashboardPage() {
                           e.stopPropagation();
                           handleShareShopCard();
                         }}
-                        className="bg-white text-black hover:bg-gray-100 transition-colors py-3 px-5 text-xs font-bold uppercase tracking-wider rounded-xl flex items-center gap-2 self-start md:self-auto shadow-md font-sans"
+                        className="bg-white hover:bg-gray-50 text-black py-3 px-5 text-xs font-semibold uppercase tracking-wider rounded-lg flex items-center justify-center gap-2 self-start md:self-auto shadow-md transition-all active:scale-98 relative z-10"
                       >
-                        <Share2 size={13} strokeWidth={2.5} />
+                        <Share2 size={13} className="stroke-[2.5]" />
                         Get Share Link
                       </button>
                     </motion.div>
 
-                    {/* Summary Stats Grid */}
-                    <div className="bg-white border border-gray-100 overflow-hidden">
-                      <div className="p-4 px-6 flex items-center justify-between border-b border-gray-100">
-                        <span className="text-[14px] font-bold text-[#1a1c1d] tracking-tight">Summary</span>
-                        <ChevronRight size={16} className="text-gray-400" />
-                      </div>
-                      
-                      <div className="grid grid-cols-2 md:grid-cols-4">
-                        {/* Stat 1: Total products in stock */}
-                        <div className="p-6 border-r border-b border-gray-100 md:border-b-0">
-                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Products in stock</p>
-                          <div className="flex items-baseline justify-between">
-                            <span className="text-xl md:text-2xl font-bold font-sans text-[#1a1c1d]">124</span>
-                            <span className="flex items-center text-[9px] md:text-[11px] font-bold text-green-500 gap-0.5">
-                              <ArrowUpRight size={12} className="stroke-[2.5]" />
-                              <span>+8.2%</span>
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Stat 2: Total stock value in BDT */}
-                        <div className="p-6 border-b border-gray-100 md:border-b-0 md:border-r">
-                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Stock value</p>
-                          <div className="flex items-baseline justify-between">
-                            <span className="text-xl md:text-2xl font-bold font-sans text-[#1a1c1d]">
-                              <span className="text-gray-600 font-normal mr-1">৳</span>42,800
-                            </span>
-                            <span className="flex items-center text-[9px] md:text-[11px] font-bold text-green-500 gap-0.5">
-                              <ArrowUpRight size={12} className="stroke-[2.5]" />
-                              <span>+12.4%</span>
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Stat 3: Units sold this month */}
-                        <div className="p-6 border-r border-gray-100">
-                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Units sold this month</p>
-                          <div className="flex items-baseline justify-between">
-                            <span className="text-xl md:text-2xl font-bold font-sans text-[#1a1c1d]">86</span>
-                            <span className="flex items-center text-[9px] md:text-[11px] font-bold text-green-500 gap-0.5">
-                              <ArrowUpRight size={12} className="stroke-[2.5]" />
-                              <span>+15.1%</span>
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Stat 4: Revenue this month */}
-                        <div className="p-6">
-                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Revenue this month</p>
-                          <div className="flex items-baseline justify-between">
-                            <span className="text-xl md:text-2xl font-bold font-sans text-[#1a1c1d]">
-                              <span className="text-gray-600 font-normal mr-1">৳</span>28,450
-                            </span>
-                            <span className="flex items-center text-[9px] md:text-[11px] font-bold text-green-500 gap-0.5">
-                              <ArrowUpRight size={12} className="stroke-[2.5]" />
-                              <span>+22.3%</span>
-                            </span>
-                          </div>
+                    {/* Summary Stats Grid (Polaris-Style Flat Visuals) */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {/* Stat 1: Products in Stock */}
+                      <div className="bg-white p-5 border border-gray-100 rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.015)] text-left hover:shadow-md transition-shadow">
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Products in stock</p>
+                        <div className="flex items-baseline justify-between">
+                          <span className="text-xl md:text-2xl font-medium text-[#1a1c1d]">
+                            {productList.reduce((sum, p) => sum + p.stock, 0)}
+                          </span>
+                          <span className="flex items-center text-[10px] font-bold text-green-500 gap-0.5">
+                            <ArrowUpRight size={11} className="stroke-[2.5]" />
+                            <span>+4.2%</span>
+                          </span>
                         </div>
                       </div>
-                    </div>
 
-                    {/* Running Low Warning Section */}
-                    <div className="bg-brand-card p-6 border border-brand-divider rounded-3xl flex flex-col gap-5 relative overflow-hidden">
-                      {/* Top Header */}
-                      <div className="flex items-center gap-2">
-                        <AlertTriangle size={15} className="text-primary-500 stroke-[2.5]" />
-                        <h4 className="text-[12px] font-bold text-brand-700 uppercase tracking-wider font-sans">Running Low</h4>
-                      </div>
-                      
-                      {/* Middle Section: Image + Text */}
-                      <div className="flex items-start md:items-center gap-4">
-                        {/* Product Image */}
-                        <div className="w-12 h-12 rounded-xl border border-brand-divider overflow-hidden flex-shrink-0 bg-white">
-                          <img 
-                            src="https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=120&auto=format&fit=crop&q=80" 
-                            alt="CozyCotton Hoodie" 
-                            className="w-full h-full object-cover" 
-                          />
+                      {/* Stat 2: Total Stock Value */}
+                      <div className="bg-white p-5 border border-gray-100 rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.015)] text-left hover:shadow-md transition-shadow">
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Asset Stock Value</p>
+                        <div className="flex items-baseline justify-between">
+                          <span className="text-xl md:text-2xl font-medium text-[#1a1c1d] truncate max-w-full">
+                            <span className="text-[13px] text-gray-400 font-light mr-0.5">৳</span>
+                            {productList.reduce((sum, p) => sum + (p.variants?.reduce((vSum, v) => vSum + (v.sellingPrice * v.quantity), 0) || 0), 0).toLocaleString()}
+                          </span>
+                          <span className="flex items-center text-[10px] font-bold text-green-500 gap-0.5">
+                            <ArrowUpRight size={11} className="stroke-[2.5]" />
+                            <span>+8.1%</span>
+                          </span>
                         </div>
-                        
-                        <p className="text-neutral-700 text-[13px] md:text-[14px] leading-relaxed">
-                          Our <span className="text-neutral-900 font-bold hover:underline cursor-pointer">CozyCotton Hoodie</span> is <span className="text-warning-700 font-medium">running low on stock</span>. Reorder soon to avoid stockouts, with only <span className="whitespace-nowrap inline-block bg-warning-50 text-warning-800 px-2 py-0.5 rounded-lg font-bold text-[11px] border border-warning-200">4 units left</span>.
-                        </p>
                       </div>
-                      
-                      {/* Bottom Action Buttons */}
-                      <div className="flex items-center gap-2.5">
-                        <button className="px-4 py-2.5 bg-primary-500 hover:bg-primary-600 text-neutral-0 rounded-md text-[12px] font-bold transition-all hover:scale-[1.01] active:scale-[0.99] shadow-sm">
-                          Restock Product
-                        </button>
-                        <button className="px-4 py-2.5 bg-white border border-neutral-200 hover:bg-neutral-50 text-neutral-600 rounded-md text-[12px] font-bold transition-all hover:scale-[1.01] active:scale-[0.99]">
-                          Ignore
-                        </button>
+
+                      {/* Stat 3: Units Sold */}
+                      <div className="bg-white p-5 border border-gray-100 rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.015)] text-left hover:shadow-md transition-shadow">
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Units Sold (May)</p>
+                        <div className="flex items-baseline justify-between">
+                          <span className="text-xl md:text-2xl font-medium text-[#1a1c1d]">
+                            {recentActivities.filter(a => a.type === 'sold').length + 8}
+                          </span>
+                          <span className="flex items-center text-[10px] font-bold text-green-500 gap-0.5">
+                            <ArrowUpRight size={11} className="stroke-[2.5]" />
+                            <span>+15.2%</span>
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Stat 4: Revenue */}
+                      <div className="bg-white p-5 border border-gray-100 rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.015)] text-left hover:shadow-md transition-shadow">
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Estimated Revenue</p>
+                        <div className="flex items-baseline justify-between">
+                          <span className="text-xl md:text-2xl font-medium text-[#1a1c1d] truncate max-w-full">
+                            <span className="text-[13px] text-gray-400 font-light mr-0.5">৳</span>
+                            {((recentActivities.filter(a => a.type === 'sold').length + 8) * 35000).toLocaleString()}
+                          </span>
+                          <span className="flex items-center text-[10px] font-bold text-green-500 gap-0.5">
+                            <ArrowUpRight size={11} className="stroke-[2.5]" />
+                            <span>+19.8%</span>
+                          </span>
+                        </div>
                       </div>
                     </div>
 
-                    {/* <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
-                      <div className="bg-brand-card pb-8 border border-brand-divider rounded-3xl flex flex-col gap-2 relative overflow-hidden">
-                        <div className="px-8 pt-8 pb-0">
-                          <div className="flex items-baseline justify-between mb-2">
-                            <h3 className="font-sans font-bold text-[#1a1c1d] text-xl md:text-2xl">Get ready to sell</h3>
-                            <button className="text-[10px] md:text-xs font-bold text-gray-400 hover:text-[#1a1c1d] transition-colors uppercase tracking-widest">Hide guide</button>
-                          </div>
-                          <p className="text-[12px] md:text-sm text-[#616a75] mb-8 font-normal">Follow these steps to launch your dream brand today.</p>
-                          
-                          <div className="w-full h-1.5 bg-gray-100 rounded-full relative mb-10 overflow-hidden">
-                            <div 
-                              className="absolute left-0 top-0 h-full bg-shopify-green transition-all duration-1000 ease-out" 
-                              style={{ width: `${(steps.filter(s => s.completed).length / steps.length) * 100}%` }}
-                            />
-                          </div>
-                        </div>
-                        
-                        <div className="flex flex-col bg-gray-50/30">
-                          {steps.map((step, i) => (
-                            <div key={i} 
-                              onClick={() => step.onClick?.()}
-                              className="flex items-center justify-between py-4 px-8 border-t border-gray-50 hover:bg-white cursor-pointer transition-all group"
-                            >
-                              <div className="flex items-center gap-6">
-                                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-500
-                                  ${step.completed ? 'bg-shopify-green border-shopify-green scale-110 shadow-lg shadow-shopify-green/20' : 'border-gray-200 border-dashed group-hover:border-shopify-green'}`}
-                                >
-                                  {step.completed ? (
-                                    <CheckCircle2 size={12} className="text-[#1a1a1a]" />
-                                  ) : (
-                                     <div className="w-1.5 h-1.5 rounded-full bg-gray-200 group-hover:bg-shopify-green transition-colors" />
-                                  )}
-                                </div>
-                                <span className={`text-[15px] tracking-tight font-medium ${step.completed ? 'text-[#8c9196] line-through' : 'text-[#303030]'}`}>
-                                  {step.label}
-                                </span>
+                    {/* Dynamic Intelligent Stock Alert Panel */}
+                    {(() => {
+                      // Dynamically scan productList for items below threshold
+                      const lowStockProducts = productList.filter(p => p.stock > 0 && p.stock <= (p.lowStockThreshold || 4));
+                      const alertProduct = lowStockProducts[0] || null;
+
+                      if (alertProduct) {
+                        return (
+                          <div className="bg-[#fdf6e8] p-5 border border-[#ffeec8] rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 text-left">
+                            <div className="flex items-start gap-4">
+                              {/* Thumbnail */}
+                              <div className="w-12 h-12 rounded-xl border border-[#ffe399] overflow-hidden flex-shrink-0 bg-white shadow-xs">
+                                <img 
+                                  src={alertProduct.image || "https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?q=80&w=120&auto=format"} 
+                                  alt={alertProduct.name} 
+                                  className="w-full h-full object-cover" 
+                                />
                               </div>
-                              <ChevronRight size={18} className="text-gray-200 group-hover:text-[#1a1c1d] group-hover:translate-x-1 transition-all" />
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-1.5">
+                                  <AlertTriangle size={14} className="text-warning-500 stroke-[2.5]" />
+                                  <h4 className="text-[11px] font-bold text-warning-700 uppercase tracking-widest">Inventory Running Low</h4>
+                                </div>
+                                <p className="text-gray-700 text-[13px] font-light leading-relaxed max-w-lg">
+                                  Your smartphone model <span className="font-medium text-black">{alertProduct.brand} {alertProduct.name}</span> is low on stock. Restock soon to prevent catalog shortages.
+                                </p>
+                              </div>
                             </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div> */}
+                            
+                            <div className="flex items-center gap-2 flex-shrink-0 self-start md:self-auto">
+                              <span className="bg-white border border-[#ffe399] text-warning-700 text-xs font-bold py-1.5 px-3 rounded-md shadow-xs">
+                                {alertProduct.stock} left
+                              </span>
+                              <button 
+                                onClick={() => {
+                                  setEditingProduct(alertProduct);
+                                }}
+                                className="bg-[#e69800] hover:bg-[#c46c00] text-white py-1.5 px-4 rounded-md text-xs font-medium transition-colors shadow-xs"
+                              >
+                                Restock
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      } else {
+                        // All stock fully healthy! Show gorgeous verified safe banner
+                        return (
+                          <div className="bg-[#f4fcf7] p-5 border border-[#cbf5da] rounded-2xl flex items-center justify-between gap-4 text-left">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center text-green-600 flex-shrink-0">
+                                <Check size={18} className="stroke-[3]" />
+                              </div>
+                              <div>
+                                <h4 className="text-xs font-bold text-green-700 uppercase tracking-widest">Inventory Stable</h4>
+                                <p className="text-gray-600 text-xs font-light mt-0.5">
+                                  All active swatches are fully stocked above low-level thresholds. No warnings.
+                                </p>
+                              </div>
+                            </div>
+                            <span className="bg-white border border-green-200 text-green-700 text-[10px] font-bold py-1 px-2.5 rounded-full uppercase tracking-wider shadow-xs">
+                              All Swatches Good
+                            </span>
+                          </div>
+                        );
+                      }
+                    })()}
 
-                    {/* <div className="bg-white p-6 md:p-12 border border-gray-100 text-center relative overflow-hidden mb-12">
-                      <div className="absolute top-0 left-0 w-full h-full opacity-[0.02] pointer-events-none">
-                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                            <Sparkles size={400} />
-                         </div>
-                      </div>
-                      <div className="flex justify-center mb-10">
-                         <div className="relative group">
-                            <div className="absolute inset-0 bg-shopify-green blur-2xl opacity-20 group-hover:opacity-40 transition-opacity"></div>
-                            <Sparkles size={56} className="text-[#f7b614] fill-[#f7b614] relative z-10 animate-bounce transition-all duration-1000" />
-                         </div>
-                      </div>
-                      <h3 className="text-2xl md:text-4xl font-sans font-medium mb-6 text-[#1a1c1d] tracking-tight leading-tight">Build your dream <br className="hidden md:block" />business for <span className="text-shopify-green italic">100 tk</span> / month</h3>
-                      <p className="text-[#616a75] text-[16px] md:text-lg mb-12 px-2 md:px-16 leading-relaxed max-w-2xl mx-auto">
-                        Subscribe to get your first month for 100 tk. Join the thousands of successful brands and creators who chose Zenvy to scale their vision.
-                      </p>
-                      <button className="w-full max-w-md mx-auto py-5 bg-[#1a1c1d] text-white rounded-2xl font-bold text-[16px] transition-all hover:bg-black hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-black/10 flex items-center justify-center gap-3">
-                        <span>Unlock Full Access</span>
-                        <ArrowRight size={20} />
-                      </button>
-                    </div> */}
-
-                    {/* Recent Activity Feed */}
-                    <div className="bg-white overflow-hidden">
+                    {/* Recent Activity Feed - Elegant Timeline layout */}
+                    <div className="bg-white border border-gray-100 rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.01)] overflow-hidden text-left">
                       {/* Header */}
                       <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
                         <div>
-                          <h3 className="font-sans font-bold text-neutral-900 text-[15px]">Recent Activity</h3>
-                          <p className="text-[11px] text-neutral-400 mt-0.5 font-normal">Last 10 stock actions</p>
+                          <h3 className="font-medium text-[#1a1c1d] text-[15px]">Recent Log Activity</h3>
+                          <p className="text-[11px] text-gray-400 mt-0.5 font-light">Real-time chronicle of stock operations</p>
                         </div>
-                        <button className="text-[11px] font-bold text-primary-500 hover:text-primary-600 uppercase tracking-widest transition-colors">
-                          View all
+                        <button 
+                          onClick={() => setActiveTab('Products')}
+                          className="text-[10px] font-bold text-gray-400 hover:text-black uppercase tracking-widest transition-colors"
+                        >
+                          View products
                         </button>
                       </div>
 
-                      {/* Chronological Scannable Activity List */}
-                      <div className="divide-y divide-brand-divider">
-                        {recentActivities.map((item, i) => (
-                          <div key={i} className="flex items-center justify-between px-6 py-4 hover:bg-neutral-50 transition-colors cursor-default">
-                            {/* Left Side: Indicator Dot & Log Entry */}
-                            <div className="flex items-center gap-3 min-w-0">
+                      {/* Timeline log feed */}
+                      <div className="divide-y divide-gray-50">
+                        {recentActivities.slice(0, 5).map((item, i) => (
+                          <div key={i} className="flex items-center justify-between px-6 py-4 hover:bg-neutral-50/50 transition-colors">
+                            <div className="flex items-center gap-3.5 min-w-0">
+                              {/* Status dot indicator */}
                               <span className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                                item.type === 'added'  ? 'bg-primary-500' :
-                                item.type === 'sold'   ? 'bg-warning-500' : 'bg-neutral-300'
+                                item.type === 'sold' ? 'bg-[#5438ff]' :
+                                item.type === 'added' ? 'bg-green-500' : 'bg-gray-400'
                               }`} />
-                              <p className="text-[13px] text-neutral-700 leading-snug truncate">
-                                <span className="font-semibold text-neutral-900">{item.text}</span>
-                                <span className="text-neutral-400 mx-1.5">—</span>
-                                <span>{item.product}</span>
-                              </p>
+                              
+                              <div className="min-w-0">
+                                <p className="text-[13px] font-light text-gray-800 leading-snug truncate">
+                                  <span className="font-medium text-black">{item.text}</span>
+                                  <span className="text-gray-300 mx-2">|</span>
+                                  <span className="text-gray-500">{item.product}</span>
+                                </p>
+                              </div>
                             </div>
                             
-                            {/* Right Side: Type Badge & Timestamp */}
                             <div className="flex items-center gap-3 flex-shrink-0 ml-4">
-                              <span className={`hidden sm:inline-block text-[10px] font-bold px-2.5 py-1 rounded-lg uppercase tracking-wider ${
-                                item.type === 'added'  ? 'bg-primary-50 text-primary-600' :
-                                item.type === 'sold'   ? 'bg-warning-50 text-warning-800' : 'bg-neutral-100 text-neutral-500'
+                              <span className={`hidden sm:inline-block text-[9px] font-bold px-2 py-0.5 rounded-sm uppercase tracking-wider ${
+                                item.type === 'sold' ? 'bg-blue-50 text-[#5438ff]' :
+                                item.type === 'added' ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-600'
                               }`}>
-                                {item.type === 'added' ? 'Restock' : item.type === 'sold' ? 'Sale' : 'Edit'}
+                                {item.type === 'sold' ? 'Sale' : item.type === 'added' ? 'Supply' : 'Update'}
                               </span>
-                              <span className="text-[11px] text-neutral-400 whitespace-nowrap">{item.time}</span>
+                              <span className="text-[11px] text-gray-400 font-light whitespace-nowrap">{item.time}</span>
                             </div>
                           </div>
                         ))}
                       </div>
                     </div>
+
                   </div>
                 )}
 
