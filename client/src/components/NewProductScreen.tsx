@@ -232,20 +232,18 @@ export default function NewProductScreen({
     <div className="flex-1 bg-[#fbf9f9] overflow-y-auto relative h-full flex flex-col font-sans text-[#1b1c1c]">
       
       {/* breadcrumbs header */}
-      <header className="sticky top-0 z-40 bg-white flex justify-between items-center w-full px-6 py-4 md:px-12 h-[64px] border-b border-[#c7c7bf]">
-        <div className="flex items-center gap-4">
-          <span className="font-bold text-lg tracking-[0.2em] text-[#020302]">LUMINA</span>
-        </div>
-        <div className="flex items-center gap-6">
-          <button className="text-[#5e5e5d] hover:text-[#020302] transition-colors cursor-pointer">
-            <Bell size={18} />
+      <header className="fixed top-0 z-40 bg-white flex justify-between items-center w-full px-6 py-4 md:px-12 h-[64px] border-b border-[#c7c7bf]">
+        <div className="flex justify-end w-full gap-4">
+          <button 
+            onClick={() => {
+              setProductStatus('Published');
+              handleSubmit();
+            }}
+            disabled={!formData.name && !searchQuery}
+            className="px-6 h-[38px] bg-[#020302] hover:bg-[#868582] text-white transition-colors text-xs font-bold tracking-widest uppercase disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+          >
+            {initialProduct ? 'Update Product' : 'Create Product'}
           </button>
-          <button className="text-[#5e5e5d] hover:text-[#020302] transition-colors cursor-pointer">
-            <HelpCircle size={18} />
-          </button>
-          <div className="h-8 w-8 rounded-full bg-[#e3e2e2] border border-[#c7c7bf] overflow-hidden">
-            <img className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAxS3fgVQieR93hzActmRc81VSfMJ7305idtuLG9zhTlzTTjmiI52ZfzFnuyJUjD8gSiOntzF4Q9DK5iOZyGLILkzZUG5Rw6IBCh5FqFnlG7P-oA1OLkVE8wjhRpWy0fsP1vGN9auUoyLYv2hMffal-BluaMsS-hgydklG11BvHIEz8_HLZ1Qi7l2AGG4zJK-0QEj_c8e4P3e9g559KyWPCIzyP0zKnHEkMQAQrNWfrlA43kUactZJU7JKPWWfOOCtGhW1KLsgA0DIA" alt="Owner Profile" />
-          </div>
         </div>
       </header>
 
@@ -253,7 +251,7 @@ export default function NewProductScreen({
       <div className="flex-1 pt-24 px-6 md:px-12 max-w-[1440px] mx-auto w-full pb-20">
         
         {/* Breadcrumb & Main Actions */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 border-b border-[#c7c7bf]/20 pb-8">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-4 border-b border-[#c7c7bf]/20 pb-8">
           <div className="space-y-3">
             <nav className="flex items-center gap-2 text-[#5e5e5d] text-xs font-bold uppercase tracking-[0.15em]">
               <button onClick={onBack} className="hover:text-[#020302] transition-colors flex items-center gap-1">
@@ -262,31 +260,9 @@ export default function NewProductScreen({
               <ChevronRight size={12} className="text-[#5e5e5d]" />
               <span className="text-[#020302] font-semibold">{initialProduct ? 'Edit product' : 'New product'}</span>
             </nav>
-            <h1 className="text-3xl md:text-5xl font-semibold tracking-tight text-[#020302]">
+            <h1 className="text-3xl md:text-5xl font-medium tracking-tight text-[#020302]">
               {initialProduct ? 'Edit Product' : 'Create Product'}
             </h1>
-          </div>
-          
-          <div className="flex gap-4">
-            <button 
-              onClick={() => {
-                setProductStatus('Draft');
-                handleSubmit();
-              }}
-              className="px-6 h-[48px] border border-[#777771] text-[#020302] bg-white hover:bg-[#f5f3f3] transition-colors text-xs font-bold tracking-widest uppercase cursor-pointer"
-            >
-              Save Draft
-            </button>
-            <button 
-              onClick={() => {
-                setProductStatus('Published');
-                handleSubmit();
-              }}
-              disabled={!formData.name && !searchQuery}
-              className="px-6 h-[48px] bg-[#020302] hover:bg-[#868582] text-white transition-colors text-xs font-bold tracking-widest uppercase disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
-            >
-              {initialProduct ? 'Update Product' : 'Publish Product'}
-            </button>
           </div>
         </div>
 
@@ -297,7 +273,7 @@ export default function NewProductScreen({
           <div className="lg:col-span-8 space-y-8">
             
             {/* Section 1: Basic Information */}
-            <section className="p-8 bg-[#f5f3f3] rounded-xl border border-[#c7c7bf] space-y-6">
+            <section className="p-8 bg-[#f5f3f3] border border-[#c7c7bf] space-y-6">
               <div>
                 <h2 className="text-xl font-medium text-[#020302] mb-1.5">Basic information</h2>
                 <p className="text-sm text-[#5e5e5d]">Build buyer confidence with a clear, detailed product listing.</p>
@@ -370,7 +346,7 @@ export default function NewProductScreen({
             </section>
 
             {/* Section 2: Images Upload & Guidelines */}
-            <section className="p-8 bg-[#f5f3f3] rounded-xl border border-[#c7c7bf] space-y-6">
+            <section className="p-8 bg-[#f5f3f3] border border-[#c7c7bf] space-y-6">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                   <h2 className="text-xl font-medium text-[#020302] mb-1.5">Images</h2>
@@ -403,7 +379,7 @@ export default function NewProductScreen({
             </section>
 
             {/* Section 3: Product Options / Variants */}
-            <section className="p-8 bg-[#f5f3f3] rounded-xl border border-[#c7c7bf] space-y-6">
+            <section className="p-8 bg-[#f5f3f3] border border-[#c7c7bf] space-y-6">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-xl font-medium text-[#020302] mb-1.5">Product options *</h2>
@@ -422,7 +398,7 @@ export default function NewProductScreen({
 
               {formData.variants.length === 0 ? (
                 /* Empty state */
-                <div className="bg-white rounded-lg border border-[#c7c7bf] p-12 text-center">
+                <div className="bg-white rounded-lg border border-[#c7c7bf] px-6 py-4 text-center">
                   <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#f5f3f3] mb-4 text-[#5e5e5d]">
                     <Layers size={20} />
                   </div>
@@ -443,7 +419,7 @@ export default function NewProductScreen({
                   {formData.variants.map((v) => (
                     <div 
                       key={v.id}
-                      className="bg-white border border-[#c7c7bf] p-5 rounded-xl flex gap-4 items-start relative hover:shadow-lg transition-all"
+                      className="bg-white border border-[#c7c7bf] p-5 flex gap-4 items-start relative hover:shadow-lg transition-all"
                     >
                       {/* Image Selector Block */}
                       <div className="relative shrink-0">
@@ -557,7 +533,7 @@ export default function NewProductScreen({
                               placeholder="0"
                               value={v.buyingPrice || ''}
                               onChange={(e) => updateVariant(v.id, 'buyingPrice', parseFloat(e.target.value) || 0)}
-                              className="w-full bg-[#fbf9f9] border border-[#c7c7bf] focus:border-[#020302] px-3 py-2 rounded-lg text-xs font-semibold outline-none"
+                              className="w-full bg-[#fbf9f9] border border-[#c7c7bf] focus:border-[#020302] px-3 py-2 text-xs font-semibold outline-none"
                             />
                           </div>
                           <div>
@@ -567,7 +543,7 @@ export default function NewProductScreen({
                               placeholder="0"
                               value={v.sellingPrice || ''}
                               onChange={(e) => updateVariant(v.id, 'sellingPrice', parseFloat(e.target.value) || 0)}
-                              className="w-full bg-[#fbf9f9] border border-[#c7c7bf] focus:border-[#020302] px-3 py-2 rounded-lg text-xs font-semibold outline-none"
+                              className="w-full bg-[#fbf9f9] border border-[#c7c7bf] focus:border-[#020302] px-3 py-2 text-xs font-semibold outline-none"
                             />
                           </div>
                         </div>
@@ -580,7 +556,7 @@ export default function NewProductScreen({
                             placeholder="10"
                             value={v.quantity}
                             onChange={(e) => updateVariant(v.id, 'quantity', parseInt(e.target.value) || 0)}
-                            className="w-full bg-[#fbf9f9] border border-[#c7c7bf] focus:border-[#020302] px-3 py-2 rounded-lg text-xs font-semibold outline-none"
+                            className="w-full bg-[#fbf9f9] border border-[#c7c7bf] focus:border-[#020302] px-3 py-2 text-xs font-semibold outline-none"
                           />
                         </div>
                       </div>
@@ -594,86 +570,9 @@ export default function NewProductScreen({
 
           {/* Right Sidebar column */}
           <div className="lg:col-span-4 space-y-8">
-            
-            {/* Status Card */}
-            <div className="p-8 bg-[#f5f3f3] rounded-xl border border-[#c7c7bf] space-y-6">
-              <h3 className="text-xs font-bold text-[#020302] uppercase tracking-widest">Product Status</h3>
-              <div className="space-y-4">
-                <div className="relative">
-                  <select 
-                    value={productStatus}
-                    onChange={(e) => setProductStatus(e.target.value)}
-                    className="w-full bg-white border border-[#c7c7bf] focus:border-[#020302] focus:ring-0 px-4 py-3.5 text-sm font-semibold rounded-lg outline-none cursor-pointer"
-                  >
-                    <option value="Draft">🔴 Draft</option>
-                    <option value="Published">🟢 Published</option>
-                  </select>
-                </div>
-                <p className="text-xs text-[#5e5e5d] leading-relaxed">
-                  Draft products are hidden from search and checkout flows until published live.
-                </p>
-              </div>
-            </div>
-
-            {/* Category / Tags Organization Card */}
-            <div className="p-8 bg-[#f5f3f3] rounded-xl border border-[#c7c7bf] space-y-6">
-              <h3 className="text-xs font-bold text-[#020302] uppercase tracking-widest">Organization</h3>
-              
-              <div className="space-y-4">
-                {/* Category Selection */}
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-[#020302]">Category</label>
-                  <select 
-                    value={formData.brand}
-                    onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
-                    className="w-full bg-white border border-[#c7c7bf] focus:border-[#020302] focus:ring-0 px-4 py-3 text-sm rounded-lg cursor-pointer"
-                  >
-                    <option value="Smartphones">Smartphones</option>
-                    <option value="Laptops">Laptops</option>
-                    <option value="Audio">Audio</option>
-                    <option value="Accessories">Accessories</option>
-                  </select>
-                </div>
-
-                {/* Tags Management */}
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-[#020302]">Tags</label>
-                  <div className="flex gap-2">
-                    <input 
-                      type="text" 
-                      placeholder="Add keywords..." 
-                      value={tagInput}
-                      onChange={(e) => setTagInput(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && addTag()}
-                      className="flex-1 bg-white border border-[#c7c7bf] focus:border-[#020302] px-4 py-2.5 text-xs rounded-lg outline-none"
-                    />
-                    <button 
-                      onClick={addTag}
-                      className="px-3 bg-[#020302] text-white hover:bg-[#868582] text-xs font-bold rounded-lg cursor-pointer"
-                    >
-                      Add
-                    </button>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2 mt-3">
-                    {tagsList.map((tag) => (
-                      <span 
-                        key={tag}
-                        className="px-3 py-1 bg-[#efeded] border border-[#c7c7bf]/30 rounded-full text-xs font-semibold text-[#020302] flex items-center gap-1.5"
-                      >
-                        <span>{tag}</span>
-                        <button onClick={() => removeTag(tag)} className="text-[#5e5e5d] hover:text-[#020302] cursor-pointer">
-                          <X size={12} />
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
 
             {/* Dynamic SEO Realtime Preview Card */}
-            <div className="p-8 bg-[#f5f3f3] rounded-xl border border-[#c7c7bf] space-y-6">
+            <div className="p-8 bg-[#f5f3f3] border border-[#c7c7bf] space-y-6">
               <div className="flex justify-between items-center">
                 <h3 className="text-xs font-bold text-[#020302] uppercase tracking-widest">SEO Preview</h3>
                 <span className="text-[10px] font-bold text-[#5e5e5d] uppercase flex items-center gap-1"><Globe size={11} /> Live</span>
@@ -683,7 +582,7 @@ export default function NewProductScreen({
                   {searchQuery || "Product Name"} | LUMINA Marketplace
                 </p>
                 <p className="text-[#006621] text-xs font-normal">
-                  https://lumina.com/products/{(searchQuery || "new-product").toLowerCase().replace(/\s+/g, '-')}
+                  https://zenvy.com.bd/products/{(searchQuery || "new-product").toLowerCase().replace(/\s+/g, '-')}
                 </p>
                 <p className="text-[#5e5e5d] text-xs leading-relaxed line-clamp-2">
                   {formData.description || "The description of your product will appear here in search engine results once you publish it..."}
@@ -692,7 +591,7 @@ export default function NewProductScreen({
             </div>
 
             {/* Low stock alert alert threshold setting */}
-            <div className="p-8 bg-[#f5f3f3] rounded-xl border border-[#c7c7bf] space-y-4">
+            <div className="p-8 bg-[#f5f3f3] border border-[#c7c7bf] space-y-4">
               <div className="flex items-center gap-2">
                 <AlertCircle size={16} className="text-[#5e5e5d]" />
                 <h3 className="text-xs font-bold text-[#020302] uppercase tracking-widest">Stock Alert</h3>
@@ -726,7 +625,7 @@ export default function NewProductScreen({
               initial={{ opacity: 0, scale: 0.95, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
-              className="bg-white w-full max-w-2xl max-h-[921px] z-[260] overflow-hidden rounded-xl shadow-2xl flex flex-col border border-[#c7c7bf]"
+              className="bg-white w-full max-w-2xl max-h-[921px] z-[260] overflow-hidden shadow-2xl flex flex-col border border-[#c7c7bf]"
             >
               {/* Modal Header */}
               <header className="p-8 pb-4">
@@ -743,7 +642,7 @@ export default function NewProductScreen({
               </header>
 
               {/* Modal Body (Scrollable) */}
-              <div className="p-8 pt-4 overflow-y-auto no-scrollbar space-y-8 flex-1 max-h-[550px]">
+              <div className="p-8 pt-4 overflow-y-auto no-scrollbar space-y-8 flex-1 max-h-[400px] sm:max-h-[550px]">
                 
                 {/* Step 1: Color Selection */}
                 <section className="space-y-4">
@@ -752,7 +651,7 @@ export default function NewProductScreen({
                     <span className="text-xs text-[#5e5e5d] italic">Select 1 at max</span>
                   </div>
                   
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
                     {/* Render presets */}
                     {COLORS.map(color => {
                       const isSelected = selectedModalColor === color;
@@ -769,7 +668,7 @@ export default function NewProductScreen({
                             className="w-8 h-8 rounded-full border border-[#c7c7bf]"
                             style={{ backgroundColor: getColorHex(color) }}
                           />
-                          <span className={`text-xs font-medium ${isSelected ? 'text-[#020302]' : 'text-[#5e5e5d]'}`}>
+                          <span className={`text-[12px] font-medium ${isSelected ? 'text-[#020302]' : 'text-[#5e5e5d]'}`}>
                             {color}
                           </span>
                         </div>

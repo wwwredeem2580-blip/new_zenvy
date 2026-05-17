@@ -122,11 +122,11 @@ export default function MarkSoldModal({
         initial={{ scale: 0.95, opacity: 0, y: 10 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.95, opacity: 0, y: 10 }}
-        className="bg-white max-w-md w-full shadow-2xl relative text-left border border-gray-100 flex flex-col p-6 rounded-2xl overflow-hidden z-10"
+        className="bg-white max-w-md w-full shadow-2xl relative text-left border border-gray-100 flex flex-col p-6 overflow-hidden z-10"
       >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-gray-100 pb-4 mb-5">
-          <h3 className="text-base font-sans font-semibold text-[#1a1c1d] tracking-tight">Record Smartphone Sale</h3>
+          <h3 className="text-base font-sans font-medium text-[#1a1c1d] tracking-tight">Record Smartphone Sale</h3>
           <button 
             type="button"
             onClick={onClose} 
@@ -138,7 +138,7 @@ export default function MarkSoldModal({
 
         {/* Product Specs Showcase */}
         <div className="flex gap-3 bg-[#f6f6f7] border border-gray-100 p-3 mb-5 rounded-xl">
-          <div className="w-12 h-12 bg-white border border-gray-150 rounded-lg overflow-hidden flex-shrink-0 flex items-center justify-center">
+          <div className="w-12 h-12 bg-white border border-gray-150 rounded-md overflow-hidden flex-shrink-0 flex items-center justify-center">
             <img 
               src={product.image} 
               alt={product.name} 
@@ -153,7 +153,7 @@ export default function MarkSoldModal({
 
         {/* Select Variant */}
         <div className="space-y-2 mb-5">
-          <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Select Sold Variant</label>
+          <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider block">Select Sold Variant</label>
           <div className="grid grid-cols-2 gap-2 max-h-[160px] overflow-y-auto pr-1">
             {product.variants?.map((v) => {
               const isSelected = selectedVariant?.id === v.id;
@@ -167,7 +167,7 @@ export default function MarkSoldModal({
                     setSelectedVariant(v);
                     setSoldQty(1); // reset qty limits
                   }}
-                  className={`p-3 text-left border transition-all flex flex-col justify-between rounded-xl relative cursor-pointer h-[66px]
+                  className={`p-3 text-left border transition-all flex flex-col justify-between relative cursor-pointer h-[66px]
                     ${isOutOfStock 
                       ? 'opacity-30 bg-[#f6f6f7] border-gray-100 cursor-not-allowed line-through' 
                       : isSelected 
