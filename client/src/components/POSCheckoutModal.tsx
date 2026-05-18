@@ -237,10 +237,10 @@ export default function POSCheckoutModal({
         {posStep === 1 && (
           <motion.div 
             key="step1"
-            initial={{ opacity: 0, y: 100 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 100 }}
-            transition={{ type: "spring", stiffness: 350, damping: 35 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.12, ease: "easeOut" }}
             className="w-full max-w-2xl z-[210] flex flex-col font-sans text-on-surface"
           >
             {/* Step 1: Select Products */}
@@ -463,10 +463,10 @@ export default function POSCheckoutModal({
         {posStep === 2 && (
           <motion.div 
             key="step2"
-            initial={{ opacity: 0, y: 100 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 100 }}
-            transition={{ type: "spring", stiffness: 350, damping: 35 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.12, ease: "easeOut" }}
             className="w-full max-w-2xl z-[210] flex flex-col font-sans text-on-surface"
           >
             {/* Step 2: Configure Negotiation & Overrides */}
@@ -613,6 +613,30 @@ export default function POSCheckoutModal({
                         {posDiscountType === 'flat' ? 'Tk' : '%'}
                       </span>
                     </div>
+                    
+                    {/* Quick discount buttons */}
+                    <div className="flex gap-2 mt-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPosDiscountType('flat');
+                          setPosDiscountValue(500);
+                        }}
+                        className="px-3 py-1.5 bg-[#efeded] text-[#020302] hover:bg-[#e3e2e2] border border-[#c7c7bf] text-[11px] font-bold rounded transition-all active:scale-95 uppercase cursor-pointer font-sans"
+                      >
+                        -500
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPosDiscountType('flat');
+                          setPosDiscountValue(1000);
+                        }}
+                        className="px-3 py-1.5 bg-[#efeded] text-[#020302] hover:bg-[#e3e2e2] border border-[#c7c7bf] text-[11px] font-bold rounded transition-all active:scale-95 uppercase cursor-pointer font-sans"
+                      >
+                        -1000
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -661,7 +685,7 @@ export default function POSCheckoutModal({
                     onClick={handleConfirmPOSSale}
                     className="flex-1 sm:flex-initial px-8 py-2.5 sm:py-3 bg-[#020302] text-white text-xs sm:text-sm font-medium hover:opacity-90 transition-opacity uppercase tracking-widest cursor-pointer text-center"
                   >
-                    Continue
+                    Confirm Sale
                   </button>
                 </div>
               </div>
@@ -672,10 +696,10 @@ export default function POSCheckoutModal({
         {posStep === 3 && posSuccessData && (
           <motion.div 
             key="step3"
-            initial={{ opacity: 0, y: 100 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 100 }}
-            transition={{ type: "spring", stiffness: 350, damping: 35 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.12, ease: "easeOut" }}
             className="w-full max-w-2xl z-[210] flex flex-col font-sans text-on-surface"
           >
             <div className="bg-[#fbf9f9] w-full max-h-[85vh] sm:max-h-[90vh] md:max-h-[850px] flex flex-col border-t sm:border border-[#c7c7bf] shadow-2xl overflow-hidden">
