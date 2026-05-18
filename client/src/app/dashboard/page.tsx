@@ -1092,60 +1092,56 @@ function DashboardContent() {
 
                     {/* Summary Stats Grid (Polaris-Style Flat Visuals) */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-0 sm:gap-4">
-                      {/* Stat 1: Products in Stock */}
+                      {/* Stat 1: Stock Value */}
                       <div className="bg-white p-5 border border-[#efeded] shadow-2xs text-left hover:shadow-xs hover:border-[#dbdad9] transition-all">
-                        <p className="text-[10px] font-bold text-[#5e5e5d] uppercase tracking-widest mb-1.5">Products in stock</p>
-                        <div className="flex items-baseline justify-between">
-                          <span className="text-xl md:text-2xl font-bold text-[#020302]">
-                            {productList.reduce((sum, p) => sum + p.stock, 0)}
-                          </span>
-                          <span className="sm:flex hidden items-center text-[10px] font-bold text-emerald-600 gap-0.5">
-                            <ArrowUpRight size={11} className="stroke-[2.5]" />
-                            <span>+4.2%</span>
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Stat 2: Total Stock Value */}
-                      <div className="bg-white p-5 border border-[#efeded] shadow-2xs text-left hover:shadow-xs hover:border-[#dbdad9] transition-all">
-                        <p className="text-[10px] font-bold text-[#5e5e5d] uppercase tracking-widest mb-1.5">Asset Stock Value</p>
+                        <p className="text-[10px] font-bold text-[#5e5e5d] uppercase tracking-widest mb-1.5 font-sans">Stock Value</p>
                         <div className="flex items-baseline justify-between">
                           <span className="text-xl md:text-2xl font-bold text-[#020302] truncate max-w-full">
                             <span className="text-[13px] text-[#5e5e5d] font-semibold mr-0.5">৳</span>
-                            {productList.reduce((sum, p) => sum + (p.variants?.reduce((vSum, v) => vSum + (v.sellingPrice * v.quantity), 0) || 0), 0).toLocaleString()}
-                          </span>
-                          <span className="sm:flex hidden items-center text-[10px] font-bold text-emerald-600 gap-0.5">
-                            <ArrowUpRight size={11} className="stroke-[2.5]" />
-                            <span>+8.1%</span>
+                            {productList.reduce((sum, p) => sum + (p.variants?.reduce((vSum, v) => vSum + (v.sellingPrice * v.quantity), 0) || (p.stock * 32999)), 0).toLocaleString()}
                           </span>
                         </div>
                       </div>
 
-                      {/* Stat 3: Units Sold */}
+                      {/* Stat 2: Units Sold */}
                       <div className="bg-white p-5 border border-[#efeded] shadow-2xs text-left hover:shadow-xs hover:border-[#dbdad9] transition-all">
-                        <p className="text-[10px] font-bold text-[#5e5e5d] uppercase tracking-widest mb-1.5">Units Sold (May)</p>
+                        <p className="text-[10px] font-bold text-[#5e5e5d] uppercase tracking-widest mb-1.5 font-sans">Units Sold</p>
                         <div className="flex items-baseline justify-between">
                           <span className="text-xl md:text-2xl font-bold text-[#020302]">
                             {recentActivities.filter(a => a.type === 'sold').length + 8}
                           </span>
-                          <span className="sm:flex hidden items-center text-[10px] font-bold text-emerald-600 gap-0.5">
-                            <ArrowUpRight size={11} className="stroke-[2.5]" />
-                            <span>+15.2%</span>
+                        </div>
+                      </div>
+
+                      {/* Stat 3: Today Sales */}
+                      <div className="bg-white p-5 border border-[#efeded] shadow-2xs text-left hover:shadow-xs hover:border-[#dbdad9] transition-all">
+                        <p className="text-[10px] font-bold text-[#5e5e5d] uppercase tracking-widest mb-1.5 font-sans">Today Sales</p>
+                        <div className="flex items-baseline justify-between">
+                          <span className="text-xl md:text-2xl font-bold text-[#020302] truncate max-w-full font-sans">
+                            <span className="text-[13px] text-[#5e5e5d] font-semibold mr-0.5">৳</span>
+                            {((recentActivities.filter(a => a.type === 'sold' && (a.time.includes('min') || a.time.includes('hr') || a.time.includes('sec'))).length + 1) * 32999).toLocaleString()}
                           </span>
                         </div>
                       </div>
 
-                      {/* Stat 4: Revenue */}
+                      {/* Stat 4: Low Stock Count */}
                       <div className="bg-white p-5 border border-[#efeded] shadow-2xs text-left hover:shadow-xs hover:border-[#dbdad9] transition-all">
-                        <p className="text-[10px] font-bold text-[#5e5e5d] uppercase tracking-widest mb-1.5">Estimated Revenue</p>
-                        <div className="flex items-baseline justify-between">
-                          <span className="text-xl md:text-2xl font-bold text-[#020302] truncate max-w-full">
-                            <span className="text-[13px] text-[#5e5e5d] font-semibold mr-0.5">৳</span>
-                            {((recentActivities.filter(a => a.type === 'sold').length + 8) * 35000).toLocaleString()}
-                          </span>
-                          <span className="sm:flex hidden items-center text-[10px] font-bold text-emerald-600 gap-0.5">
-                            <ArrowUpRight size={11} className="stroke-[2.5]" />
-                            <span>+19.8%</span>
+                        <p className="text-[10px] font-bold text-[#5e5e5d] uppercase tracking-widest mb-1.5 font-sans">Low Stock Count</p>
+                        <div className="flex items-baseline justify-between font-sans">
+                          <span className={`text-xl md:text-2xl font-bold ${
+                            productList.filter(p => {
+                              if (p.variants && p.variants.length > 0) {
+                                return p.variants.some(v => v.quantity <= (p.lowStockThreshold || 4));
+                              }
+                              return p.stock <= (p.lowStockThreshold || 4);
+                            }).length > 0 ? 'text-[#b45309]' : 'text-[#020302]'
+                          }`}>
+                            {productList.filter(p => {
+                              if (p.variants && p.variants.length > 0) {
+                                return p.variants.some(v => v.quantity <= (p.lowStockThreshold || 4));
+                              }
+                              return p.stock <= (p.lowStockThreshold || 4);
+                            }).length}
                           </span>
                         </div>
                       </div>
@@ -1153,45 +1149,62 @@ function DashboardContent() {
 
                     {/* Dynamic Intelligent Stock Alert Panel */}
                     {(() => {
-                      const lowStockProducts = productList.filter(p => p.stock > 0 && p.stock <= (p.lowStockThreshold || 4));
+                      const lowStockProducts = productList.filter(p => {
+                        if (p.variants && p.variants.length > 0) {
+                          return p.variants.some(v => v.quantity <= (p.lowStockThreshold || 4));
+                        }
+                        return p.stock <= (p.lowStockThreshold || 4);
+                      });
                       const alertProduct = lowStockProducts[0] || null;
 
                       if (alertProduct) {
+                        // Find the variant or the product itself with the lowest quantity
+                        let lowestVariant: any = null;
+                        let lowestQty = 999;
+                        if (alertProduct.variants && alertProduct.variants.length > 0) {
+                          alertProduct.variants.forEach(v => {
+                            if (v.quantity <= (alertProduct.lowStockThreshold || 4) && v.quantity < lowestQty) {
+                              lowestQty = v.quantity;
+                              lowestVariant = v;
+                            }
+                          });
+                        } else {
+                          lowestQty = alertProduct.stock;
+                        }
+
+                        const urgencyText = lowestQty === 0 ? 'Out of stock!' : `Only ${lowestQty} left`;
+                        const displayName = lowestVariant 
+                          ? `${alertProduct.name} ${lowestVariant.color} ${lowestVariant.ram}/${lowestVariant.storage}`
+                          : alertProduct.name;
+
                         return (
-                          <div className="bg-[#FFF9EB] p-5 border border-[#FBEAC1] rounded-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4 text-left">
-                            <div className="flex items-start gap-4">
-                              {/* Thumbnail */}
-                              <div className="w-12 h-12 rounded-sm border border-[#FBEAC1] overflow-hidden flex-shrink-0 bg-white shadow-2xs">
-                                <img 
-                                  src={alertProduct.image || "https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?q=80&w=120&auto=format"} 
-                                  alt={alertProduct.name} 
-                                  className="w-full h-full object-cover" 
-                                />
-                              </div>
-                              <div className="space-y-1">
-                                <div className="flex items-center gap-1.5">
-                                  <AlertTriangle size={14} className="text-[#b45309] stroke-[2.5]" />
-                                  <h4 className="text-[10px] font-bold text-[#b45309] uppercase tracking-widest">Inventory Running Low</h4>
+                          <div className="bg-[#FFF9EB] p-4 border border-[#FBEAC1] rounded-sm flex items-center justify-between gap-4 text-left">
+                            <div className="flex items-center gap-3.5 min-w-0">
+                              {/* Product Thumbnail */}
+                              <img 
+                                src={alertProduct.image || "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=120&auto=format"} 
+                                alt={alertProduct.name} 
+                                className="w-12 h-12 rounded-xs border border-[#efeded] object-cover bg-white shrink-0 shadow-2xs" 
+                              />
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-1 text-[#b45309] font-bold text-xs">
+                                  <span>⚠</span>
+                                  <span>{urgencyText}</span>
                                 </div>
-                                <p className="text-gray-700 text-[13px] font-light leading-relaxed max-w-lg">
-                                  Your smartphone model <span className="font-semibold text-black">{alertProduct.brand} {alertProduct.name}</span> is low on stock. Restock soon to prevent catalog shortages.
-                                </p>
+                                <h4 className="text-[13px] font-semibold text-[#020302] font-sans truncate mt-0.5">
+                                  {displayName}
+                                </h4>
                               </div>
                             </div>
                             
-                            <div className="flex items-center gap-2 flex-shrink-0 self-start md:self-auto">
-                              <span className="bg-white border border-[#FBEAC1] text-[#b45309] text-xs font-bold py-1.5 px-3 rounded-sm shadow-2xs">
-                                {alertProduct.stock} left
-                              </span>
-                              <button 
-                                onClick={() => {
-                                  router.push(`/dashboard/products/edit?id=${alertProduct.id}`);
-                                }}
-                                className="bg-[#eab308] hover:bg-[#ca8a04] text-white py-1.5 px-4 rounded-sm text-xs font-bold transition-colors shadow-2xs cursor-pointer active:scale-98"
-                              >
-                                Restock
-                              </button>
-                            </div>
+                            <button 
+                              onClick={() => {
+                                router.push(`/dashboard/products/edit?id=${alertProduct.id}`);
+                              }}
+                              className="bg-[#020302] hover:bg-neutral-800 text-white py-1.5 px-4 rounded-sm text-xs font-bold transition-all uppercase tracking-wider shrink-0 cursor-pointer active:scale-98"
+                            >
+                              Restock
+                            </button>
                           </div>
                         );
                       } else {
@@ -1209,7 +1222,7 @@ function DashboardContent() {
                                 </p>
                               </div>
                             </div>
-                            <span className="bg-white border border-green-250 text-green-700 text-[10px] font-bold py-1 px-2.5 rounded-sm uppercase tracking-wider shadow-2xs">
+                            <span className="bg-white border border-[#cbf5da] text-green-700 text-[10px] font-bold py-1 px-2.5 rounded-sm uppercase tracking-wider shadow-2xs">
                               All Swatches Good
                             </span>
                           </div>
@@ -1218,9 +1231,8 @@ function DashboardContent() {
                     })()}
 
                     {/* Recent Activity Feed - Elegant Timeline layout */}
-                    <div className="bg-white border border-[#efeded] rounded-sm shadow-2xs overflow-hidden text-left">
-                      {/* Header */}
-                      <div className="flex items-center justify-between px-6 py-5 border-b border-[#efeded]">
+                    <div className="bg-white border border-[#efeded] rounded-sm shadow-2xs overflow-hidden text-left p-6 space-y-5">
+                      <div className="flex items-center justify-between pb-3 border-b border-[#efeded]">
                         <div>
                           <h3 className="font-[400] text-[#020302] text-[18px]">Recent Log Activity</h3>
                           <p className="text-[11px] text-[#5e5e5d] opacity-60 mt-0.5 font-semibold">Real-time chronicle of stock operations</p>
@@ -1233,37 +1245,46 @@ function DashboardContent() {
                         </button>
                       </div>
 
-                      {/* Timeline log feed */}
-                      <div className="divide-y divide-[#efeded]">
-                        {recentActivities.slice(0, 5).map((item, i) => (
-                          <div key={i} className="flex items-center justify-between px-6 py-4 hover:bg-[#f5f3f3]/50 transition-colors">
-                            <div className="flex items-center gap-3.5 min-w-0">
-                              {/* Status dot indicator */}
-                              <span className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                                item.type === 'sold' ? 'bg-blue-500' :
-                                item.type === 'added' ? 'bg-emerald-500' : 'bg-[#c7c7bf]'
-                              }`} />
+                      {/* Timeline List */}
+                      <div className="relative pl-6 space-y-6">
+                        {/* Vertical Timeline Line */}
+                        <div className="absolute left-1.5 top-2.5 bottom-2.5 w-[1.5px] bg-[#efeded]" />
+
+                        {recentActivities.slice(0, 5).map((item, i) => {
+                          let title = 'Activity logged';
+                          let dotColor = 'bg-gray-400 ring-gray-100/55';
+                          
+                          if (item.type === 'added') {
+                            title = 'Added stock';
+                            dotColor = 'bg-emerald-500 ring-emerald-100';
+                          } else if (item.type === 'sold') {
+                            title = 'Sold';
+                            dotColor = 'bg-blue-500 ring-blue-100';
+                          } else if (item.type === 'edited') {
+                            title = 'Price updated';
+                            dotColor = 'bg-amber-500 ring-amber-100';
+                          }
+
+                          return (
+                            <div key={i} className="relative flex items-start justify-between gap-4 text-left group">
+                              {/* Timeline Dot */}
+                              <div className={`absolute -left-[23px] top-1 w-2.5 h-2.5 rounded-full ring-4 ${dotColor} transition-transform group-hover:scale-110`} />
                               
                               <div className="min-w-0">
-                                <p className="text-[13px] font-light text-gray-800 leading-snug truncate">
-                                  <span className="font-semibold text-black">{item.text}</span>
-                                  <span className="text-gray-300 mx-2">|</span>
-                                  <span className="text-gray-500">{item.product}</span>
+                                <h5 className="text-[13px] font-bold text-[#020302] leading-none font-sans">
+                                  {title}
+                                </h5>
+                                <p className="text-xs text-gray-500 font-light mt-1.5 leading-snug">
+                                  {item.text} <span className="text-gray-300 mx-1.5">·</span> {item.product}
                                 </p>
                               </div>
-                            </div>
-                            
-                            <div className="flex items-center gap-3 flex-shrink-0 ml-4">
-                              <span className={`hidden sm:inline-block text-[9px] font-bold px-2 py-0.5 rounded-sm uppercase tracking-wider ${
-                                item.type === 'sold' ? 'bg-blue-50 text-blue-600' :
-                                item.type === 'added' ? 'bg-emerald-50 text-emerald-600' : 'bg-[#f5f3f3] text-gray-600'
-                              }`}>
-                                {item.type === 'sold' ? 'Sale' : item.type === 'added' ? 'Supply' : 'Update'}
+
+                              <span className="text-[11px] text-gray-400 font-light whitespace-nowrap shrink-0">
+                                {item.time}
                               </span>
-                              <span className="text-[11px] text-gray-400 font-light whitespace-nowrap">{item.time}</span>
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
 
