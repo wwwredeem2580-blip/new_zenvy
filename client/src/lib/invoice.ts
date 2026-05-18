@@ -51,31 +51,35 @@ export const generateBrandedInvoicePDF = (receipt: InvoiceData) => {
   const greyColor = [110, 110, 115]; // Slate grey
   const lightBorder = [228, 228, 230]; // #e4e4e6 dividers
 
-  // --- 1. Elegant Minimalist Header with Big Branding Logo and Symmetrical Text Block ---
+  // --- 1. Symmetrical Minimalist Header (Logo + Single Clean Left Stacked Row) ---
   try {
-    // Brand logo scaled up to 18x18mm matching the total height of shop name, motto, and address
-    doc.addImage('/logo.png', 'PNG', 15, 12, 18, 18);
+    // Symmetrical 12x12mm brand logo
+    doc.addImage('/logo.png', 'PNG', 15, 12, 12, 12);
   } catch (e) {
     console.warn("Zenvy logo image load failed, continuing without image logo", e);
   }
 
-  // Shop Name: Lightweight but large font size, placed immediately to the right of the logo
+  // Shop Brand Header Block: Lightweight but large font size, aligned perfectly next to logo
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(22);
+  doc.setFontSize(20);
   doc.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
-  doc.text(receipt.shopName, 37, 19);
+  doc.text(`${receipt.shopName}.`, 30, 19.5); // Elegant dot at the end
   
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8.5); // Thinner, sharper
   doc.setTextColor(greyColor[0], greyColor[1], greyColor[2]);
-  doc.text("Premium Smartphone Distribution Outlet", 37, 25);
-  doc.text("Dhaka, Bangladesh  |  zenvy.com.bd", 37, 29.5);
+  doc.text("Premium Smartphone Distribution Outlet", 30, 25);
+  doc.text("Dhaka, Bangladesh  |  info@zenvy.com.bd", 30, 29.5);
 
-  // Invoice Details (Right Aligned - Elegant Normal weight)
-  doc.setFont("helvetica", "normal"); // Thinner, luxury aesthetic
-  doc.setFontSize(18);
+  // Clickable WhatsApp Link - Formatted clean in matching grey
+  doc.text("WhatsApp: +880 1712 345678", 30, 34);
+  doc.link(30, 31, 45, 4, { url: "https://wa.me/8801712345678" });
+
+  // Invoice Details (Right Aligned - Clean, lightweight and vertically matching left block)
+  doc.setFont("helvetica", "normal"); 
+  doc.setFontSize(20);
   doc.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
-  doc.text("INVOICE", 195, 19, { align: "right" });
+  doc.text("INVOICE", 195, 19.5, { align: "right" });
   
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8.5);
@@ -84,14 +88,13 @@ export const generateBrandedInvoicePDF = (receipt: InvoiceData) => {
   doc.text(`Date: ${receipt.date}`, 195, 29.5, { align: "right" });
   doc.text(`Status: PAID`, 195, 34, { align: "right" });
 
-  // --- 2. Billed To Block (Generous Spacing) ---
-  let metaY = 48;
+  // --- 2. Clean Single Column Bill To Block ---
+  let metaY = 52;
   
-  // Left Column: Issued To
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(9.5); // Sharp, less bold
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
   doc.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
-  doc.text("Issued To:", 15, metaY);
+  doc.text("Bill To:", 15, metaY);
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8.5);
@@ -100,41 +103,19 @@ export const generateBrandedInvoicePDF = (receipt: InvoiceData) => {
   doc.text("Type: Walk-in Customer", 15, metaY + 10);
   doc.text("Channel: Verified Smartphone Transaction", 15, metaY + 14.5);
 
-  // Middle Column: Pay To & CLICKABLE WhatsApp
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(9.5);
-  doc.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
-  doc.text("Pay To / Outlet:", 95, metaY);
-
-  doc.setFont("helvetica", "normal");
+  // --- 3. Symmetrical Table Headers ---
+  let yStart = metaY + 26;
+  doc.setFont("helvetica", "normal"); 
   doc.setFontSize(8.5);
-  doc.setTextColor(greyColor[0], greyColor[1], greyColor[2]);
-  doc.text(`Outlet: ${receipt.shopName}`, 95, metaY + 5.5);
-  doc.text("Phone: +880 1712 345678", 95, metaY + 10);
-  doc.text("Website: zenvy.com.bd", 95, metaY + 14.5);
-
-  // Shop WhatsApp (Clickable & Color Coded)
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(34, 197, 94); // Green WhatsApp ink color
-  doc.text("WhatsApp: +880 1712 345678", 95, metaY + 19);
-  doc.link(95, metaY + 15.5, 60, 4.5, { url: "https://wa.me/8801712345678" });
-
-  // Reset text color
-  doc.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
-
-  // --- 3. Elegant Table Headers ---
-  let yStart = metaY + 28;
-  doc.setFont("helvetica", "normal"); // Thinner than bold
-  doc.setFontSize(9);
   doc.setTextColor(0, 0, 0);
   doc.text("Service / Device Description", 15, yStart);
   doc.text("Unit Price", 125, yStart, { align: "right" });
   doc.text("Qty", 155, yStart, { align: "right" });
   doc.text("Amount", 195, yStart, { align: "right" });
 
-  // Thin razor-sharp stroke divider
+  // Thin razor-sharp stroke divider line above/below headers
   doc.setDrawColor(lightBorder[0], lightBorder[1], lightBorder[2]);
-  doc.setLineWidth(0.2);
+  doc.setLineWidth(0.15);
   doc.line(15, yStart + 2.5, 195, yStart + 2.5);
 
   let currentY = yStart + 2.5;
@@ -157,10 +138,10 @@ export const generateBrandedInvoicePDF = (receipt: InvoiceData) => {
   currentY += 5.5;
   // Bottom border under table rows
   doc.setDrawColor(lightBorder[0], lightBorder[1], lightBorder[2]);
-  doc.setLineWidth(0.2);
+  doc.setLineWidth(0.15);
   doc.line(15, currentY, 195, currentY);
 
-  // --- 4. Totals Area ---
+  // --- 4. Symmetrical Totals Area ---
   currentY += 8;
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8.5);
@@ -175,17 +156,17 @@ export const generateBrandedInvoicePDF = (receipt: InvoiceData) => {
   }
 
   currentY += 6;
-  doc.setFont("helvetica", "normal");
+  doc.setFont("helvetica", "bold");
   doc.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
   doc.text("Total Paid:", 135, currentY);
   doc.text(`Tk ${receipt.total.toLocaleString()}`, 195, currentY, { align: "right" });
 
-  // --- 4.5 Elegant Warranty Policy Coverage Block ---
-  let warrantyY = currentY + 12;
-  doc.setFont("helvetica", "bold");
+  // --- 4.5 Clean Unboxed Warranty Policy ---
+  let warrantyY = currentY + 14;
+  doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
   doc.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
-  doc.text("WARRANTY POLICY & SYSTEM COVERAGE", 15, warrantyY);
+  doc.text("WARRANTY POLICY", 15, warrantyY);
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(7.2);
@@ -193,13 +174,8 @@ export const generateBrandedInvoicePDF = (receipt: InvoiceData) => {
   doc.text("• Smartphone models include 1-Year Official Brand Warranty from the date of purchase printed on this invoice.", 15, warrantyY + 4.5);
   doc.text("• 7-Day Replacement Guarantee applies for verified manufacturer hardware faults, subject to diagnostic checks.", 15, warrantyY + 8.5);
   doc.text("• Warranty is strictly void if the device shows physical damage, water entry, seal tampering, or rooting/unofficial firmware modifications.", 15, warrantyY + 12.5);
-  
-  // Border wrapper for Warranty section to make it look legit and premium
-  doc.setDrawColor(235, 235, 238);
-  doc.setLineWidth(0.2);
-  doc.rect(13, warrantyY - 3.5, 184, 19);
 
-  // --- 5. Clean Times-Italic Signature & QR Code ---
+  // --- 5. Clean Times-Italic Signature & outline Stamp ---
   let signatureY = warrantyY + 31;
   const signName = receipt.shopName.split(' ')[0] || 'Zenvy';
   
@@ -208,7 +184,7 @@ export const generateBrandedInvoicePDF = (receipt: InvoiceData) => {
   doc.setTextColor(40, 40, 45);
   doc.text(signName, 15, signatureY);
 
-  doc.setFont("helvetica", "normal"); // sharp and less bold
+  doc.setFont("helvetica", "normal"); 
   doc.setFontSize(9);
   doc.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
   doc.text("Authorized Representative", 15, signatureY + 6.5);
@@ -218,56 +194,58 @@ export const generateBrandedInvoicePDF = (receipt: InvoiceData) => {
   doc.setTextColor(greyColor[0], greyColor[1], greyColor[2]);
   doc.text(`Founder, ${receipt.shopName}`, 15, signatureY + 11);
 
-  // --- 6. PAID Stamp Overlay ---
-  doc.setTextColor(90, 82, 213); // matching SmartCAF indigo color
+  // --- 6. Symmetrical OUTLINE PAID Stamp (Exactly like Reference!) ---
+  doc.setDrawColor(90, 82, 213); // Indigo outline color
+  doc.setTextColor(90, 82, 213);
   doc.setFont("times", "bold");
   doc.setFontSize(36);
-  doc.text("PAID", 136, signatureY - 2, { angle: 10 });
-
-  // --- 6.5 QR Verification Code (Scanner bracket corners + QR) ---
-  const qrX = 173;
-  const qrY = signatureY - 14;
-  const qrSize = 22;
-
-  // Scanner bracket corners
-  doc.setDrawColor(darkColor[0], darkColor[1], darkColor[2]);
   doc.setLineWidth(0.45);
-  // Top-left
-  doc.line(qrX, qrY, qrX + 3, qrY);
-  doc.line(qrX, qrY, qrX, qrY + 3);
-  // Top-right
-  doc.line(qrX + qrSize, qrY, qrX + qrSize - 3, qrY);
-  doc.line(qrX + qrSize, qrY, qrX + qrSize, qrY + 3);
-  // Bottom-left
-  doc.line(qrX, qrY + qrSize, qrX + 3, qrY + qrSize);
-  doc.line(qrX, qrY + qrSize, qrX, qrY + qrSize - 3);
-  // Bottom-right
-  doc.line(qrX + qrSize, qrY + qrSize, qrX + qrSize - 3, qrY + qrSize);
-  doc.line(qrX + qrSize, qrY + qrSize, qrX + qrSize, qrY + qrSize - 3);
+  // @ts-ignore
+  doc.text("PAID", 136, signatureY - 2, { angle: 10, renderingMode: "stroke" });
 
-  // Clean grey border background for safety
-  doc.setDrawColor(230, 230, 235);
-  doc.setLineWidth(0.15);
-  doc.rect(qrX + 1, qrY + 1, qrSize - 2, qrSize - 2);
+  // --- 6.5 Symmetrical QR Verification Code (Discrete 16x16mm size) ---
+  const qrX = 179;
+  const qrY = signatureY - 12;
+  const qrSize = 16;
+
+  // Discrete grey corners
+  doc.setDrawColor(190, 190, 195);
+  doc.setLineWidth(0.3);
+  // Top-left
+  doc.line(qrX, qrY, qrX + 2, qrY);
+  doc.line(qrX, qrY, qrX, qrY + 2);
+  // Top-right
+  doc.line(qrX + qrSize, qrY, qrX + qrSize - 2, qrY);
+  doc.line(qrX + qrSize, qrY, qrX + qrSize, qrY + 2);
+  // Bottom-left
+  doc.line(qrX, qrY + qrSize, qrX + 2, qrY + qrSize);
+  doc.line(qrX, qrY + qrSize, qrX, qrY + qrSize - 2);
+  // Bottom-right
+  doc.line(qrX + qrSize, qrY + qrSize, qrX + qrSize - 2, qrY + qrSize);
+  doc.line(qrX + qrSize, qrY + qrSize, qrX + qrSize, qrY + qrSize - 2);
+
+  // Grey background for neat placement
+  doc.setDrawColor(240, 240, 242);
+  doc.setLineWidth(0.1);
+  doc.rect(qrX + 0.5, qrY + 0.5, qrSize - 1, qrSize - 1);
 
   // Try to load online API generated QR
   try {
-    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent('https://zenvy.com.bd/verify/' + receipt.invoiceNumber)}`;
-    doc.addImage(qrUrl, 'PNG', qrX + 1, qrY + 1, qrSize - 2, qrSize - 2);
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent('https://zenvy.com.bd/verify/' + receipt.invoiceNumber)}`;
+    doc.addImage(qrUrl, 'PNG', qrX + 0.5, qrY + 0.5, qrSize - 1, qrSize - 1);
   } catch (e) {
     // Elegant mockup QR pixel box if offline
-    doc.setFillColor(darkColor[0], darkColor[1], darkColor[2]);
-    doc.rect(qrX + 3, qrY + 3, 5, 5, 'F');
-    doc.rect(qrX + 14, qrY + 3, 5, 5, 'F');
-    doc.rect(qrX + 3, qrY + 14, 5, 5, 'F');
-    doc.rect(qrX + 9, qrY + 9, 4, 4, 'F');
+    doc.setFillColor(greyColor[0], greyColor[1], greyColor[2]);
+    doc.rect(qrX + 2, qrY + 2, 3, 3, 'F');
+    doc.rect(qrX + 11, qrY + 2, 3, 3, 'F');
+    doc.rect(qrX + 2, qrY + 11, 3, 3, 'F');
+    doc.rect(qrX + 6, qrY + 6, 2, 2, 'F');
   }
 
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(7);
+  doc.setFontSize(6.5);
   doc.setTextColor(greyColor[0], greyColor[1], greyColor[2]);
-  doc.text("QR Verification Secure Link", qrX + qrSize / 2, qrY + qrSize + 4.5, { align: "center" });
-
+  doc.text("Scan to Verify", qrX + qrSize / 2, qrY + qrSize + 3.5, { align: "center" });
   // --- 7. Clean Monochromatic Footer ---
   doc.setDrawColor(lightBorder[0], lightBorder[1], lightBorder[2]);
   doc.setLineWidth(0.2);
