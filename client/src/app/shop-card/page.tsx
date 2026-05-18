@@ -516,7 +516,7 @@ export default function PublicShopCard() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
               transition={{ duration: 0.15, ease: "easeOut" }}
-              className="relative w-full max-w-sm bg-white border-2 border-black p-6 flex flex-col gap-4.5 shadow-[8px_8px_0px_rgba(0,0,0,1)] z-10 text-left rounded-none"
+              className="relative w-full max-w-sm bg-white p-6 flex flex-col gap-4.5 z-10 text-left rounded-none"
             >
               {/* Header */}
               <div className="flex justify-between items-start">
