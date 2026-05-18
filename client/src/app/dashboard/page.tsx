@@ -127,6 +127,7 @@ function DashboardContent() {
   const [activeProductFilter, setActiveProductFilter] = useState('All');
   const [previewingProduct, setPreviewingProduct] = useState<Product | null>(null);
   const [autoScrollVariants, setAutoScrollVariants] = useState(false);
+  const [highlightedVariantId, setHighlightedVariantId] = useState<string | null>(null);
   const [showSuccessOverlay, setShowSuccessOverlay] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
@@ -600,7 +601,12 @@ function DashboardContent() {
           <ProductDetailsScreen 
             product={previewingProduct}
             autoScrollToVariants={autoScrollVariants}
-            onBack={() => setPreviewingProduct(null)}
+            highlightedVariantId={highlightedVariantId}
+            onBack={() => {
+              setPreviewingProduct(null);
+              setAutoScrollVariants(false);
+              setHighlightedVariantId(null);
+            }}
             onEdit={(prod) => {
               router.push(`/dashboard/products/edit?id=${prod.id}`);
             }}
@@ -789,7 +795,7 @@ function DashboardContent() {
                           if (hour < 12) return 'Good morning';
                           if (hour < 17) return 'Good afternoon';
                           return 'Good evening';
-                        })()}, Merchant
+                        })()}, {storeName}!
                       </h2>
                     </div>
 
@@ -1201,7 +1207,13 @@ function DashboardContent() {
                             
                             <button 
                               onClick={() => {
-                                router.push(`/dashboard/products/edit?id=${alertProduct.id}`);
+                                setPreviewingProduct(alertProduct);
+                                setAutoScrollVariants(true);
+                                if (lowestVariant) {
+                                  setHighlightedVariantId(lowestVariant.id);
+                                } else {
+                                  setHighlightedVariantId(null);
+                                }
                               }}
                               className="bg-[#020302] hover:bg-neutral-800 text-white py-1.5 px-4 rounded-sm text-xs font-bold transition-all uppercase tracking-wider shrink-0 cursor-pointer active:scale-98"
                             >
@@ -1606,11 +1618,7 @@ function DashboardContent() {
                 {activeTab === 'Notifications' && (
                   <div className="space-y-8 text-left py-2">
                     {/* Header */}
-                    <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8">
-                      <div>
-                        <h2 className="text-3xl md:text-5xl font-medium tracking-tight text-[#020302] mb-2">Notifications</h2>
-                        <p className="text-sm text-[#5e5e5d] font-semibold leading-relaxed">Manage your stock alerts, sales updates, and system messages.</p>
-                      </div>
+                    <div className="flex flex-col md:flex-row justify-end items-end gap-6 mb-8">
                       <button 
                         onClick={() => {
                           setNotifications(prev => prev.map(n => ({ ...n, unread: false })));
@@ -1694,7 +1702,20 @@ function DashboardContent() {
                                 <button 
                                   onClick={() => {
                                     if (notif.actionText === 'Restock Now') {
-                                      handleTabChange('Products');
+                                      // Find the product in the alert list (Samsung Galaxy A35 or first low-stock item)
+                                      const alertProduct = productList.find(p => p.id === 3 || p.variants?.some(v => v.quantity <= 3));
+                                      if (alertProduct) {
+                                        const lowestVariant = alertProduct.variants?.find(v => v.quantity <= 3);
+                                        setPreviewingProduct(alertProduct);
+                                        setAutoScrollVariants(true);
+                                        if (lowestVariant) {
+                                          setHighlightedVariantId(lowestVariant.id);
+                                        } else {
+                                          setHighlightedVariantId(null);
+                                        }
+                                      } else {
+                                        handleTabChange('Products');
+                                      }
                                     } else {
                                       alert('Performance Report is ready! Sales grew by 14% this month.');
                                     }
@@ -1714,16 +1735,11 @@ function DashboardContent() {
 
                 {activeTab === 'Settings' && (
                   <div className="space-y-12 text-left py-2 max-w-4xl mx-auto">
-                    {/* Page Header */}
-                    <div>
-                      <h2 className="text-3xl md:text-5xl font-medium tracking-tight text-[#020302] mb-2 font-sans">Settings</h2>
-                      <p className="text-sm text-[#5e5e5d] font-semibold leading-relaxed">Manage your boutique's presence, inventory logic, and personal preferences.</p>
-                    </div>
 
                     {/* Section 1: Shop Information */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-0">
                       <div className="col-span-1 space-y-1">
-                        <h3 className="text-[13px] font-bold text-[#020302] uppercase tracking-wider">Shop Information</h3>
+                        <h3 className="text-[15px] font-bold text-[#020302] uppercase tracking-wider">Shop Information</h3>
                         <p className="text-xs text-[#5e5e5d] opacity-75 font-semibold">Your public store identity and contact details.</p>
                       </div>
                       

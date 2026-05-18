@@ -38,6 +38,7 @@ interface ProductDetailsScreenProps {
   ) => void;
   onDeleteProduct: (productId: number | string) => void;
   autoScrollToVariants?: boolean;
+  highlightedVariantId?: string | null;
 }
 
 export default function ProductDetailsScreen({
@@ -46,7 +47,8 @@ export default function ProductDetailsScreen({
   onEdit,
   onUpdateStock,
   onDeleteProduct,
-  autoScrollToVariants = false
+  autoScrollToVariants = false,
+  highlightedVariantId = null
 }: ProductDetailsScreenProps) {
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [isSpecsOpen, setIsSpecsOpen] = useState(false);
@@ -55,6 +57,16 @@ export default function ProductDetailsScreen({
   // Extract unique colors available
   const uniqueColors = Array.from(new Set(product.variants?.map(v => v.color) || []));
   const [activeColor, setActiveColor] = useState<string>(uniqueColors[0] || '');
+
+  // Auto-select the color swatch matching the highlighted variant on mount
+  React.useEffect(() => {
+    if (highlightedVariantId) {
+      const match = product.variants?.find(v => v.id === highlightedVariantId);
+      if (match) {
+        setActiveColor(match.color);
+      }
+    }
+  }, [highlightedVariantId, product.variants]);
 
   // Select active variant based on clicked color swatch
   const activeVariant = product.variants?.find(v => v.color === activeColor) || product.variants?.[0];
@@ -80,13 +92,20 @@ export default function ProductDetailsScreen({
   };
 
   React.useEffect(() => {
-    if (autoScrollToVariants && variantsRef.current) {
+    if (autoScrollToVariants) {
       const timer = setTimeout(() => {
+        if (highlightedVariantId) {
+          const el = document.getElementById(`variant-row-${highlightedVariantId}`);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
+          }
+        }
         variantsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 350); // delay slightly to allow container transition to complete
       return () => clearTimeout(timer);
     }
-  }, [autoScrollToVariants]);
+  }, [autoScrollToVariants, highlightedVariantId]);
 
   const handleStockAdjust = (variant: ProductVariant, amount: number) => {
     const newQty = Math.max(0, variant.quantity + amount);
@@ -268,10 +287,19 @@ export default function ProductDetailsScreen({
               {product.variants && product.variants.map((v) => {
                 const isOutOfStock = v.quantity === 0;
                 const hex = getColorHex(v.color);
+                const isHighlighted = highlightedVariantId && v.id === highlightedVariantId;
 
                 if (isOutOfStock) {
                   return (
-                    <div key={v.id} className="bg-white border border-[#c7c7bf] p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 opacity-75">
+                    <div 
+                      key={v.id} 
+                      id={`variant-row-${v.id}`}
+                      className={`p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all duration-500 rounded-sm ${
+                        isHighlighted 
+                          ? "bg-[#FFFBF2] border-2 border-[#b45309] shadow-[0_0_20px_rgba(180,83,9,0.15)] ring-2 ring-[#b45309]/10 scale-[1.01]" 
+                          : "bg-white border border-[#c7c7bf] opacity-75"
+                      }`}
+                    >
                       <div className="flex items-center space-x-4">
                         <div className="w-12 h-12 rounded-lg border border-[#c7c7bf] flex-shrink-0" style={{ backgroundColor: hex }}></div>
                         <div className="text-left">
@@ -310,7 +338,15 @@ export default function ProductDetailsScreen({
                 }
 
                 return (
-                  <div key={v.id} className="bg-white border border-[#c7c7bf] p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div 
+                    key={v.id} 
+                    id={`variant-row-${v.id}`}
+                    className={`p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all duration-500 rounded-sm ${
+                      isHighlighted 
+                        ? "bg-[#FFFBF2] border-2 border-[#b45309] shadow-[0_0_20px_rgba(180,83,9,0.15)] ring-2 ring-[#b45309]/10 scale-[1.01]" 
+                        : "bg-white border border-[#c7c7bf]"
+                    }`}
+                  >
                     <div className="flex items-center space-x-4">
                       <div className="w-12 h-12 rounded-lg border border-[#c7c7bf] flex-shrink-0" style={{ backgroundColor: hex }}></div>
                       <div className="text-left">
