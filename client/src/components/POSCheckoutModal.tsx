@@ -729,7 +729,7 @@ export default function POSCheckoutModal({
                       </div>
                       <div className="space-y-0.5">
                         <h2 className="text-xs sm:text-[14px] font-bold text-[#020302] uppercase tracking-widest font-sans">{posSuccessData.shopName || "Zenvy Store"}</h2>
-                        <p className="text-[10px] sm:text-xs text-[#5e5e5d] font-sans">STOCKNET POS TICKET</p>
+                        <p className="text-[10px] sm:text-xs text-[#5e5e5d] font-sans">ZENVY POS TICKET</p>
                       </div>
                     </div>
                     <div className="text-right">
