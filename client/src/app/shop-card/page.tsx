@@ -403,16 +403,16 @@ export default function PublicShopCard() {
 
                       {/* One-tap WhatsApp inquiry button */}
                       {!isOutOfStock && defaultVariant && (
-                        <a
-                          href={getWhatsAppInquiryLink(product, defaultVariant)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={(e) => e.stopPropagation()}
-                          className="mt-3 w-full py-2 bg-[#020302] hover:bg-neutral-800 text-white text-center text-[12px] font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all select-none border border-transparent"
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setInquiryProduct(product);
+                          }}
+                          className="mt-3 w-full py-2 bg-[#020302] hover:bg-neutral-800 text-white text-center text-[12px] font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all select-none border border-transparent cursor-pointer"
                         >
                           <MessageCircle size={13} className="fill-white stroke-none" />
                           Ask if available
-                        </a>
+                        </button>
                       )}
                     </div>
                   </motion.div>
