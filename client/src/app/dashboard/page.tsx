@@ -2064,7 +2064,7 @@ function DashboardContent() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.97, y: -10 }}
               transition={{ duration: 0.15, ease: 'easeOut' }}
-              className="relative w-full max-w-2xl bg-white rounded-sm border border-[#efeded] shadow-2xl flex flex-col max-h-[75vh] overflow-hidden z-10"
+              className="relative w-full max-w-2xl bg-white border border-[#efeded] shadow-2xl flex flex-col max-h-[75vh] overflow-hidden z-10"
             >
               {/* Search input header */}
               <div className="flex items-center gap-3 px-4 py-3.5 border-b border-[#efeded] bg-white shrink-0">
@@ -2123,7 +2123,7 @@ function DashboardContent() {
                                   {product.brand || 'ZENVY'}
                                 </span>
                                 <span className="w-1 h-1 rounded-full bg-[#efeded]"></span>
-                                <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-[3px] ${
+                                {/* <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-[3px] ${
                                   product.stock === 0 
                                     ? 'bg-rose-50 text-rose-600 border border-rose-100'
                                     : isLowStock 
@@ -2131,7 +2131,7 @@ function DashboardContent() {
                                       : 'bg-emerald-50 text-emerald-600 border border-emerald-100'
                                 }`}>
                                   {product.stock === 0 ? 'Out of Stock' : isLowStock ? 'Low Stock' : 'Active'}
-                                </span>
+                                </span> */}
                               </div>
                               <h4 className="text-[13px] font-semibold text-[#020302] font-sans mt-0.5 truncate leading-snug">
                                 {product.name}
@@ -2148,7 +2148,7 @@ function DashboardContent() {
                               }}
                               className="py-1 px-2.5 rounded-xs border border-[#efeded] hover:border-[#020302] hover:bg-[#020302] hover:text-white transition-all text-[10px] font-bold uppercase tracking-wider text-[#5e5e5d] cursor-pointer"
                             >
-                              Edit Details
+                              Edit
                             </button>
                             <button 
                               onClick={() => {
@@ -2157,7 +2157,7 @@ function DashboardContent() {
                               }}
                               className="py-1 px-2.5 rounded-xs bg-[#020302] hover:bg-neutral-800 text-white transition-all text-[10px] font-bold uppercase tracking-wider cursor-pointer"
                             >
-                              Sell POS
+                              Sell
                             </button>
                           </div>
                         </div>
