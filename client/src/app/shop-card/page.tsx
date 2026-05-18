@@ -116,6 +116,14 @@ export default function PublicShopCard() {
     return `https://api.whatsapp.com/send?phone=${encodeURIComponent(targetPhone)}&text=${encodeURIComponent(text)}`;
   };
 
+  const getWhatsAppInquiryLink = (product: Product, selectedVariant: any) => {
+    const activeNumber = whatsAppNumber || phoneNumber;
+    const cleanPhone = activeNumber.replace(/[^0-9+]/g, '');
+    const targetPhone = cleanPhone.startsWith('+') ? cleanPhone : `+880${cleanPhone.replace(/^0/, '')}`;
+    const text = `ভাই ${product.brand} ${product.name} ${selectedVariant.color} ${selectedVariant.ram}/${selectedVariant.storage} available?`;
+    return `https://api.whatsapp.com/send?phone=${encodeURIComponent(targetPhone)}&text=${encodeURIComponent(text)}`;
+  };
+
   // Extract unique brands for filter tabs
   const brands = ['All', ...Array.from(new Set(products.map(p => p.brand || '').filter(Boolean)))];
 
@@ -189,6 +197,14 @@ export default function PublicShopCard() {
               <Star size={13} className="fill-black stroke-none" />
               4.9 (152 reviews)
             </span>
+            <span className="text-gray-300">·</span>
+            <span className="flex items-center gap-1.5 text-[11.5px] font-semibold text-[#22c55e] bg-[#f0fdf4] py-0.5 px-2.5 rounded-sm">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#22c55e] opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#22c55e]"></span>
+              </span>
+              Updated 2 minutes ago
+            </span>
           </div>
 
           <div className="text-[13px] text-gray-600 font-light space-y-1">
@@ -261,6 +277,7 @@ export default function PublicShopCard() {
                 const activeVariants = product.variants?.filter(v => v.quantity > 0) || [];
                 const isOutOfStock = activeVariants.length === 0;
                 const defaultVariant = activeVariants[0] || product.variants?.[0];
+                const totalStock = activeVariants.reduce((sum, v) => sum + v.quantity, 0);
 
                 return (
                   <motion.div 
@@ -333,11 +350,25 @@ export default function PublicShopCard() {
                     </div>
 
                     {/* Details Container with p-5 padding */}
-                    <div className="p-5 flex flex-col gap-3 flex-grow justify-between">
+                    <div className="p-5 flex flex-col gap-2.5 flex-grow justify-between">
                       <div className="flex flex-col gap-1">
-                        <p className="text-[10px] font-bold text-[#5e5e5d] uppercase tracking-widest leading-none">
-                          {product.brand}
-                        </p>
+                        <div className="flex justify-between items-start">
+                          <p className="text-[10px] font-bold text-[#5e5e5d] uppercase tracking-widest leading-none">
+                            {product.brand}
+                          </p>
+                          
+                          {/* Symmetrical dynamic urgency alerts */}
+                          {totalStock > 0 && totalStock <= 3 && (
+                            <span className="text-[9px] font-bold text-[#ba1a1a] bg-[#fdf2f2] px-1.5 py-0.5 rounded-xs leading-none">
+                              ⚠️ Only {totalStock} left
+                            </span>
+                          )}
+                          {product.id === 3 && totalStock > 3 && (
+                            <span className="text-[9px] font-bold text-[#002f6c] bg-[#e6f0fa] px-1.5 py-0.5 rounded-xs leading-none">
+                              ✨ Recently added
+                            </span>
+                          )}
+                        </div>
                         <h3 className="text-[16px] font-light text-[#020302] group-hover:text-neutral-700 transition-colors tracking-tight leading-snug line-clamp-1 mt-0.5">
                           {product.name}
                         </h3>
@@ -356,7 +387,7 @@ export default function PublicShopCard() {
 
                       {/* Variant Pills Section */}
                       {product.variants && product.variants.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5 pt-3 border-t border-[#efeded]">
+                        <div className="flex flex-wrap gap-1.5 pt-2.5 border-t border-[#efeded]">
                           {product.variants.map((variant) => (
                             <span 
                               key={variant.id} 
@@ -365,14 +396,21 @@ export default function PublicShopCard() {
                               {variant.color} {variant.ram.replace('GB', '')}/{variant.storage.replace('GB', '')}
                             </span>
                           ))}
-                          {/* {product.variants.length > 2 && (
-                            <span 
-                              className="text-[9px] text-[#5e5e5d] px-2 py-0.5 bg-[#f5f3f3] rounded-full border border-[#c7c7bf]/50 font-semibold"
-                            >
-                              +{product.variants.length - 2} More
-                            </span>
-                          )} */}
                         </div>
+                      )}
+
+                      {/* One-tap WhatsApp inquiry button */}
+                      {!isOutOfStock && defaultVariant && (
+                        <a
+                          href={getWhatsAppInquiryLink(product, defaultVariant)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="mt-3 w-full py-2 bg-[#020302] hover:bg-neutral-800 text-white text-center text-[12px] font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all select-none border border-transparent"
+                        >
+                          <MessageCircle size={13} className="fill-white stroke-none" />
+                          Ask if available
+                        </a>
                       )}
                     </div>
                   </motion.div>
