@@ -1562,7 +1562,7 @@ function DashboardContent() {
                                   onClick={() => router.push(`/dashboard/products/edit?id=${product.id}`)}
                                   className="bg-white hover:bg-neutral-50 text-[#020302] border border-[#efeded] text-[11px] font-bold uppercase tracking-wider px-5 py-2 transition-all duration-200 cursor-pointer active:scale-97 shadow-2xs rounded-xs font-sans"
                                 >
-                                  Manage
+                                  Update
                                 </button>
                               </div>
                             </div>
@@ -1574,14 +1574,6 @@ function DashboardContent() {
 
                 {activeTab === 'Orders' && (
                   <div className="space-y-8 text-left py-2">
-                    {/* Header */}
-                    <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8">
-                      <div>
-                        <h2 className="text-3xl md:text-5xl font-medium tracking-tight text-[#020302] mb-2">Orders</h2>
-                        <p className="text-sm text-[#5e5e5d] font-semibold leading-relaxed">View and track wholesale orders placed by your retail clients.</p>
-                      </div>
-                    </div>
-
                     {/* Orders List */}
                     <div className="space-y-4">
                       {[
