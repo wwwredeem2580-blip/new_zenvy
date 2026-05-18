@@ -1350,17 +1350,6 @@ function DashboardContent() {
                           </button>
                         ))}
                       </div>
-
-                      <div className="flex gap-4 pb-4">
-                        <button className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest border border-[#efeded] px-4 py-2 hover:bg-neutral-50 transition-colors cursor-pointer rounded-sm">
-                          <ArrowUpDown size={12} className="text-[#5e5e5d]" />
-                          <span>Sort: A-Z</span>
-                        </button>
-                        <button className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest border border-[#efeded] px-4 py-2 hover:bg-neutral-50 transition-colors cursor-pointer rounded-sm">
-                          <Filter size={12} className="text-[#5e5e5d]" />
-                          <span>Filter</span>
-                        </button>
-                      </div>
                     </div>
 
                     {/* Vertical Product List */}
@@ -1425,7 +1414,8 @@ function DashboardContent() {
                             key={product.id}
                             initial={{ opacity: 0, y: 8 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="bg-white border border-[#efeded] p-4 flex flex-col md:flex-row gap-8 items-start group hover:border-black transition-all duration-350 shadow-2xs hover:shadow-xs animate-none"
+                            onClick={() => setPreviewingProduct(product)}
+                            className="bg-white border border-[#efeded] p-4 flex flex-col md:flex-row gap-8 items-start group hover:border-black transition-all duration-350 shadow-2xs hover:shadow-xs animate-none cursor-pointer"
                           >
                             {/* Product Image Thumbnail */}
                             <div className="w-full md:w-32 h-32 bg-[#f5f3f3] flex items-center justify-center overflow-hidden border border-[#efeded] flex-shrink-0">
@@ -1480,7 +1470,7 @@ function DashboardContent() {
                                 </div>
 
                                 {/* Right part: Variants & Stock (Accordion / Badges) */}
-                                <div className="flex-1 max-w-md w-full text-left">
+                                <div className="flex-1 max-w-md w-full text-left" onClick={(e) => e.stopPropagation()}>
                                   <p className="text-[9px] uppercase tracking-widest font-bold text-neutral-400 mb-2 font-sans">Variants & Stock</p>
                                   <div className="flex flex-wrap gap-1.5">
                                     {product.variants && product.variants.length > 0 ? (
@@ -1516,7 +1506,7 @@ function DashboardContent() {
                                                 ? 'bg-[#f5f3f3] border-[#efeded] text-neutral-400 opacity-55 italic' 
                                                 : isLowStock 
                                                   ? 'bg-rose-50 border-rose-250 text-rose-700 font-semibold' 
-                                                  : 'bg-[#f5f3f3] border-[#efeded] text-neutral-800'}`}
+                                                  : 'bg-[#f5f3f3] border-[#efeded] text-[#020302]'}`}
                                           >
                                             Total Stock ({product.stock})
                                           </span>
@@ -1528,7 +1518,7 @@ function DashboardContent() {
                               </div>
 
                               {/* Action Row */}
-                              <div className="flex flex-wrap gap-2.5 mt-4 pt-4 border-t border-[#efeded] w-full">
+                              <div className="flex flex-wrap gap-2.5 mt-4 pt-4 border-t border-[#efeded] w-full" onClick={(e) => e.stopPropagation()}>
                                 <button 
                                   onClick={() => handleMarkAsSoldClick(product)}
                                   disabled={product.stock === 0}
