@@ -1425,7 +1425,7 @@ function DashboardContent() {
                             key={product.id}
                             initial={{ opacity: 0, y: 8 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="bg-white border border-[#efeded] p-6 flex flex-col md:flex-row gap-8 items-start group hover:border-black transition-all duration-350 shadow-2xs hover:shadow-xs animate-none"
+                            className="bg-white border border-[#efeded] p-4 flex flex-col md:flex-row gap-8 items-start group hover:border-black transition-all duration-350 shadow-2xs hover:shadow-xs animate-none"
                           >
                             {/* Product Image Thumbnail */}
                             <div className="w-full md:w-32 h-32 bg-[#f5f3f3] flex items-center justify-center overflow-hidden border border-[#efeded] flex-shrink-0">
@@ -1453,11 +1453,11 @@ function DashboardContent() {
                                       const isLowStock = product.stock > 0 && product.stock <= threshold;
 
                                       if (isOutOfStock) {
-                                        return <span className="text-[11px] font-bold text-rose-600 flex items-center gap-1 font-sans">🔴 Out of stock</span>;
+                                        return <span className="text-[11px] font-bold text-rose-600 flex items-center gap-1 font-sans">Out of stock</span>;
                                       } else if (isLowStock) {
-                                        return <span className="text-[11px] font-bold text-amber-600 flex items-center gap-1 font-sans">🟠 Low stock</span>;
+                                        return <span className="text-[11px] font-bold text-amber-600 flex items-center gap-1 font-sans">Low stock</span>;
                                       } else {
-                                        return <span className="text-[11px] font-bold text-emerald-600 flex items-center gap-1 font-sans">🟢 {product.stock} in stock</span>;
+                                        return <span className="text-[11px] font-bold text-emerald-600 flex items-center gap-1 font-sans">{product.stock} in stock</span>;
                                       }
                                     })()}
                                   </div>
@@ -1543,7 +1543,7 @@ function DashboardContent() {
                                   onClick={() => router.push(`/dashboard/products/edit?id=${product.id}`)}
                                   className="bg-white hover:bg-neutral-50 text-[#020302] border border-[#efeded] text-[11px] font-bold uppercase tracking-wider px-5 py-2 transition-all duration-200 cursor-pointer active:scale-97 shadow-2xs rounded-xs font-sans"
                                 >
-                                  Add Stock
+                                  + Stock
                                 </button>
                                 <button 
                                   onClick={() => router.push(`/dashboard/products/edit?id=${product.id}`)}
