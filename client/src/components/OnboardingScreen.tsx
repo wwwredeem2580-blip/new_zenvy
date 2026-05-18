@@ -55,15 +55,16 @@ export default function OnboardingScreen() {
 
         <button 
           onClick={handleContinue}
-          className={`w-full py-4 px-6 flex items-center justify-center gap-2 transition-all duration-300 border mb-10 group
+          className={`w-full py-4 px-6 flex items-center justify-center gap-2 transition-all duration-300 border mb-3 group
             ${inputNumber.length >= 10 
               ? 'bg-[#333333] text-white border-[#333333] hover:bg-white hover:text-[#333333]' 
               : 'bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed text-xs uppercase tracking-widest font-sans'
             }`}
         >
-          <span className="font-sans font-medium">Continue</span>
+          <span className="font-sans font-medium">Start Free</span>
           <ArrowRight size={18} className="transform group-hover:translate-x-1 transition-transform" />
         </button>
+        <span className="text-xs font-sans font-medium text-gray-600 mb-10">No app install required</span>
 
         <div className="relative mb-8">
           <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-100"></div></div>

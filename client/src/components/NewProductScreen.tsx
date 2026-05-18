@@ -635,7 +635,7 @@ export default function NewProductScreen({
               </div>
               <div className="space-y-2 bg-white p-4 border border-[#c7c7bf]/30 rounded-lg">
                 <p className="text-[#1a0dab] text-sm font-semibold leading-tight font-medium hover:underline cursor-pointer truncate">
-                  {searchQuery || "Product Name"} | LUMINA Marketplace
+                  {searchQuery || "Product Name"} | Zenvy Marketplace
                 </p>
                 <p className="text-[#006621] text-xs font-normal">
                   https://zenvy.com.bd/products/{(searchQuery || "new-product").toLowerCase().replace(/\s+/g, '-')}
