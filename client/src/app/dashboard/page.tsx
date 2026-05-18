@@ -744,9 +744,6 @@ function DashboardContent() {
                           return 'Good evening';
                         })()}, Merchant
                       </h2>
-                      <p className="text-xs text-[#5e5e5d] font-semibold leading-relaxed">
-                        Here is a live performance snapshot for your storefront today.
-                      </p>
                     </div>
 
                     {/* Onboarding Checklist Guide / Celebration Card */}

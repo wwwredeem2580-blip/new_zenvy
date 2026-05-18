@@ -143,13 +143,13 @@ export default function OtpScreen() {
         ) : (
           <button 
             onClick={handleResend}
-            className="text-[#333333] hover:text-black hover:underline transition-all font-sans flex items-center gap-1.5 active:scale-95 py-1"
+            className="text-[#333333] border-b px-3 py-1 hover:text-black transition-all font-sans flex items-center gap-1.5 active:scale-95 py-1"
           >
             <RotateCw size={14} className="stroke-[2.5]" />
             <span>Resend code</span>
           </button>
         )}
-        <button onClick={() => router.push('/onboarding')} className="text-gray-400 hover:text-[#333333] transition-colors font-sans py-1">Change number</button>
+        <button onClick={() => router.push('/onboarding')} className="text-gray-600 border px-3 py-1 hover:text-[#333333] transition-colors font-sans py-1">Change number</button>
       </div>
     </motion.div>
   );

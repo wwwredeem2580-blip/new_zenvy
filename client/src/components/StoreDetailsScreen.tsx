@@ -28,7 +28,7 @@ export default function StoreDetailsScreen() {
 
       <h1 className="text-4xl font-serif text-[#333333] mb-12">Store Details</h1>
 
-      <div className="space-y-12 flex-1">
+      <div className="space-y-12 flex-1 mb-6">
         <div className="text-left">
           <label className="block text-xs uppercase tracking-wider text-gray-400 mb-2 font-medium tracking-[0.1em] font-sans">Store Name</label>
           <input 
