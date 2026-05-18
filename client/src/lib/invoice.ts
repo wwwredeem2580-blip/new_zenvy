@@ -51,40 +51,41 @@ export const generateBrandedInvoicePDF = (receipt: InvoiceData) => {
   const greyColor = [110, 110, 115]; // Slate grey
   const lightBorder = [228, 228, 230]; // #e4e4e6 dividers
 
-  // --- 1. Elegant Minimalist Header with Branding Logo ---
+  // --- 1. Elegant Minimalist Header with Big Branding Logo and Symmetrical Text Block ---
   try {
-    doc.addImage('/logo.png', 'PNG', 15, 12, 10, 10);
+    // Brand logo scaled up to 18x18mm matching the total height of shop name, motto, and address
+    doc.addImage('/logo.png', 'PNG', 15, 12, 18, 18);
   } catch (e) {
     console.warn("Zenvy logo image load failed, continuing without image logo", e);
   }
 
-  // Shop Name: Lightweight but large font size, placed on a new line below logo
+  // Shop Name: Lightweight but large font size, placed immediately to the right of the logo
   doc.setFont("helvetica", "normal");
   doc.setFontSize(22);
   doc.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
-  doc.text(receipt.shopName, 15, 30);
+  doc.text(receipt.shopName, 37, 19);
   
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8.5); // Thinner, sharper
   doc.setTextColor(greyColor[0], greyColor[1], greyColor[2]);
-  doc.text("Premium Smartphone Distribution Outlet", 15, 36);
-  doc.text("Dhaka, Bangladesh  |  zenvy.com.bd", 15, 40.5);
+  doc.text("Premium Smartphone Distribution Outlet", 37, 25);
+  doc.text("Dhaka, Bangladesh  |  zenvy.com.bd", 37, 29.5);
 
   // Invoice Details (Right Aligned - Elegant Normal weight)
   doc.setFont("helvetica", "normal"); // Thinner, luxury aesthetic
   doc.setFontSize(18);
   doc.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
-  doc.text("INVOICE", 195, 22, { align: "right" });
+  doc.text("INVOICE", 195, 19, { align: "right" });
   
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8.5);
   doc.setTextColor(80, 80, 85);
-  doc.text(`Invoice Number: ${receipt.invoiceNumber}`, 195, 28, { align: "right" });
-  doc.text(`Date: ${receipt.date}`, 195, 32.5, { align: "right" });
-  doc.text(`Status: PAID`, 195, 37, { align: "right" });
+  doc.text(`Invoice Number: ${receipt.invoiceNumber}`, 195, 25, { align: "right" });
+  doc.text(`Date: ${receipt.date}`, 195, 29.5, { align: "right" });
+  doc.text(`Status: PAID`, 195, 34, { align: "right" });
 
   // --- 2. Billed To Block (Generous Spacing) ---
-  let metaY = 56;
+  let metaY = 48;
   
   // Left Column: Issued To
   doc.setFont("helvetica", "bold");
