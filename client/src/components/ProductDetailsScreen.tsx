@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Product, ProductVariant } from '@/types/zenvy';
-import { AlertTriangle, ChevronRight, Edit2, Share2, Trash2, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
+import { AlertTriangle, ChevronRight, Edit2, Share2, Trash2, ArrowUpRight, ArrowDownLeft, ChevronDown, ChevronUp } from 'lucide-react';
 
 const getColorHex = (colorName: string): string => {
   const name = colorName.toLowerCase();
@@ -18,6 +18,11 @@ const getColorHex = (colorName: string): string => {
   if (name.includes('orange')) return '#f97316';
   if (name.includes('pink')) return '#ec4899';
   return '#737373';
+};
+
+const formatPriceK = (price: number) => {
+  if (!price) return '৳0';
+  return `৳${(price / 1000).toFixed(1).replace('.0', '')}k`;
 };
 
 interface ProductDetailsScreenProps {
@@ -44,7 +49,15 @@ export default function ProductDetailsScreen({
   autoScrollToVariants = false
 }: ProductDetailsScreenProps) {
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [isSpecsOpen, setIsSpecsOpen] = useState(false);
   const variantsRef = React.useRef<HTMLDivElement>(null);
+
+  // Extract unique colors available
+  const uniqueColors = Array.from(new Set(product.variants?.map(v => v.color) || []));
+  const [activeColor, setActiveColor] = useState<string>(uniqueColors[0] || '');
+
+  // Select active variant based on clicked color swatch
+  const activeVariant = product.variants?.find(v => v.color === activeColor) || product.variants?.[0];
 
   React.useEffect(() => {
     if (autoScrollToVariants && variantsRef.current) {
@@ -54,33 +67,6 @@ export default function ProductDetailsScreen({
       return () => clearTimeout(timer);
     }
   }, [autoScrollToVariants]);
-
-  // Extract unique colors available
-  const uniqueColors = Array.from(new Set(product.variants?.map(v => v.color) || []));
-  const [activeColor, setActiveColor] = useState<string>(uniqueColors[0] || '');
-
-  // Select active variant based on clicked color swatch
-  const activeVariant = product.variants?.find(v => v.color === activeColor) || product.variants?.[0];
-
-  // Bento gallery array setup
-  const galleryImages = [
-    product.image,
-    ...(product.variants?.map(v => v.image).filter((img): img is string => !!img) || [])
-  ].filter((img, index, self) => self.indexOf(img) === index); // unique images
-
-  // Premium studio photography placeholders from mockup
-  const defaultPlaceholders = [
-    "https://lh3.googleusercontent.com/aida-public/AB6AXuAT13321j0ZVQgYGdMX1goe77Ft75fShc6ZKORiMmIgyPp2ArvNQJIgBPjpEncasXi_E6k1T4hc9plGSRjRzqHnTnXHdi94IZi9BclSxE7X7YC1LMwIAzB6_Ds7zcLsLwtVdgMLTtimqBQVCtlMsfvP9G_c0aEMISFm9QndVp7tKzD-bCjIX4bX4oyjXRFrt1KgbamEKsAiS0SgdrNfAkz2sutr5NBZBfmZuG3DtO8HSKgR9LAsp2flZw8q5AkzSm_Dq2KT3cQrjCdP", // 1. main
-    "https://lh3.googleusercontent.com/aida-public/AB6AXuAFoUTKdVxURHl99I7jjnpSGPmHN5sVyiiP32ddMv8MVZOOVXRRBZ-ckHtgWTwtgkP334SJm3OrXZqs6PMd4YoyogRUUoaDN69IIGITs67JYhbtc8V95nRkf18rXcNoP6ZTSKrzr1z_6o0DY5YVNxfZhAaKQB5_ooeXAK1exU-K-d4qBU1WThw17PWWyKKVn6nFvpzG7_0dsjmO4J-LPAZNDS-2tkPMsiTSEqRbA5m1qG_CG2TgpQvZktd8idpbMQOZ7cBvpweO_gEm", // 2. camera macro
-    "https://lh3.googleusercontent.com/aida-public/AB6AXuD-kdb67imDdIecq6SQfIDlaS8QQuC1_Qd2aw_rNtV19kr6su7EjVLK1KBMBfY2-Jg11J90t-2sXNAHU-ncGmFMjO_SmESsTWpS6o8vEzN8sm9I9d-NBGX8HdcYFyISC4ui4bt0Ne6oOhkMGgxoQBPT1V8Jdzh0Z4l0N7Tvm_FtV6spp1x8cg5gta58CWj8fQXvw1u-suGIHJNgkq4nRhe6FOtPAd4Mm_b_Lo1tmGHLxq2RbwDCTHO8q7CzVSK69ESyEfAf5qNa-q_n", // 3. side buttons
-    "https://lh3.googleusercontent.com/aida-public/AB6AXuAisQiUT4yYhuR6DUDsnMwC7EvKQXXg7wqfSbtJvIMby-fo4lgbYM1soD6a5LqV66XfI7tbdgVlvEuTpaKO6R7RjTne1ZP6FxMXvy2mNPDlrtxyRpZPjmEIVAx8xZUaXP6Ybm2Wcv7TroVwea1WRF71GnHZvLYviWWSUhCazfyftajvrZhTYrbVFTpRYTxhw_zp3j7CXfzwWeeqvLWA6eECjnQbDW9yIxCXjosL0WrZPkJuJoeDkR1yh-mx-qCxKKubTR1fUcXHOOYJ", // 4. AMOLED screen
-    "https://lh3.googleusercontent.com/aida-public/AB6AXuBWOYogEXZ-CONbIYoiIZFVBJrjB9l9uVIV-K9JhnVlwpjEVn95L0J0IAtRS-GtEsisf3yqQqN8rYWYwChIogXAetdTTUdBep6BqW6R9YO3tnj95bey8iOF-eMa1ERz1ho4J-ZKv-_TcU7ou5LLG4GpFZftgUP9cXPom70deCRhMbNzJmJ7FEyhcoW4fH0Eh_dFgGRvL0hEzx6Ksiba1TTTHspwZ5ybH0pjtQo2ZtdMtq9MOfQkLfex-PLZ43cjleL-xMtYGtQ-rMy3"  // 5. marble lifestyle
-  ];
-
-  const getBentoImage = (index: number): string => {
-    if (index === 0) return activeVariant?.image || product.image || defaultPlaceholders[0];
-    return galleryImages[index] || defaultPlaceholders[index];
-  };
 
   const handleStockAdjust = (variant: ProductVariant, amount: number) => {
     const newQty = Math.max(0, variant.quantity + amount);
@@ -98,6 +84,7 @@ export default function ProductDetailsScreen({
   // Pricing
   const prices = product.variants?.map(v => v.sellingPrice) || [];
   const minPrice = prices.length ? Math.min(...prices) : 0;
+  const maxPrice = prices.length ? Math.max(...prices) : 0;
   
   const hasSalesHistory = product.variants?.some(v => v.quantity > 0) || false;
 
@@ -105,308 +92,369 @@ export default function ProductDetailsScreen({
     <div className="flex-1 bg-[#fbf9f9] overflow-y-auto relative h-full flex flex-col font-sans text-[#1b1c1c]">
       {/* Main Content Area mapping to the HTML <main> */}
       <div className="pt-8 pb-20 md:pb-8 min-h-screen px-4 md:px-[48px]">
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-4xl mx-auto space-y-8">
           
-          {/* Breadcrumb */}
-          <nav className="flex items-center space-x-2 text-[12px] leading-[1.4] font-normal text-[#5e5e5d] mb-8 font-sans">
-            <button onClick={onBack} className="hover:text-[#020302] transition-colors cursor-pointer bg-transparent border-none p-0 text-[12px]">Inventory</button>
+          {/* Breadcrumb & Navigation */}
+          <nav className="flex items-center space-x-2 text-[12px] leading-[1.4] font-normal text-[#5e5e5d] font-sans">
+            <button onClick={onBack} className="hover:text-[#020302] transition-colors cursor-pointer bg-transparent border-none p-0 text-[12px] font-bold uppercase tracking-wider">
+              Inventory
+            </button>
             <ChevronRight size={14} />
-            <span className="text-[#020302] font-bold">{product.name}</span>
+            <span className="text-[#020302] font-bold uppercase tracking-wider">{product.name}</span>
           </nav>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-[24px]">
-            
-            {/* Product Gallery (Bento Layout) */}
-            <div className="lg:col-span-7 -mx-4 md:mx-0">
-              <div className="flex md:grid md:grid-cols-4 md:grid-rows-[repeat(2,250px)] gap-[16px] overflow-x-auto snap-x snap-mandatory px-4 md:px-0 pb-4 md:pb-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-                
-                {/* Bento Item Large */}
-                <div className="flex-none w-[85vw] md:w-auto snap-center md:col-span-2 md:row-span-2 relative overflow-hidden border border-[#c7c7bf] bg-white aspect-[4/5] md:aspect-auto">
-                  <img 
-                    className="w-full h-full object-cover transition-transform duration-500 hover:scale-105" 
-                    src={getBentoImage(4)} 
-                    alt={product.name} 
-                  />
-                  <div className="absolute top-4 right-4 bg-white/80 backdrop-blur-md px-3 py-1 rounded-full border border-[#c7c7bf]">
-                    <span className="font-bold text-[12px] leading-[1.4] text-[#020302] uppercase font-sans tracking-wide">Main View</span>
-                  </div>
-                </div>
-
-                <div className="flex-none w-[65vw] md:w-auto snap-center md:col-span-1 md:row-span-1 relative overflow-hidden border border-[#c7c7bf] bg-white aspect-[4/5] md:aspect-auto">
-                  <img className="w-full h-full object-cover" src={getBentoImage(1)} alt="Gallery 1" />
-                </div>
-                
-                <div className="flex-none w-[65vw] md:w-auto snap-center md:col-span-1 md:row-span-1 relative overflow-hidden border border-[#c7c7bf] bg-white aspect-[4/5] md:aspect-auto">
-                  <img className="w-full h-full object-cover" src={getBentoImage(2)} alt="Gallery 2" />
-                </div>
-                
-                <div className="flex-none w-[65vw] md:w-auto snap-center md:col-span-1 md:row-span-1 relative overflow-hidden border border-[#c7c7bf] bg-white aspect-[4/5] md:aspect-auto">
-                  <img className="w-full h-full object-cover" src={getBentoImage(3)} alt="Gallery 3" />
-                </div>
-                
-                <div className="flex-none w-[65vw] md:w-auto snap-center md:col-span-1 md:row-span-1 relative overflow-hidden border border-[#c7c7bf] bg-white aspect-[4/5] md:aspect-auto">
-                  <img className="w-full h-full object-cover" src={getBentoImage(4)} alt="Gallery 4" />
-                </div>
-
-              </div>
+          {/* TOP SECTION: Product Image + Premium Header Info */}
+          <div className="bg-white border border-[#efeded] p-6 rounded-xl flex flex-col md:flex-row gap-8 items-center md:items-start shadow-2xs">
+            {/* Elegant Square Product Frame */}
+            <div className="w-32 h-32 md:w-36 md:h-36 bg-[#f5f3f3] flex items-center justify-center overflow-hidden border border-[#efeded] flex-shrink-0 rounded-lg">
+              <img 
+                src={product.image} 
+                alt={product.name} 
+                className="w-full h-full object-cover transition-transform duration-500 hover:scale-105" 
+              />
             </div>
 
-            {/* Product Info */}
-            <div className="lg:col-span-5 flex flex-col space-y-8">
-              <div>
-                <h1 className="font-medium text-3xl md:text-4xl text-[#020302] mb-2 font-sans tracking-tight">{product.name}</h1>
-                <div className="flex items-baseline space-x-4">
-                  <span className="text-2xl font-medium text-[#020302] font-sans">
-                    ৳{activeVariant ? activeVariant.sellingPrice.toLocaleString() : minPrice.toLocaleString()}
+            {/* Header Core Details */}
+            <div className="flex-1 flex flex-col justify-between w-full min-w-0 h-full text-center md:text-left space-y-4">
+              <div className="space-y-1">
+                <span className="text-[9px] uppercase tracking-[0.2em] font-extrabold text-neutral-400 font-sans block">
+                  {product.brand || 'Smartphone'}
+                </span>
+                <h1 className="font-extrabold text-2xl md:text-3xl text-[#020302] font-sans tracking-tight leading-tight">
+                  {product.name}
+                </h1>
+                
+                {/* Total quantities & condensed price stats */}
+                <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mt-2 text-[12px] font-bold font-sans">
+                  <span className={`px-2 py-0.5 rounded-full text-[11px] 
+                    ${product.stock === 0 
+                      ? 'bg-rose-50 text-rose-600 border border-rose-100' 
+                      : product.stock <= (product.lowStockThreshold || 4)
+                        ? 'bg-amber-50 text-amber-600 border border-amber-100'
+                        : 'bg-emerald-50 text-emerald-600 border border-emerald-100'}`}
+                  >
+                    {product.stock === 0 ? 'Out of stock' : `${product.stock} units left`}
                   </span>
-                  
-                  {activeVariant && activeVariant.sellingPrice > 0 && (
-                    <>
-                      <span className="text-[16px] leading-[1.6] font-[300] font-sans text-[#5e5e5d] line-through">
-                        ৳{(activeVariant.sellingPrice * 1.17).toLocaleString()}
-                      </span>
-                      <span className="bg-[#e9e8e7] px-2 py-0.5 rounded font-bold text-[12px] leading-[1.4] text-[#464741] font-sans">
-                        17% OFF
-                      </span>
-                    </>
-                  )}
+                  <span className="text-neutral-300">•</span>
+                  <span className="text-neutral-700 bg-neutral-100 px-2.5 py-0.5 rounded-full text-[11px]">
+                    {minPrice === maxPrice ? formatPriceK(minPrice) : `${formatPriceK(minPrice)} – ${formatPriceK(maxPrice)}`}
+                  </span>
                 </div>
               </div>
 
-              {/* Description */}
-              <div className="border-t border-[#c7c7bf] pt-6">
-                <h3 className="font-bold text-[14px] leading-[1.4] tracking-[0.04em] text-[#020302] mb-3 uppercase font-sans">Specifications</h3>
-                <p className="text-[16px] leading-[1.6] font-[300] font-sans text-[#5e5e5d] leading-relaxed whitespace-pre-line">
-                  {product.description || "Samsung Galaxy smartphone features a premium glass back, standard 120Hz Super AMOLED display, and a powerful triple camera setup. Ideal for smooth multitasking and premium mobile photography."}
-                </p>
-              </div>
-
-              {/* Color Swatches */}
-              {uniqueColors.length > 0 && (
-                <div>
-                  <h3 className="font-bold text-[14px] leading-[1.4] tracking-[0.04em] text-[#020302] mb-4 uppercase font-sans">Color Selection</h3>
-                  <div className="flex space-x-3">
-                    {uniqueColors.map((color) => {
-                      const isActive = color === activeColor;
-                      const hex = getColorHex(color);
-                      return (
-                        <button
-                          key={color}
-                          onClick={() => setActiveColor(color)}
-                          className={`w-10 h-10 rounded-full border p-1 transition-all flex items-center justify-center cursor-pointer ${
-                            isActive ? 'border-2 border-[#020302]' : 'border-[#c7c7bf] hover:border-[#5e5e5d]'
-                          }`}
-                          title={color}
-                        >
-                          <div 
-                            className="w-full h-full rounded-full border border-black/10" 
-                            style={{ backgroundColor: hex }}
-                          ></div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* Actions */}
-              <div className="flex space-x-4">
+              {/* Action Toolbar */}
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-2.5 pt-2">
                 <button 
                   onClick={() => onEdit(product)}
-                  className="flex-1 h-12 bg-[#020302] text-[#ffffff] font-bold text-[14px] leading-[1.4] tracking-[0.04em] flex items-center justify-center space-x-2 hover:opacity-90 active:scale-[0.98] transition-all font-sans cursor-pointer"
+                  className="bg-[#020302] hover:bg-neutral-800 text-white text-[11px] font-extrabold uppercase tracking-wider px-5 py-2.5 transition-all duration-200 cursor-pointer active:scale-97 shadow-2xs rounded-xs font-sans flex items-center gap-1.5"
                 >
-                  <Edit2 size={16} />
-                  <span>Edit Listing</span>
+                  <Edit2 size={12} />
+                  <span>Edit</span>
                 </button>
                 <button 
                   onClick={() => {
                     navigator.clipboard.writeText(window.location.href);
                     alert("Product share link copied to clipboard!");
                   }}
-                  className="w-12 h-12 border border-[#c7c7bf] rounded-2xl flex items-center justify-center text-[#020302] hover:bg-[#f5f3f3] transition-all cursor-pointer"
+                  className="bg-white hover:bg-neutral-50 text-[#020302] border border-[#efeded] text-[11px] font-extrabold uppercase tracking-wider px-4 py-2.5 transition-all duration-200 cursor-pointer active:scale-97 shadow-2xs rounded-xs font-sans flex items-center gap-1.5"
+                  title="Share Product"
                 >
-                  <Share2 size={18} />
+                  <Share2 size={13} className="text-neutral-500" />
+                  <span>Share</span>
                 </button>
                 <button 
                   onClick={() => setConfirmDeleteOpen(true)}
-                  className="w-12 h-12 border border-[#ba1a1a] rounded-2xl flex items-center justify-center text-[#ba1a1a] hover:bg-red-50 transition-all cursor-pointer"
-                  title="Delete Product"
+                  className="bg-white hover:bg-rose-50 text-rose-600 border border-[#efeded] hover:border-rose-200 text-[11px] font-extrabold uppercase tracking-wider px-4 py-2.5 transition-all duration-200 cursor-pointer active:scale-97 shadow-2xs rounded-xs font-sans flex items-center gap-1.5"
+                  title="Delete Listing"
                 >
-                  <Trash2 size={18} />
+                  <Trash2 size={13} />
+                  <span>Delete</span>
                 </button>
               </div>
             </div>
           </div>
 
-          {/* Manage Variants */}
-          <section className="mt-16" ref={variantsRef}>
-            <div className="flex justify-between items-center mb-8">
-              <h2 className="font-medium text-xl text-[#020302] font-sans">Manage Variants</h2>
-              <button className="text-[12px] leading-[1.4] tracking-[0.04em] font-normal text-[#020302] border-b-2 border-[#020302] hover:text-[#5e5e5d] hover:border-[#5e5e5d] transition-all pb-1 font-sans cursor-pointer">
-                View All Variants
-              </button>
-            </div>
-            <div className="space-y-4">
-              {product.variants && product.variants.map((v) => {
-                const isOutOfStock = v.quantity === 0;
-                const hex = getColorHex(v.color);
+          {/* COLLAPSIBLE SPECIFICATIONS ACCORDION */}
+          <div className="bg-white border border-[#efeded] rounded-xl overflow-hidden shadow-2xs">
+            <button 
+              onClick={() => setIsSpecsOpen(!isSpecsOpen)}
+              className="w-full px-6 py-4 flex items-center justify-between hover:bg-neutral-50/50 transition-colors cursor-pointer text-left"
+            >
+              <span className="text-[12px] font-extrabold uppercase tracking-wider text-neutral-500 font-sans">
+                {isSpecsOpen ? 'Hide specifications' : 'View specifications'}
+              </span>
+              {isSpecsOpen ? <ChevronUp size={16} className="text-neutral-400" /> : <ChevronDown size={16} className="text-neutral-400" />}
+            </button>
+            
+            <AnimatePresence initial={false}>
+              {isSpecsOpen && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.25, ease: 'easeInOut' }}
+                >
+                  <div className="px-6 pb-6 pt-2 border-t border-[#efeded] space-y-6 text-left">
+                    {/* Description Paragraph */}
+                    <div className="space-y-2">
+                      <h4 className="text-[11px] font-extrabold uppercase tracking-widest text-neutral-400">Description</h4>
+                      <p className="text-[14px] leading-relaxed text-neutral-600 font-normal font-sans whitespace-pre-line">
+                        {product.description || "Samsung Galaxy smartphone features a premium glass back, standard 120Hz Super AMOLED display, and a powerful triple camera setup. Ideal for smooth multitasking and premium mobile photography."}
+                      </p>
+                    </div>
 
-                if (isOutOfStock) {
+                    {/* Quick Specs Metadata Grid */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-2">
+                      <div className="bg-neutral-50 p-3 rounded-lg border border-[#efeded]">
+                        <span className="text-[9px] uppercase tracking-widest font-bold text-neutral-400 font-sans block">Brand</span>
+                        <span className="text-[13px] font-bold text-neutral-800 font-sans mt-0.5 block">{product.brand || 'N/A'}</span>
+                      </div>
+                      <div className="bg-neutral-50 p-3 rounded-lg border border-[#efeded]">
+                        <span className="text-[9px] uppercase tracking-widest font-bold text-neutral-400 font-sans block">Total Variants</span>
+                        <span className="text-[13px] font-bold text-neutral-800 font-sans mt-0.5 block">{product.variants?.length || 0}</span>
+                      </div>
+                      <div className="bg-neutral-50 p-3 rounded-lg border border-[#efeded]">
+                        <span className="text-[9px] uppercase tracking-widest font-bold text-neutral-400 font-sans block">Low Stock Limit</span>
+                        <span className="text-[13px] font-bold text-neutral-800 font-sans mt-0.5 block">{product.lowStockThreshold || 4} units</span>
+                      </div>
+                      <div className="bg-neutral-50 p-3 rounded-lg border border-[#efeded]">
+                        <span className="text-[9px] uppercase tracking-widest font-bold text-neutral-400 font-sans block">Stock Status</span>
+                        <span className="text-[13px] font-bold text-neutral-800 font-sans mt-0.5 block">
+                          {product.stock === 0 ? 'Depleted' : product.stock <= (product.lowStockThreshold || 4) ? 'Low' : 'Healthy'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Interactive Swatch Colors if present */}
+                    {uniqueColors.length > 0 && (
+                      <div className="pt-2">
+                        <h4 className="text-[11px] font-extrabold uppercase tracking-widest text-neutral-400 mb-3">Color Swatches ({uniqueColors.length})</h4>
+                        <div className="flex space-x-2.5">
+                          {uniqueColors.map((color) => {
+                            const isActive = color === activeColor;
+                            const hex = getColorHex(color);
+                            return (
+                              <button
+                                key={color}
+                                onClick={() => setActiveColor(color)}
+                                className={`w-8 h-8 rounded-full border p-0.5 transition-all flex items-center justify-center cursor-pointer ${
+                                  isActive ? 'border-2 border-[#020302] scale-105 shadow-xs' : 'border-[#c7c7bf] hover:border-[#5e5e5d]'
+                                }`}
+                                title={color}
+                              >
+                                <div 
+                                  className="w-full h-full rounded-full border border-black/10" 
+                                  style={{ backgroundColor: hex }}
+                                ></div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* MANAGE VARIANTS SECTION (DOMINATES THE SCREEN) */}
+          <section ref={variantsRef} className="space-y-5 text-left">
+            <div className="flex justify-between items-center border-b border-[#efeded] pb-4">
+              <h2 className="font-extrabold text-sm uppercase tracking-widest text-[#020302] font-sans">Manage Variants</h2>
+              <span className="text-[11px] font-bold text-neutral-400 font-sans bg-neutral-100 px-2.5 py-0.5 rounded-full">
+                {product.variants?.length || 0} active configurations
+              </span>
+            </div>
+
+            <div className="space-y-3">
+              {product.variants && product.variants.length > 0 ? (
+                product.variants.map((v) => {
+                  const isOutOfStock = v.quantity === 0;
+                  const threshold = product.lowStockThreshold || 4;
+                  const isLowStock = v.quantity > 0 && v.quantity <= threshold;
+                  const hex = getColorHex(v.color);
+
                   return (
-                    <div key={v.id} className="bg-white border border-[#c7c7bf] p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 opacity-75">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-12 h-12 rounded-lg border border-[#c7c7bf] flex-shrink-0" style={{ backgroundColor: hex }}></div>
-                        <div>
-                          <h4 className="font-bold text-[14px] leading-[1.4] tracking-[0.04em] text-[#020302] font-sans">
+                    <div 
+                      key={v.id} 
+                      className={`bg-white border p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all duration-300 rounded-xl shadow-2xs hover:border-black/50
+                        ${isOutOfStock ? 'border-neutral-200 bg-neutral-50/50 opacity-90' : 'border-[#efeded]'}`}
+                    >
+                      {/* Color Dot & Specs Title */}
+                      <div className="flex items-center space-x-3.5">
+                        <div className="w-8 h-8 rounded-full border border-[#c7c7bf] flex-shrink-0 shadow-2xs" style={{ backgroundColor: hex }}></div>
+                        <div className="space-y-0.5">
+                          <h4 className="font-extrabold text-[15px] text-[#020302] font-sans tracking-tight">
                             {v.color} {v.ram.replace('GB','')}/{v.storage.replace('GB','')}
                           </h4>
-                          <p className="font-bold text-[12px] leading-[1.4] text-[#ba1a1a] font-sans mt-1">OUT OF STOCK</p>
+                          <p className={`text-[12px] font-bold font-sans flex items-center gap-1.5
+                            ${isOutOfStock 
+                              ? 'text-rose-600' 
+                              : isLowStock 
+                                ? 'text-amber-600' 
+                                : 'text-emerald-600'}`}
+                          >
+                            <span className={`inline-block w-1.5 h-1.5 rounded-full ${isOutOfStock ? 'bg-rose-500' : isLowStock ? 'bg-amber-500' : 'bg-emerald-500'}`} />
+                            Stock: {v.quantity}
+                          </p>
                         </div>
                       </div>
-                      <div className="grid grid-cols-2 md:grid-cols-2 gap-8 text-left">
-                        <div>
-                          <p className="font-bold text-[12px] leading-[1.4] text-[#5e5e5d] uppercase mb-1 font-sans tracking-wide">Buying Price</p>
-                          <p className="font-bold text-[14px] leading-[1.4] tracking-[0.04em] text-[#020302] font-sans">৳{v.buyingPrice.toLocaleString()}</p>
+
+                      {/* Buy & Sell Values Grid */}
+                      <div className="flex gap-8 text-left bg-neutral-50 px-4 py-2.5 rounded-lg border border-[#efeded] md:min-w-[180px]">
+                        <div className="flex-1">
+                          <p className="text-[9px] font-bold text-neutral-400 uppercase tracking-widest font-sans">Buy</p>
+                          <p className="font-extrabold text-[13px] text-[#020302] font-sans mt-0.5">
+                            {formatPriceK(v.buyingPrice)}
+                          </p>
                         </div>
-                        <div>
-                          <p className="font-bold text-[12px] leading-[1.4] text-[#5e5e5d] uppercase mb-1 font-sans tracking-wide">Selling Price</p>
-                          <p className="font-bold text-[14px] leading-[1.4] tracking-[0.04em] text-[#020302] font-sans">৳{v.sellingPrice.toLocaleString()}</p>
+                        <div className="w-[1px] bg-neutral-200 self-stretch" />
+                        <div className="flex-1">
+                          <p className="text-[9px] font-bold text-neutral-400 uppercase tracking-widest font-sans">Sell</p>
+                          <p className="font-extrabold text-[13px] text-[#020302] font-sans mt-0.5">
+                            {formatPriceK(v.sellingPrice)}
+                          </p>
                         </div>
                       </div>
+
+                      {/* Satisfying Inline Restock & Sell Button Controls */}
                       <div className="flex space-x-2">
                         <button 
                           onClick={() => handleStockAdjust(v, 1)}
-                          className="px-4 py-2 bg-[#020302] text-[#ffffff] font-bold text-[14px] leading-[1.4] tracking-[0.04em] rounded hover:opacity-90 transition-all active:scale-95 font-sans cursor-pointer"
+                          className="px-4 py-2 bg-white hover:bg-neutral-50 text-[#020302] border border-[#efeded] text-[11px] font-extrabold uppercase tracking-wider transition-all duration-150 active:scale-95 shadow-2xs rounded-xs font-sans cursor-pointer flex items-center gap-1"
                         >
-                          Restock
+                          <span>+ Stock</span>
                         </button>
                         <button 
-                          disabled
-                          className="px-4 py-2 bg-[#e3e2e2]/20 text-[#5e5e5d] font-bold text-[14px] leading-[1.4] tracking-[0.04em] rounded border border-[#c7c7bf] cursor-not-allowed font-sans"
+                          onClick={() => handleStockAdjust(v, -1)}
+                          disabled={isOutOfStock}
+                          className={`px-5 py-2 font-extrabold text-[11px] uppercase tracking-wider transition-all duration-150 active:scale-95 rounded-xs font-sans cursor-pointer
+                            ${isOutOfStock 
+                              ? 'bg-neutral-100 text-neutral-400 border border-neutral-200 cursor-not-allowed line-through' 
+                              : 'bg-[#020302] hover:bg-neutral-800 text-white shadow-2xs'}`}
                         >
-                          Mark Sold
+                          Sell
                         </button>
                       </div>
                     </div>
                   );
-                }
-
-                return (
-                  <div key={v.id} className="bg-white border border-[#c7c7bf] p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div className="flex items-center space-x-4">
-                      <div className="w-12 h-12 rounded-lg border border-[#c7c7bf] flex-shrink-0" style={{ backgroundColor: hex }}></div>
-                      <div>
-                        <h4 className="font-bold text-[14px] leading-[1.4] tracking-[0.04em] text-[#020302] font-sans">
-                          {v.color} {v.ram.replace('GB','')}/{v.storage.replace('GB','')}
-                        </h4>
-                        <p className="text-[12px] leading-[1.4] font-normal text-[#5e5e5d] font-sans mt-1">
-                          Stock: <span className="font-bold text-[#1b1c1c]">{v.quantity} units</span>
-                        </p>
-                      </div>
+                })
+              ) : (
+                /* Fallback for single standard layout if no variants listed */
+                <div className="bg-white border border-[#efeded] p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 rounded-xl shadow-2xs">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 rounded-full border border-neutral-300 bg-neutral-100 flex items-center justify-center flex-shrink-0">
+                      <span className="text-[9px] font-bold text-neutral-400">STD</span>
                     </div>
-                    <div className="grid grid-cols-2 md:grid-cols-2 gap-8 text-left">
-                      <div>
-                        <p className="font-bold text-[12px] leading-[1.4] text-[#5e5e5d] uppercase mb-1 font-sans tracking-wide">Buying Price</p>
-                        <p className="font-bold text-[14px] leading-[1.4] tracking-[0.04em] text-[#020302] font-sans">৳{v.buyingPrice.toLocaleString()}</p>
-                      </div>
-                      <div>
-                        <p className="font-bold text-[12px] leading-[1.4] text-[#5e5e5d] uppercase mb-1 font-sans tracking-wide">Selling Price</p>
-                        <p className="font-bold text-[14px] leading-[1.4] tracking-[0.04em] text-[#020302] font-sans">৳{v.sellingPrice.toLocaleString()}</p>
-                      </div>
-                    </div>
-                    <div className="flex space-x-2">
-                      <button 
-                        onClick={() => handleStockAdjust(v, 1)}
-                        className="px-4 py-2 bg-[#efeded] text-[#020302] font-bold text-[14px] leading-[1.4] tracking-[0.04em] rounded border border-[#c7c7bf] hover:bg-[#e9e8e7] transition-all active:scale-95 font-sans cursor-pointer"
-                      >
-                        Add Stock
-                      </button>
-                      <button 
-                        onClick={() => handleStockAdjust(v, -1)}
-                        className="px-4 py-2 bg-[#020302] text-[#ffffff] font-bold text-[14px] leading-[1.4] tracking-[0.04em] rounded hover:opacity-90 transition-all active:scale-95 font-sans cursor-pointer"
-                      >
-                        Mark Sold
-                      </button>
+                    <div className="space-y-0.5">
+                      <h4 className="font-extrabold text-[14px] text-[#020302] font-sans tracking-tight">Standard Variant</h4>
+                      <p className={`text-[12px] font-bold font-sans ${product.stock === 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
+                        Stock: {product.stock}
+                      </p>
                     </div>
                   </div>
-                );
-              })}
+                  <div className="flex gap-8 text-left bg-neutral-50 px-4 py-2 rounded-lg border border-[#efeded] md:min-w-[180px]">
+                    <div>
+                      <p className="text-[9px] font-bold text-neutral-400 uppercase tracking-widest font-sans">Buy</p>
+                      <p className="font-extrabold text-[13px] text-[#020302] font-sans mt-0.5">
+                        {formatPriceK(product.variants?.[0]?.buyingPrice || 25000)}
+                      </p>
+                    </div>
+                    <div className="w-[1px] bg-neutral-200 self-stretch" />
+                    <div>
+                      <p className="text-[9px] font-bold text-neutral-400 uppercase tracking-widest font-sans">Sell</p>
+                      <p className="font-extrabold text-[13px] text-[#020302] font-sans mt-0.5">
+                        {formatPriceK(product.variants?.[0]?.sellingPrice || 30000)}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex space-x-2">
+                    <button 
+                      onClick={() => {
+                        const defaultV = product.variants?.[0] || { id: 'default', color: 'Standard', ram: '', storage: '', quantity: product.stock, buyingPrice: 25000, sellingPrice: 30000 };
+                        handleStockAdjust(defaultV as any, 1);
+                      }}
+                      className="px-4 py-2 bg-white hover:bg-neutral-50 text-[#020302] border border-[#efeded] text-[11px] font-extrabold uppercase tracking-wider rounded border transition-all active:scale-95 font-sans cursor-pointer"
+                    >
+                      + Stock
+                    </button>
+                    <button 
+                      onClick={() => {
+                        const defaultV = product.variants?.[0] || { id: 'default', color: 'Standard', ram: '', storage: '', quantity: product.stock, buyingPrice: 25000, sellingPrice: 30000 };
+                        handleStockAdjust(defaultV as any, -1);
+                      }}
+                      disabled={product.stock === 0}
+                      className={`px-5 py-2 font-extrabold text-[11px] uppercase tracking-wider rounded transition-all active:scale-95 font-sans cursor-pointer
+                        ${product.stock === 0 
+                          ? 'bg-neutral-100 text-neutral-400 border border-neutral-200 cursor-not-allowed line-through' 
+                          : 'bg-[#020302] hover:bg-neutral-800 text-white shadow-2xs'}`}
+                    >
+                      Sell
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </section>
 
-          {/* Transaction History */}
-          <section className="mt-16 mb-12">
-            <div className="border-b border-[#c7c7bf] pb-4 mb-6">
-              <h2 className="font-bold text-[14px] leading-[1.4] tracking-[0.2em] text-[#020302] uppercase font-sans">Stock Transaction History</h2>
+          {/* STOCK ACTIVITY FEED (TIMELINE - AUDIT Feed replacing accounting tables) */}
+          <section className="space-y-6 text-left pt-4">
+            <div className="border-b border-[#efeded] pb-4">
+              <h2 className="font-extrabold text-sm uppercase tracking-widest text-[#020302] font-sans">Stock Activity History</h2>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-[#f5f3f3]">
-                  <tr>
-                    <th className="px-6 py-4 text-left font-bold text-[12px] leading-[1.4] text-[#5e5e5d] uppercase font-sans">Date</th>
-                    <th className="px-6 py-4 text-left font-bold text-[12px] leading-[1.4] text-[#5e5e5d] uppercase font-sans">Action</th>
-                    <th className="px-6 py-4 text-left font-bold text-[12px] leading-[1.4] text-[#5e5e5d] uppercase font-sans">Variant</th>
-                    <th className="px-6 py-4 text-left font-bold text-[12px] leading-[1.4] text-[#5e5e5d] uppercase font-sans">Qty</th>
-                    <th className="px-6 py-4 text-left font-bold text-[12px] leading-[1.4] text-[#5e5e5d] uppercase font-sans">Total Value</th>
-                    <th className="px-6 py-4 text-right font-bold text-[12px] leading-[1.4] text-[#5e5e5d] uppercase font-sans">Balance</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#c7c7bf]">
-                  {product.history && product.history.length > 0 ? (
-                    product.history.map((log: any, idx: number) => {
-                      const parts = log.text.split(' — ');
-                      const actionDesc = parts[0] || 'Updated';
-                      const variantDetails = parts.length === 3 ? parts[1] : (product.variants?.[0] ? `${product.variants[0].color} ${product.variants[0].ram}/${product.variants[0].storage}` : 'Standard');
-                      const dateStr = parts.length === 3 ? parts[2] : (parts[1] || 'Today');
-                      const isSell = log.type === 'sell';
-                      
-                      const qtyMatch = actionDesc.match(/\d+/);
-                      const qtyVal = qtyMatch ? parseInt(qtyMatch[0]) : 1;
-                      const displayQty = isSell ? `-${qtyVal}` : `+${qtyVal}`;
+            
+            {product.history && product.history.length > 0 ? (
+              <div className="relative border-l border-neutral-200 ml-3 pl-6 space-y-4 font-sans">
+                {product.history.map((log: any, idx: number) => {
+                  const parts = log.text.split(' — ');
+                  const actionDesc = parts[0] || 'Inventory adjustment';
+                  const variantDetails = parts.length === 3 ? parts[1] : (product.variants?.[0] ? `${product.variants[0].color} ${product.variants[0].ram}/${product.variants[0].storage}` : 'Standard');
+                  const dateStr = parts.length === 3 ? parts[2] : (parts[1] || 'Today');
+                  const isSell = log.type === 'sell';
 
-                      const matchedVariant = product.variants?.find(v => variantDetails.toLowerCase().includes(v.color.toLowerCase()));
-                      const price = matchedVariant ? (isSell ? matchedVariant.sellingPrice : matchedVariant.buyingPrice) : (product.variants?.[0]?.sellingPrice || 0);
-                      const totalValue = price * qtyVal;
+                  return (
+                    <div key={idx} className="relative group">
+                      {/* Timeline Dot Connector */}
+                      <span className={`absolute -left-[30px] top-1.5 flex h-4.5 w-4.5 items-center justify-center rounded-full border bg-white transition-transform duration-250 group-hover:scale-110
+                        ${isSell 
+                          ? 'border-amber-300 text-amber-500' 
+                          : 'border-emerald-300 text-emerald-500'}`}
+                      >
+                        <span className={`h-2 w-2 rounded-full ${isSell ? 'bg-amber-500' : 'bg-emerald-500'}`} />
+                      </span>
 
-                      const displayBalance = product.stock; // Approximation
-
-                      return (
-                        <tr key={idx} className="hover:bg-white transition-colors">
-                          <td className="px-6 py-4 text-[16px] leading-[1.6] font-[300] text-[#1b1c1c] font-sans">{dateStr}</td>
-                          <td className="px-6 py-4 font-bold text-[14px] leading-[1.4] tracking-[0.04em] font-sans">
-                            {isSell ? (
-                              <span className="text-[#ba1a1a] flex items-center">
-                                <ArrowUpRight size={16} className="mr-2" strokeWidth={3} /> Sold
-                              </span>
-                            ) : (
-                              <span className="text-green-600 flex items-center">
-                                <ArrowDownLeft size={16} className="mr-2" strokeWidth={3} /> Added
-                              </span>
-                            )}
-                          </td>
-                          <td className="px-6 py-4 text-[16px] leading-[1.6] font-[300] text-[#1b1c1c] font-sans">{variantDetails}</td>
-                          <td className="px-6 py-4 text-[16px] leading-[1.6] font-[300] text-[#1b1c1c] font-sans">{displayQty}</td>
-                          <td className="px-6 py-4 text-[16px] leading-[1.6] font-[300] text-[#1b1c1c] font-sans">৳{totalValue.toLocaleString()}</td>
-                          <td className="px-6 py-4 text-right text-[16px] leading-[1.6] font-[300] text-[#1b1c1c] font-sans">{displayBalance}</td>
-                        </tr>
-                      );
-                    })
-                  ) : (
-                    <tr>
-                      <td colSpan={6} className="px-6 py-8 text-center text-[#5e5e5d] font-sans">
-                        No transactions recorded yet. Adjust stock to see history.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                      {/* Audit Row Box */}
+                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white border border-[#efeded] p-4 hover:border-black transition-colors rounded-xl shadow-2xs">
+                        <div className="space-y-1">
+                          <h4 className="text-[13px] font-extrabold text-neutral-800 font-sans tracking-tight">
+                            {actionDesc}
+                          </h4>
+                          <p className="text-[11px] font-bold text-neutral-400 font-sans uppercase tracking-widest">
+                            Configuration: {variantDetails}
+                          </p>
+                        </div>
+                        <div className="text-left md:text-right flex items-center md:justify-end">
+                          <span className="text-[10px] font-extrabold text-neutral-400 font-sans uppercase tracking-widest bg-neutral-100 px-2 py-1 rounded-sm">
+                            {dateStr}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-12 bg-white border border-[#efeded] text-neutral-400 text-sm font-sans rounded-xl">
+                No inventory logs recorded. Adjust a variant's stock to begin populating this timeline.
+              </div>
+            )}
           </section>
 
         </div>
       </div>
 
-      {/* Delete Confirmation Modal */}
+      {/* Delete Confirmation Overlay modal */}
       <AnimatePresence>
         {confirmDeleteOpen && (
           <div className="fixed inset-0 bg-black/60 z-[200] flex items-center justify-center p-4 backdrop-blur-sm">
