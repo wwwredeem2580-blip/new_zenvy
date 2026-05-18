@@ -29,7 +29,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${dmSans.variable} ${lora.variable}`}>
-       <body className="antialiased font-sans">
+       <body className="antialiased font-sans pb-24">
          <ZenvyProvider>
            {children}
          </ZenvyProvider>
