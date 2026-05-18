@@ -122,6 +122,8 @@ function DashboardContent() {
     router.push(`?${params.toString()}`);
   };
   const [searchTerm, setSearchTerm] = useState('');
+  const [isGlobalSearchOpen, setIsGlobalSearchOpen] = useState(false);
+  const [globalSearchQuery, setGlobalSearchQuery] = useState('');
   const [activeProductFilter, setActiveProductFilter] = useState('All');
   const [previewingProduct, setPreviewingProduct] = useState<Product | null>(null);
   const [showSuccessOverlay, setShowSuccessOverlay] = useState(false);
@@ -386,6 +388,43 @@ function DashboardContent() {
       localStorage.setItem('zenvy_productList', JSON.stringify(productList));
     }
   }, [productList]);
+
+  // Listen for Cmd+K / Ctrl+K global search shortcut and Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsGlobalSearchOpen(true);
+      }
+      if (e.key === 'Escape') {
+        setIsGlobalSearchOpen(false);
+        setGlobalSearchQuery('');
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Global search filtering
+  const filteredSearchProducts = globalSearchQuery.trim() === ''
+    ? productList.slice(0, 3) // show first 3 items as suggestions when query is empty
+    : productList.filter((product) => {
+        const query = globalSearchQuery.toLowerCase();
+        
+        // Match brand or name
+        const matchBrand = product.brand?.toLowerCase().includes(query) || false;
+        const matchName = product.name.toLowerCase().includes(query);
+        
+        // Match any variant specs (color, ram, storage, sku)
+        const matchVariants = product.variants?.some(v => 
+          v.color.toLowerCase().includes(query) ||
+          v.ram.toLowerCase().includes(query) ||
+          v.storage.toLowerCase().includes(query) ||
+          v.sku?.toLowerCase().includes(query)
+        ) || false;
+        
+        return matchBrand || matchName || matchVariants;
+      });
 
   const handleMarkAsSoldClick = (product: Product) => {
     setActiveMarkSoldProduct(product);
@@ -689,16 +728,15 @@ function DashboardContent() {
               </div>
 
               <div className="flex items-center gap-6">
-                <div className="hidden md:flex items-center relative w-64">
+                <div 
+                  onClick={() => setIsGlobalSearchOpen(true)}
+                  className="hidden md:flex items-center relative w-64 cursor-pointer select-none"
+                >
                   <Search size={14} className="absolute left-3 text-[#5e5e5d] opacity-60" />
-                  <input 
-                    type="text" 
-                    placeholder="Search inventory..." 
-                    className="w-full bg-[#f5f3f3] border-none rounded-sm py-1.5 pl-9 pr-12 text-xs font-semibold text-[#020302] placeholder-[#5e5e5d]/60 focus:outline-none focus:ring-1 focus:ring-[#efeded]"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                  <div className="absolute right-2 px-1.5 py-0.5 border border-[#c7c7bf]/30 rounded-sm text-[8px] font-bold text-[#5e5e5d]/60 bg-white shadow-2xs pointer-events-none select-none">
+                  <div className="w-full bg-[#f5f3f3] border border-transparent rounded-sm py-1.5 pl-9 pr-12 text-xs font-semibold text-[#5e5e5d]/60 hover:bg-[#efeded]/70 transition-all text-left">
+                    Search inventory...
+                  </div>
+                  <div className="absolute right-2 px-1.5 py-0.5 border border-[#c7c7bf]/30 rounded-sm text-[8px] font-bold text-[#5e5e5d]/60 bg-white shadow-2xs pointer-events-none">
                     ⌘ K
                   </div>
                 </div>
@@ -712,6 +750,13 @@ function DashboardContent() {
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                     <span className="hidden sm:inline">LIVE STORE</span>
                     <Share2 size={11} className="text-[#5e5e5d] stroke-[2.5]" />
+                  </button>
+                  <button 
+                    onClick={() => setIsGlobalSearchOpen(true)}
+                    className="p-2 hover:bg-[#f5f3f3]/50 rounded-sm transition-all relative cursor-pointer md:hidden"
+                    title="Quick Search"
+                  >
+                    <Search size={18} className="text-[#020302] stroke-[2]" />
                   </button>
                   <button 
                     onClick={() => handleTabChange('Notifications')}
@@ -1995,6 +2040,210 @@ function DashboardContent() {
               >
                 Close Window
               </button>
+            </motion.div>
+          </div>
+        )}
+
+        {isGlobalSearchOpen && (
+          <div className="fixed inset-0 z-[100] flex items-start justify-center pt-16 md:pt-24 px-4 animate-in fade-in duration-150">
+            {/* Backdrop */}
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => {
+                setIsGlobalSearchOpen(false);
+                setGlobalSearchQuery('');
+              }}
+              className="absolute inset-0 bg-[#020302]/40 backdrop-blur-xs"
+            />
+
+            {/* Modal Box */}
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.97, y: -10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.97, y: -10 }}
+              transition={{ duration: 0.15, ease: 'easeOut' }}
+              className="relative w-full max-w-2xl bg-white rounded-sm border border-[#efeded] shadow-2xl flex flex-col max-h-[75vh] overflow-hidden z-10"
+            >
+              {/* Search input header */}
+              <div className="flex items-center gap-3 px-4 py-3.5 border-b border-[#efeded] bg-white shrink-0">
+                <Search size={18} className="text-[#5e5e5d] opacity-50 shrink-0" />
+                <input 
+                  id="global-search-input"
+                  type="text" 
+                  placeholder="Search products, brands, variants..." 
+                  className="flex-1 bg-transparent border-none text-[13px] font-sans font-medium text-[#020302] placeholder-[#5e5e5d]/60 focus:outline-none focus:ring-0"
+                  value={globalSearchQuery}
+                  onChange={(e) => setGlobalSearchQuery(e.target.value)}
+                  autoFocus
+                />
+                
+                <div className="flex items-center gap-2 shrink-0 select-none">
+                  <div className="hidden sm:block px-1.5 py-0.5 border border-[#c7c7bf]/30 rounded-xs text-[8px] font-bold text-[#5e5e5d]/60 bg-[#f5f3f3]">
+                    ESC
+                  </div>
+                  <button 
+                    onClick={() => {
+                      setIsGlobalSearchOpen(false);
+                      setGlobalSearchQuery('');
+                    }}
+                    className="p-1 hover:bg-[#f5f3f3]/70 rounded-full transition-colors"
+                  >
+                    <X size={15} className="text-[#5e5e5d]" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Results Container */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-[#fbf9f9]">
+                {globalSearchQuery.trim() === '' && (
+                  <p className="text-[10px] uppercase tracking-[0.16em] text-[#a3a3a3] font-bold px-1 mb-2">Quick Suggestions</p>
+                )}
+
+                {filteredSearchProducts.length > 0 ? (
+                  filteredSearchProducts.map((product) => {
+                    const isLowStock = product.stock <= (product.lowStockThreshold || 4);
+                    
+                    return (
+                      <div 
+                        key={product.id}
+                        className="bg-white border border-[#efeded] rounded-sm p-4 hover:border-[#c7c7bf] transition-all flex flex-col gap-3 group/item text-left animate-in fade-in duration-100"
+                      >
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex flex-row items-center gap-3">
+                            <img 
+                              src={product.image || "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=200&auto=format&fit=crop"} 
+                              alt={product.name}
+                              className="w-10 h-10 rounded-xs border border-[#efeded] object-cover bg-[#fbf9f9] flex-shrink-0"
+                            />
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs uppercase tracking-widest text-[#a3a3a3] font-bold">
+                                  {product.brand || 'ZENVY'}
+                                </span>
+                                <span className="w-1 h-1 rounded-full bg-[#efeded]"></span>
+                                <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-[3px] ${
+                                  product.stock === 0 
+                                    ? 'bg-rose-50 text-rose-600 border border-rose-100'
+                                    : isLowStock 
+                                      ? 'bg-amber-50 text-amber-600 border border-amber-100'
+                                      : 'bg-emerald-50 text-emerald-600 border border-emerald-100'
+                                }`}>
+                                  {product.stock === 0 ? 'Out of Stock' : isLowStock ? 'Low Stock' : 'Active'}
+                                </span>
+                              </div>
+                              <h4 className="text-[13px] font-semibold text-[#020302] font-sans mt-0.5 truncate leading-snug">
+                                {product.name}
+                              </h4>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <button 
+                              onClick={() => {
+                                setIsGlobalSearchOpen(false);
+                                handleTabChange('Products');
+                                setSearchTerm(product.name);
+                              }}
+                              className="py-1 px-2.5 rounded-xs border border-[#efeded] hover:border-[#020302] hover:bg-[#020302] hover:text-white transition-all text-[10px] font-bold uppercase tracking-wider text-[#5e5e5d] cursor-pointer"
+                            >
+                              Edit Details
+                            </button>
+                            <button 
+                              onClick={() => {
+                                setIsGlobalSearchOpen(false);
+                                setActiveMarkSoldProduct(product);
+                              }}
+                              className="py-1 px-2.5 rounded-xs bg-[#020302] hover:bg-neutral-800 text-white transition-all text-[10px] font-bold uppercase tracking-wider cursor-pointer"
+                            >
+                              Sell POS
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Variants Specs Table */}
+                        {product.variants && product.variants.length > 0 ? (
+                          <div className="border-t border-[#efeded]/80 pt-3 space-y-1.5">
+                            <div className="grid grid-cols-12 text-[9px] uppercase tracking-wider font-bold text-[#a3a3a3] px-2 mb-1">
+                              <div className="col-span-5 text-left">Variant Spec</div>
+                              <div className="col-span-3 text-center">Stock Quantity</div>
+                              <div className="col-span-4 text-right">Selling Price</div>
+                            </div>
+                            
+                            {product.variants.map((v) => {
+                              const variantLow = v.quantity <= (product.lowStockThreshold || 4);
+                              return (
+                                <div 
+                                  key={v.id} 
+                                  className="grid grid-cols-12 items-center justify-between text-xs py-2 px-2.5 rounded-xs bg-[#fbf9f9] border border-[#efeded] hover:border-[#dbdad9] transition-colors gap-2 text-left"
+                                >
+                                  <div className="col-span-5 flex items-center gap-1.5 min-w-0">
+                                    <span className="font-semibold text-[#020302] truncate">{v.color}</span>
+                                    <span className="text-gray-300 select-none text-[10px] font-light">|</span>
+                                    <span className="text-gray-500 font-medium shrink-0">{v.ram}/{v.storage}</span>
+                                  </div>
+                                  <div className="col-span-3 text-center">
+                                    <span className={`font-semibold px-2 py-0.5 rounded-sm text-[10px] ${
+                                      v.quantity === 0 
+                                        ? 'bg-rose-50 text-rose-600'
+                                        : variantLow 
+                                          ? 'bg-amber-50 text-amber-600'
+                                          : 'bg-gray-100 text-gray-600'
+                                    }`}>
+                                      {v.quantity} units
+                                    </span>
+                                  </div>
+                                  <div className="col-span-4 text-right font-bold text-[#020302] font-sans">
+                                    {v.sellingPrice.toLocaleString()} BDT
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <div className="border-t border-[#efeded]/80 pt-3 flex items-center justify-between text-xs py-2 px-2.5 rounded-xs bg-[#fbf9f9] border border-[#efeded]">
+                            <span className="text-gray-500 font-medium">Standard Spec</span>
+                            <div className="flex items-center gap-4">
+                              <span className={`font-semibold px-2 py-0.5 rounded-sm text-[10px] ${
+                                product.stock === 0 
+                                  ? 'bg-rose-50 text-rose-600'
+                                  : isLowStock 
+                                    ? 'bg-amber-50 text-amber-600'
+                                    : 'bg-gray-100 text-gray-600'
+                              }`}>
+                                {product.stock} units
+                              </span>
+                              <span className="font-bold text-[#020302] font-sans">
+                                {product.variants?.[0]?.sellingPrice?.toLocaleString() || '32,999'} BDT
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="py-12 px-6 flex flex-col items-center justify-center text-center">
+                    <div className="w-12 h-12 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center mb-3">
+                      <Search size={20} className="text-gray-400" />
+                    </div>
+                    <h4 className="text-sm font-semibold text-[#020302] font-sans">No products found</h4>
+                    <p className="text-xs text-gray-500 font-light mt-1 max-w-sm">
+                      We couldn't find any inventory item matching <span className="font-semibold text-gray-700">"{globalSearchQuery}"</span>. Try adjusting your spelling or brand.
+                    </p>
+                    <button 
+                      onClick={() => {
+                        setIsGlobalSearchOpen(false);
+                        handleTabChange('Products');
+                      }}
+                      className="mt-4 py-2 px-4 bg-[#020302] hover:bg-neutral-800 text-white rounded-sm text-xs font-bold uppercase tracking-wider cursor-pointer"
+                    >
+                      Add New Product
+                    </button>
+                  </div>
+                )}
+              </div>
             </motion.div>
           </div>
         )}
