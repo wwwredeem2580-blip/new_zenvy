@@ -133,21 +133,21 @@ export default function ProductDetailsScreen({
         <div className="max-w-6xl mx-auto">
           
           {/* Breadcrumb */}
-          <nav className="flex items-center space-x-2 text-[12px] leading-[1.4] font-normal text-[#5e5e5d] mb-8 font-sans">
-            <button onClick={onBack} className="hover:text-[#020302] transition-colors cursor-pointer bg-transparent border-none p-0 text-[12px]">Inventory</button>
-            <ChevronRight size={14} />
-            <span className="text-[#020302] font-bold">{product.name}</span>
+          <nav className="fixed top-0 z-40 h-[54px] md:h-[64px] border-b border-gray-300 left-0 right-0 px-6 flex bg-white items-center space-x-2 text-[12px] leading-[1.4] font-normal text-[#5e5e5d] mb-8 font-sans">
+            <button onClick={onBack} className="hover:text-[#020302] transition-colors cursor-pointer bg-transparent border-none p-0 text-[13px]">Inventory</button>
+            <ChevronRight size={15} />
+            <span className="text-[#020302] font-bold text-[13px]">{product.name}</span>
           </nav>
 
           {/* TWO-COLUMN GRID: Preserved Exactly */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-[24px]">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-[24px] mt-10">
             
             {/* Product Gallery (Bento Layout) - Preserved Exactly */}
             <div className="lg:col-span-7 -mx-4 md:mx-0">
               <div className="flex md:grid md:grid-cols-4 md:grid-rows-[repeat(2,250px)] gap-[16px] overflow-x-auto snap-x snap-mandatory px-4 md:px-0 pb-4 md:pb-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                 
                 {/* Bento Item Large */}
-                <div className="flex-none w-[85vw] md:w-auto snap-center md:col-span-2 md:row-span-2 relative overflow-hidden border border-[#c7c7bf] bg-white aspect-[4/5] md:aspect-auto">
+                <div className="flex-none w-[65vw] md:w-auto snap-center md:col-span-2 md:row-span-2 relative overflow-hidden border border-[#c7c7bf] bg-white aspect-[4/5] md:aspect-auto">
                   <img 
                     className="w-full h-full object-cover transition-transform duration-500 hover:scale-105" 
                     src={getBentoImage(4)} 

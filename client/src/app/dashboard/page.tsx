@@ -38,7 +38,9 @@ import {
   Settings,
   BarChart3,
   HelpCircle,
-  User
+  User,
+  ShareIcon,
+  MessageSquareShareIcon
 } from 'lucide-react';
 import { useZenvy } from '@/context/ZenvyContext';
 import { SidebarSection, SidebarItem, SidebarSubItem, NavItem } from '@/components/SidebarComponents';
@@ -51,6 +53,7 @@ import MarkSoldModal from '@/components/MarkSoldModal';
 import InvoiceSuccessModal from '@/components/InvoiceSuccessModal';
 
 import confetti from 'canvas-confetti';
+import { Share } from 'next/font/google';
 
 function DashboardContent() {
   const { storeName, setStoreName, storeLocation, setStoreLocation, whatsAppNumber, setWhatsAppNumber } = useZenvy();
@@ -757,7 +760,7 @@ function DashboardContent() {
                   >
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                     <span className="hidden sm:inline">LIVE STORE</span>
-                    <Share2 size={11} className="text-[#5e5e5d] stroke-[2.5]" />
+                    <MessageSquareShareIcon size={11} className="text-[#5e5e5d] stroke-[2.5]" />
                   </button>
                   <button 
                     onClick={() => setIsGlobalSearchOpen(true)}
@@ -1248,8 +1251,7 @@ function DashboardContent() {
                     <div className="bg-white border border-[#efeded] rounded-sm shadow-2xs overflow-hidden text-left p-6 space-y-5">
                       <div className="flex items-center justify-between pb-3 border-b border-[#efeded]">
                         <div>
-                          <h3 className="font-[400] text-[#020302] text-[18px]">Recent Log Activity</h3>
-                          <p className="text-[11px] text-[#5e5e5d] opacity-60 mt-0.5 font-semibold">Real-time chronicle of stock operations</p>
+                          <h3 className="font-[400] text-[#020302] text-[18px]">Recent Activity</h3>
                         </div>
                         <button 
                           onClick={() => handleTabChange('Products')}

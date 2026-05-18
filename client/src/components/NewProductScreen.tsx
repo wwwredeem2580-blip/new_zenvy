@@ -17,7 +17,8 @@ import {
   Globe,
   Tag,
   Eye,
-  AlertCircle
+  AlertCircle,
+  ChevronLeft
 } from 'lucide-react';
 import { PHONE_MODELS, BRANDS, COLORS, RAM_OPTIONS, STORAGE_OPTIONS } from '@/data/constants';
 import { ProductVariant, ProductFormData } from '@/types/zenvy';
@@ -267,7 +268,13 @@ export default function NewProductScreen({
       
       {/* breadcrumbs header */}
       <header className="fixed top-0 z-40 bg-white flex justify-between items-center w-full px-6 py-4 md:px-12 h-[54px] md:h-[64px] border-b border-[#c7c7bf]">
-        <div className="flex justify-end w-full gap-4">
+        <div className="flex justify-between w-full gap-4">
+          <button 
+            onClick={onBack}
+            className="flex items-center gap-2 h-[38px] transition-colors text-xs font-bold tracking-widest uppercase cursor-pointer"
+          >
+            <ChevronLeft size={14} /> Back
+          </button>
           <button 
             onClick={() => {
               setProductStatus('Published');
@@ -394,7 +401,7 @@ export default function NewProductScreen({
                     rows={6}
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="Describe the craftsmanship, materials, and unique flagship features..."
+                    placeholder="e.g. Good condition, original charger included, no scratches"
                     className="w-full bg-white border border-[#c7c7bf] focus:border-[#020302] focus:ring-0 px-4 py-3 text-sm font-medium rounded-lg transition-all outline-none resize-none"
                   />
                 </div>
@@ -628,7 +635,7 @@ export default function NewProductScreen({
           <div className="lg:col-span-4 space-y-8">
 
             {/* Dynamic SEO Realtime Preview Card */}
-            <div className="p-8 bg-[#f5f3f3] border border-[#c7c7bf] space-y-6">
+            {/* <div className="p-8 bg-[#f5f3f3] border border-[#c7c7bf] space-y-6">
               <div className="flex justify-between items-center">
                 <h3 className="text-xs font-bold text-[#020302] uppercase tracking-widest">SEO Preview</h3>
                 <span className="text-[10px] font-bold text-[#5e5e5d] uppercase flex items-center gap-1"><Globe size={11} /> Live</span>
@@ -644,7 +651,7 @@ export default function NewProductScreen({
                   {formData.description || "The description of your product will appear here in search engine results once you publish it..."}
                 </p>
               </div>
-            </div>
+            </div> */}
 
             {/* Low stock alert alert threshold setting */}
             <div className="p-8 bg-[#f5f3f3] border border-[#c7c7bf] space-y-4">
