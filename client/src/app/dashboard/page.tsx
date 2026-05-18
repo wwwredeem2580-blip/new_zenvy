@@ -1309,13 +1309,13 @@ function DashboardContent() {
                       </button>
                     </div>
 
-                    {/* Mobile Search Bar */}
-                    <div className="md:hidden relative w-full mb-2">
-                      <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#5e5e5d] opacity-60" />
+                    {/* Search Bar - Moat Typo Tolerant Quick Filter */}
+                    <div className="relative w-full max-w-md mb-6">
+                      <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5e5e5d] opacity-60" />
                       <input 
                         type="text" 
-                        placeholder="Search products..." 
-                        className="w-full bg-[#f5f3f3] border-none rounded-sm py-2.5 pl-10 pr-4 text-xs font-semibold text-[#020302] placeholder-[#5e5e5d]/60 focus:outline-none focus:ring-1 focus:ring-[#efeded]"
+                        placeholder="Search model, brand, color, storage (e.g. 'blue 256')..." 
+                        className="w-full bg-[#f5f3f3] border-none rounded-sm py-3 pl-10 pr-4 text-xs font-semibold text-[#020302] placeholder-[#5e5e5d]/60 focus:outline-none focus:ring-1 focus:ring-[#efeded] font-sans"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                       />
@@ -1379,13 +1379,53 @@ function DashboardContent() {
                           }
                           return true;
                         })
-                        .filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()) || p.brand?.toLowerCase().includes(searchTerm.toLowerCase()))
+                        .filter(p => {
+                          if (!searchTerm.trim()) return true;
+                          const query = searchTerm.toLowerCase();
+                          const keywords = query.split(/\s+/).filter(Boolean);
+                          
+                          const isFuzzyMatch = (target: string, kw: string) => {
+                            target = target.toLowerCase();
+                            kw = kw.toLowerCase();
+                            if (target.includes(kw) || kw.includes(target)) return true;
+                            if (kw.length >= 3) {
+                              let dist = 0;
+                              let i = 0, j = 0;
+                              while (i < target.length && j < kw.length) {
+                                if (target[i] !== kw[j]) {
+                                  dist++;
+                                  if (dist > 1) return false;
+                                  if (target[i+1] === kw[j]) i++;
+                                  else if (target[i] === kw[j+1]) j++;
+                                  else { i++; j++; }
+                                } else {
+                                  i++; j++;
+                                }
+                              }
+                              dist += (target.length - i) + (kw.length - j);
+                              return dist <= 1;
+                            }
+                            return false;
+                          };
+
+                          return keywords.every(kw => {
+                            const brandMatch = p.brand && isFuzzyMatch(p.brand, kw);
+                            const nameMatch = isFuzzyMatch(p.name, kw);
+                            const variantMatch = p.variants?.some(v => 
+                              isFuzzyMatch(v.color, kw) ||
+                              isFuzzyMatch(v.ram, kw) ||
+                              isFuzzyMatch(v.storage, kw) ||
+                              (v.sku && isFuzzyMatch(v.sku, kw))
+                            );
+                            return brandMatch || nameMatch || variantMatch;
+                          });
+                        })
                         .map((product) => (
                           <motion.div 
                             key={product.id}
                             initial={{ opacity: 0, y: 8 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="bg-white border border-[#efeded] p-6 flex flex-col md:flex-row gap-8 items-start group hover:border-black transition-all duration-350 shadow-2xs hover:shadow-xs"
+                            className="bg-white border border-[#efeded] p-6 flex flex-col md:flex-row gap-8 items-start group hover:border-black transition-all duration-350 shadow-2xs hover:shadow-xs animate-none"
                           >
                             {/* Product Image Thumbnail */}
                             <div className="w-full md:w-32 h-32 bg-[#f5f3f3] flex items-center justify-center overflow-hidden border border-[#efeded] flex-shrink-0">
@@ -1397,93 +1437,119 @@ function DashboardContent() {
                             </div>
 
                             {/* Details layout */}
-                            <div className="flex-1 flex flex-col md:flex-row justify-between w-full gap-6">
-                              <div className="space-y-1.5 text-left">
-                                <span className="text-[9px] uppercase tracking-[0.2em] font-bold text-neutral-400">
-                                  {product.brand || 'Smartphone'}
-                                </span>
-                                <h3 className="text-[17px] font-light text-black tracking-tight leading-snug group-hover:text-[#5438ff] transition-colors">
-                                  {product.name}
-                                </h3>
-                                <p className="text-black font-semibold text-sm">
-                                  {(() => {
-                                    const prices = product.variants?.map(v => v.sellingPrice) || [];
-                                    if (prices.length === 0) return 'MSRP N/A';
-                                    const min = Math.min(...prices);
-                                    const max = Math.max(...prices);
-                                    return min === max ? `৳${min.toLocaleString()}` : `৳${min.toLocaleString()} - ৳${max.toLocaleString()}`;
-                                  })()}
-                                </p>
-                              </div>
-
-                              <div className="flex-1 max-w-md text-left">
-                                <p className="text-[9px] uppercase tracking-widest font-bold text-neutral-400 mb-3">Variants & Stock</p>
-                                <div className="flex flex-wrap gap-2">
-                                  {product.variants && product.variants.length > 0 ? (
-                                    product.variants.map((variant) => {
-                                      const threshold = product.lowStockThreshold || 4;
-                                      const isOutOfStock = variant.quantity === 0;
-                                      const isLowStock = variant.quantity > 0 && variant.quantity <= threshold;
-
-                                      return (
-                                        <span 
-                                          key={variant.id} 
-                                          className={`px-3 py-1 text-[11px] font-medium border transition-all
-                                            ${isOutOfStock 
-                                              ? 'bg-[#f5f3f3] border-[#efeded] text-neutral-400 opacity-55 italic' 
-                                              : isLowStock 
-                                                ? 'bg-amber-50 border-amber-200 text-amber-700 font-semibold' 
-                                                : 'bg-[#f5f3f3] border-[#efeded] text-neutral-800'}`}
-                                        >
-                                          {variant.color} {variant.ram.replace('GB', '')}/{variant.storage.replace('GB', '')} ({variant.quantity})
-                                        </span>
-                                      );
-                                    })
-                                  ) : (
-                                    (() => {
+                            <div className="flex-1 flex flex-col justify-between w-full min-w-0">
+                              <div className="flex flex-col lg:flex-row justify-between gap-6 items-start w-full">
+                                {/* Left part: Product Brand, Name, Stock, and Price */}
+                                <div className="space-y-1 text-left min-w-0 flex-1">
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <span className="text-[9px] uppercase tracking-[0.2em] font-bold text-neutral-400">
+                                      {product.brand || 'Smartphone'}
+                                    </span>
+                                    <span className="text-neutral-300 text-xs">•</span>
+                                    {/* Stock Badge */}
+                                    {(() => {
                                       const threshold = product.lowStockThreshold || 4;
                                       const isOutOfStock = product.stock === 0;
                                       const isLowStock = product.stock > 0 && product.stock <= threshold;
 
-                                      return (
-                                        <span 
-                                          className={`px-3 py-1 text-[11px] font-medium border rounded-sm transition-all
-                                            ${isOutOfStock 
-                                              ? 'bg-[#f5f3f3] border-[#efeded] text-neutral-400 opacity-55 italic' 
-                                              : isLowStock 
-                                                ? 'bg-rose-50 border-rose-250 text-rose-700 font-semibold' 
-                                                : 'bg-[#f5f3f3] border-[#efeded] text-neutral-800'}`}
-                                        >
-                                          Total Stock ({product.stock})
-                                        </span>
-                                      );
-                                    })()
-                                  )}
+                                      if (isOutOfStock) {
+                                        return <span className="text-[11px] font-bold text-rose-600 flex items-center gap-1 font-sans">🔴 Out of stock</span>;
+                                      } else if (isLowStock) {
+                                        return <span className="text-[11px] font-bold text-amber-600 flex items-center gap-1 font-sans">🟠 Low stock</span>;
+                                      } else {
+                                        return <span className="text-[11px] font-bold text-emerald-600 flex items-center gap-1 font-sans">🟢 {product.stock} in stock</span>;
+                                      }
+                                    })()}
+                                  </div>
+
+                                  <h3 className="text-[17px] font-bold text-black tracking-tight leading-snug font-sans truncate">
+                                    {product.name}
+                                  </h3>
+                                  
+                                  <p className="text-black font-extrabold text-base tracking-tight font-sans mt-1">
+                                    {(() => {
+                                      const prices = product.variants?.map(v => v.sellingPrice) || [];
+                                      if (prices.length === 0) return '৳ MSRP N/A';
+                                      const min = Math.min(...prices);
+                                      const max = Math.max(...prices);
+                                      const minK = min >= 1000 ? `${(min / 1000).toFixed(0)}k` : min.toLocaleString();
+                                      const maxK = max >= 1000 ? `${(max / 1000).toFixed(0)}k` : max.toLocaleString();
+                                      return min === max ? `৳${minK}` : `৳${minK} – ৳${maxK}`;
+                                    })()}
+                                  </p>
+                                </div>
+
+                                {/* Right part: Variants & Stock (Accordion / Badges) */}
+                                <div className="flex-1 max-w-md w-full text-left">
+                                  <p className="text-[9px] uppercase tracking-widest font-bold text-neutral-400 mb-2 font-sans">Variants & Stock</p>
+                                  <div className="flex flex-wrap gap-1.5">
+                                    {product.variants && product.variants.length > 0 ? (
+                                      product.variants.map((variant) => {
+                                        const threshold = product.lowStockThreshold || 4;
+                                        const isOutOfStock = variant.quantity === 0;
+                                        const isLowStock = variant.quantity > 0 && variant.quantity <= threshold;
+
+                                        return (
+                                          <span 
+                                            key={variant.id} 
+                                            className={`px-2.5 py-0.5 text-[11px] font-medium border transition-all font-sans
+                                              ${isOutOfStock 
+                                                ? 'bg-[#f5f3f3] border-[#efeded] text-neutral-400 opacity-55 italic' 
+                                                : isLowStock 
+                                                  ? 'bg-amber-50 border-amber-200 text-amber-700 font-semibold' 
+                                                  : 'bg-[#f5f3f3] border-[#efeded] text-neutral-800'}`}
+                                          >
+                                            {variant.color} {variant.ram.replace('GB', '')}/{variant.storage.replace('GB', '')} ({variant.quantity})
+                                          </span>
+                                        );
+                                      })
+                                    ) : (
+                                      (() => {
+                                        const threshold = product.lowStockThreshold || 4;
+                                        const isOutOfStock = product.stock === 0;
+                                        const isLowStock = product.stock > 0 && product.stock <= threshold;
+
+                                        return (
+                                          <span 
+                                            className={`px-2.5 py-0.5 text-[11px] font-medium border rounded-sm transition-all font-sans
+                                              ${isOutOfStock 
+                                                ? 'bg-[#f5f3f3] border-[#efeded] text-neutral-400 opacity-55 italic' 
+                                                : isLowStock 
+                                                  ? 'bg-rose-50 border-rose-250 text-rose-700 font-semibold' 
+                                                  : 'bg-[#f5f3f3] border-[#efeded] text-neutral-800'}`}
+                                          >
+                                            Total Stock ({product.stock})
+                                          </span>
+                                        );
+                                      })()
+                                    )}
+                                  </div>
                                 </div>
                               </div>
 
-                              <div className="flex md:flex-col gap-2 justify-end items-stretch md:w-32">
-                                <button 
-                                  onClick={() => setPreviewingProduct(product)}
-                                  className="text-[9px] font-bold uppercase tracking-widest border-[1.85px] border-[#777776] px-4 py-2 hover:bg-black hover:text-white hover:border-black transition-all cursor-pointer text-center"
-                                >
-                                  Preview
-                                </button>
-                                <button 
-                                  onClick={() => router.push(`/dashboard/products/edit?id=${product.id}`)}
-                                  className="text-[9px] font-bold uppercase tracking-widest border border-gray-400 px-4 py-2 hover:bg-black hover:text-white hover:border-black transition-all cursor-pointer text-center"
-                                >
-                                  Modify
-                                </button>
+                              {/* Action Row */}
+                              <div className="flex flex-wrap gap-2.5 mt-4 pt-4 border-t border-[#efeded] w-full">
                                 <button 
                                   onClick={() => handleMarkAsSoldClick(product)}
                                   disabled={product.stock === 0}
-                                  className={`text-[9px] flex gap-2 items-center border-[1.85px] border-[#ba1a1a] font-bold uppercase tracking-widest transition-colors py-2 px-3 text-center cursor-pointer
+                                  className={`text-[11px] font-bold uppercase tracking-wider px-6 py-2 transition-all duration-200 cursor-pointer active:scale-97 rounded-xs font-sans
                                     ${product.stock === 0 
-                                      ? 'text-neutral-350 line-through cursor-not-allowed' 
-                                      : 'text-[#ba1a1a] hover:bg-[#ba1a1a] hover:text-white'}`}
+                                      ? 'bg-neutral-100 text-neutral-450 border border-neutral-200 cursor-not-allowed line-through' 
+                                      : 'bg-[#020302] hover:bg-neutral-800 text-white shadow-2xs'}`}
                                 >
-                                  Mark Sold <CheckSquare size={14} strokeWidth={1}/>
+                                  Sell
+                                </button>
+                                <button 
+                                  onClick={() => router.push(`/dashboard/products/edit?id=${product.id}`)}
+                                  className="bg-white hover:bg-neutral-50 text-[#020302] border border-[#efeded] text-[11px] font-bold uppercase tracking-wider px-5 py-2 transition-all duration-200 cursor-pointer active:scale-97 shadow-2xs rounded-xs font-sans"
+                                >
+                                  Add Stock
+                                </button>
+                                <button 
+                                  onClick={() => router.push(`/dashboard/products/edit?id=${product.id}`)}
+                                  className="bg-white hover:bg-neutral-50 text-[#020302] border border-[#efeded] text-[11px] font-bold uppercase tracking-wider px-5 py-2 transition-all duration-200 cursor-pointer active:scale-97 shadow-2xs rounded-xs font-sans"
+                                >
+                                  Manage
                                 </button>
                               </div>
                             </div>
