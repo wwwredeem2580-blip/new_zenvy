@@ -32,6 +32,7 @@ interface ProductDetailsScreenProps {
     logType: 'add' | 'sell'
   ) => void;
   onDeleteProduct: (productId: number | string) => void;
+  autoScrollToVariants?: boolean;
 }
 
 export default function ProductDetailsScreen({
@@ -39,9 +40,20 @@ export default function ProductDetailsScreen({
   onBack,
   onEdit,
   onUpdateStock,
-  onDeleteProduct
+  onDeleteProduct,
+  autoScrollToVariants = false
 }: ProductDetailsScreenProps) {
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const variantsRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (autoScrollToVariants && variantsRef.current) {
+      const timer = setTimeout(() => {
+        variantsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 350); // delay slightly to allow container transition to complete
+      return () => clearTimeout(timer);
+    }
+  }, [autoScrollToVariants]);
 
   // Extract unique colors available
   const uniqueColors = Array.from(new Set(product.variants?.map(v => v.color) || []));
@@ -227,7 +239,7 @@ export default function ProductDetailsScreen({
           </div>
 
           {/* Manage Variants */}
-          <section className="mt-16">
+          <section className="mt-16" ref={variantsRef}>
             <div className="flex justify-between items-center mb-8">
               <h2 className="font-medium text-xl text-[#020302] font-sans">Manage Variants</h2>
               <button className="text-[12px] leading-[1.4] tracking-[0.04em] font-normal text-[#020302] border-b-2 border-[#020302] hover:text-[#5e5e5d] hover:border-[#5e5e5d] transition-all pb-1 font-sans cursor-pointer">

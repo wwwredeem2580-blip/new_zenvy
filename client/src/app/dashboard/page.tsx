@@ -126,6 +126,7 @@ function DashboardContent() {
   const [globalSearchQuery, setGlobalSearchQuery] = useState('');
   const [activeProductFilter, setActiveProductFilter] = useState('All');
   const [previewingProduct, setPreviewingProduct] = useState<Product | null>(null);
+  const [autoScrollVariants, setAutoScrollVariants] = useState(false);
   const [showSuccessOverlay, setShowSuccessOverlay] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
@@ -598,6 +599,7 @@ function DashboardContent() {
         {previewingProduct ? (
           <ProductDetailsScreen 
             product={previewingProduct}
+            autoScrollToVariants={autoScrollVariants}
             onBack={() => setPreviewingProduct(null)}
             onEdit={(prod) => {
               router.push(`/dashboard/products/edit?id=${prod.id}`);
@@ -1414,7 +1416,10 @@ function DashboardContent() {
                             key={product.id}
                             initial={{ opacity: 0, y: 8 }}
                             animate={{ opacity: 1, y: 0 }}
-                            onClick={() => setPreviewingProduct(product)}
+                            onClick={() => {
+                              setPreviewingProduct(product);
+                              setAutoScrollVariants(false);
+                            }}
                             className="bg-white border border-[#efeded] p-4 flex flex-col md:flex-row gap-8 items-start group hover:border-black transition-all duration-350 shadow-2xs hover:shadow-xs animate-none cursor-pointer"
                           >
                             {/* Product Image Thumbnail */}
@@ -1530,7 +1535,11 @@ function DashboardContent() {
                                   Sell
                                 </button>
                                 <button 
-                                  onClick={() => router.push(`/dashboard/products/edit?id=${product.id}`)}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setPreviewingProduct(product);
+                                    setAutoScrollVariants(true);
+                                  }}
                                   className="bg-white hover:bg-neutral-50 text-[#020302] border border-[#efeded] text-[11px] font-bold uppercase tracking-wider px-5 py-2 transition-all duration-200 cursor-pointer active:scale-97 shadow-2xs rounded-xs font-sans"
                                 >
                                   + Stock
