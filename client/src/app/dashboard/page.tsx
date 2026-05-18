@@ -1979,7 +1979,7 @@ function DashboardContent() {
             </main>
 
             {/* Mobile Footer Navigation */}
-            <div className="lg:hidden bg-white border-t border-[#efeded] px-6 py-3 flex items-center justify-between sticky bottom-0 w-full z-10 shadow-[0_-4px_24px_rgba(0,0,0,0.02)]">
+            <div className="lg:hidden bg-white border-t border-[#efeded] px-6 py-3 flex items-center justify-between fixed bottom-0 w-full z-10 shadow-[0_-4px_24px_rgba(0,0,0,0.02)]">
               <button 
                 onClick={() => setActiveTab('Home')}
                 className={`flex flex-col items-center gap-1 transition-all cursor-pointer ${
