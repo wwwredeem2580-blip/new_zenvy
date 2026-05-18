@@ -53,21 +53,22 @@ export const generateBrandedInvoicePDF = (receipt: InvoiceData) => {
 
   // --- 1. Elegant Minimalist Header with Branding Logo ---
   try {
-    doc.addImage('/logo.png', 'PNG', 15, 14, 10, 10);
+    doc.addImage('/logo.png', 'PNG', 15, 12, 10, 10);
   } catch (e) {
     console.warn("Zenvy logo image load failed, continuing without image logo", e);
   }
 
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(18); // Smaller and sharper
+  // Shop Name: Lightweight but large font size, placed on a new line below logo
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(22);
   doc.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
-  doc.text(receipt.shopName, 27, 22);
+  doc.text(receipt.shopName, 15, 30);
   
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8.5); // Thinner, sharper
   doc.setTextColor(greyColor[0], greyColor[1], greyColor[2]);
-  doc.text("Premium Smartphone Distribution Outlet", 15, 31);
-  doc.text("Dhaka, Bangladesh  |  zenvy.com.bd", 15, 35.5);
+  doc.text("Premium Smartphone Distribution Outlet", 15, 36);
+  doc.text("Dhaka, Bangladesh  |  zenvy.com.bd", 15, 40.5);
 
   // Invoice Details (Right Aligned - Elegant Normal weight)
   doc.setFont("helvetica", "normal"); // Thinner, luxury aesthetic
@@ -83,7 +84,7 @@ export const generateBrandedInvoicePDF = (receipt: InvoiceData) => {
   doc.text(`Status: PAID`, 195, 37, { align: "right" });
 
   // --- 2. Billed To Block (Generous Spacing) ---
-  let metaY = 54;
+  let metaY = 56;
   
   // Left Column: Issued To
   doc.setFont("helvetica", "bold");
