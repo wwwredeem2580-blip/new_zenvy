@@ -51,11 +51,17 @@ export const generateBrandedInvoicePDF = (receipt: InvoiceData) => {
   const greyColor = [100, 100, 105]; // Slate grey
   const lightBorder = [221, 221, 221]; // #dddddd dividers
 
-  // --- 1. Elegant Minimalist Header ---
-  doc.setFont("times", "bold");
+  // --- 1. Elegant Minimalist Header with Branding Logo ---
+  try {
+    doc.addImage('/logo.png', 'PNG', 15, 14, 10, 10);
+  } catch (e) {
+    console.warn("Zenvy logo image load failed, continuing without image logo", e);
+  }
+
+  doc.setFont("helvetica", "bold");
   doc.setFontSize(20);
-  doc.setTextColor(68, 68, 68);
-  doc.text(`${receipt.shopName}.`, 15, 26);
+  doc.setTextColor(darkColor[0], darkColor[1], darkColor[2]);
+  doc.text(receipt.shopName, 28, 22.5);
   
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9.5);

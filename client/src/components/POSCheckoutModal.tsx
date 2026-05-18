@@ -722,14 +722,19 @@ export default function POSCheckoutModal({
                 {/* Digital Ticket Section */}
                 <div className="w-full max-w-md bg-white border border-[#c7c7bf] p-6 sm:p-8 mb-8 relative overflow-hidden text-left shadow-[0_4px_24px_rgba(0,0,0,0.04)] rounded-lg">
                   {/* Branding */}
-                  <div className="flex justify-between items-start mb-6">
-                    <div className="space-y-0.5">
-                      <h2 className="text-xs sm:text-[14px] font-bold text-[#020302] uppercase tracking-widest">{posSuccessData.shopName || "Zenvy Store"}</h2>
-                      <p className="text-[10px] sm:text-xs text-[#5e5e5d]">STOCKNET POS TICKET</p>
+                  <div className="flex justify-between items-center mb-6">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-neutral-100 flex items-center justify-center border border-[#c7c7bf] p-1 overflow-hidden shrink-0">
+                        <img src="/logo.png" alt="Zenvy Logo" className="w-full h-full object-contain" />
+                      </div>
+                      <div className="space-y-0.5">
+                        <h2 className="text-xs sm:text-[14px] font-bold text-[#020302] uppercase tracking-widest font-sans">{posSuccessData.shopName || "Zenvy Store"}</h2>
+                        <p className="text-[10px] sm:text-xs text-[#5e5e5d] font-sans">STOCKNET POS TICKET</p>
+                      </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-[10px] sm:text-xs text-[#5e5e5d]">Invoice No</p>
-                      <p className="text-xs sm:text-[14px] font-medium text-[#020302]">{posSuccessData.invoiceNumber}</p>
+                      <p className="text-[10px] sm:text-xs text-[#5e5e5d] font-sans">Invoice No</p>
+                      <p className="text-xs sm:text-[14px] font-medium text-[#020302] font-sans">{posSuccessData.invoiceNumber}</p>
                     </div>
                   </div>
 
