@@ -20,7 +20,8 @@ import {
   SlidersHorizontal,
   Home,
   Package,
-  User
+  User,
+  X
 } from 'lucide-react';
 import { Product } from '@/types/zenvy';
 
@@ -34,6 +35,7 @@ export default function PublicShopCard() {
   const [selectedBrand, setSelectedBrand] = useState('All');
   const [likedProducts, setLikedProducts] = useState<Record<string, boolean>>({});
   const [activeBottomNav, setActiveBottomNav] = useState('Home');
+  const [inquiryProduct, setInquiryProduct] = useState<Product | null>(null);
 
   // Hydrate states from localStorage on public view mount
   useEffect(() => {
@@ -495,6 +497,107 @@ export default function PublicShopCard() {
           <span className="text-[9.5px] font-light leading-none">Profile</span>
         </button>
       </div> */}
+      {/* 9. Symmetrical Variant Selection Inquiry Modal (Exactly as Requested!) */}
+      <AnimatePresence>
+        {inquiryProduct && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop Blur */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setInquiryProduct(null)}
+              className="absolute inset-0 bg-[#020302]/60 backdrop-blur-md"
+            />
+            
+            {/* Modal Body */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ duration: 0.15, ease: "easeOut" }}
+              className="relative w-full max-w-sm bg-white border-2 border-black p-6 flex flex-col gap-4.5 shadow-[8px_8px_0px_rgba(0,0,0,1)] z-10 text-left rounded-none"
+            >
+              {/* Header */}
+              <div className="flex justify-between items-start">
+                <div className="space-y-1">
+                  <p className="text-[10px] font-bold text-[#5e5e5d] uppercase tracking-widest leading-none">
+                    {inquiryProduct.brand}
+                  </p>
+                  <h3 className="text-lg font-bold text-[#020302] tracking-tight leading-snug">
+                    {inquiryProduct.name}
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setInquiryProduct(null)}
+                  className="p-1 hover:bg-gray-100 rounded-full transition-colors text-gray-500 hover:text-black cursor-pointer"
+                >
+                  <X size={16} className="stroke-[2.5]" />
+                </button>
+              </div>
+
+              {/* Title Section */}
+              <div className="space-y-1">
+                <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest leading-none">
+                  Select Variant to Inquire
+                </p>
+                <p className="text-[12px] text-gray-500 font-light leading-relaxed">
+                  Choose the specific variant you wish to ask about on WhatsApp:
+                </p>
+              </div>
+
+              {/* Variants List */}
+              <div className="flex flex-col gap-2.5 max-h-[250px] overflow-y-auto pr-1">
+                {inquiryProduct.variants?.map((variant) => {
+                  const hasStock = variant.quantity > 0;
+                  return (
+                    <a
+                      key={variant.id}
+                      href={getWhatsAppInquiryLink(inquiryProduct, variant)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => setInquiryProduct(null)}
+                      className={`flex items-center justify-between p-3.5 border border-gray-200 hover:border-black bg-white hover:bg-gray-50 transition-all group ${
+                        !hasStock ? "opacity-40 pointer-events-none" : ""
+                      }`}
+                    >
+                      <div className="flex flex-col gap-1 text-left">
+                        <span className="text-[13.5px] font-bold text-black leading-none">
+                          {variant.color} · {variant.ram.replace('GB', '')}/{variant.storage.replace('GB', '')}
+                        </span>
+                        <div className="flex items-center gap-1.5 mt-1 leading-none">
+                          <span className="text-[12.5px] font-bold text-black">
+                            ৳{variant.sellingPrice.toLocaleString()}
+                          </span>
+                          <span className="text-gray-300 text-[10px]">|</span>
+                          {variant.quantity <= 3 ? (
+                            <span className="text-[9.5px] font-bold text-[#ba1a1a]">
+                              Only {variant.quantity} left
+                            </span>
+                          ) : (
+                            <span className="text-[9.5px] font-semibold text-[#22c55e]">
+                              In Stock ({variant.quantity})
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="w-8 h-8 rounded-full bg-[#f6f6f7] group-hover:bg-[#22c55e] flex items-center justify-center text-gray-500 group-hover:text-white transition-all">
+                        <MessageCircle size={14} className="fill-current stroke-none" />
+                      </div>
+                    </a>
+                  );
+                })}
+              </div>
+
+              {/* Footer Notice */}
+              <div className="pt-3 border-t border-gray-100 flex items-center gap-2 text-[10.5px] text-gray-400 font-light">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#22c55e] animate-pulse"></span>
+                Instantly opens WhatsApp with dynamic pre-filled text.
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
